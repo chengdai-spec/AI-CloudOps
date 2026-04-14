@@ -44,7 +44,6 @@ import (
 type WebhookConsumer interface {
 	// AlertReceiveConsumerManager 管理告警接收的消费者
 	AlertReceiveConsumerManager(ctx context.Context) error
-	// HandleAlert 处理单个告警接收
 	HandleAlert(ctx context.Context, alert template.Alert)
 }
 
@@ -90,7 +89,6 @@ func (wc *webhookConsumer) AlertReceiveConsumerManager(ctx context.Context) erro
 	}
 }
 
-// HandleAlert 处理单个告警接收
 func (wc *webhookConsumer) HandleAlert(ctx context.Context, alert template.Alert) {
 	// 提取 send_group_id
 	sendGroupIDStr, exists := alert.Labels["alert_send_group"]
@@ -135,7 +133,6 @@ func (wc *webhookConsumer) HandleAlert(ctx context.Context, alert template.Alert
 		return
 	}
 
-	// 从缓存中获取用户信息
 	createUser := wc.cache.GetUserById(sendGroup.UserID)
 	if createUser == nil {
 		wc.logger.Info("缓存中不存在对应的用户",
@@ -145,7 +142,6 @@ func (wc *webhookConsumer) HandleAlert(ctx context.Context, alert template.Alert
 		return
 	}
 
-	// 从缓存中获取规则
 	rule := wc.cache.GetRuleById(ruleID)
 	if rule == nil {
 		wc.logger.Info("缓存中不存在对应的规则",
@@ -169,7 +165,6 @@ func (wc *webhookConsumer) HandleAlert(ctx context.Context, alert template.Alert
 		upgradeNeed = true
 	}
 
-	// 确定告警事件状态
 	var status model.MonitorAlertEventStatus
 	if upgradeNeed {
 		status = model.MonitorAlertEventStatusUpgraded
@@ -200,7 +195,6 @@ func (wc *webhookConsumer) HandleAlert(ctx context.Context, alert template.Alert
 		SendGroupID: sendGroupID,
 	}
 
-	// 创建或更新事件
 	if err := wc.dao.CreateOrUpdateEvent(ctx, event); err != nil {
 		wc.logger.Error("创建或更新 MonitorAlertEvent 失败",
 			zap.Error(err),
@@ -210,7 +204,6 @@ func (wc *webhookConsumer) HandleAlert(ctx context.Context, alert template.Alert
 		return
 	}
 
-	// 获取更新后的事件
 	updatedEvent, err := wc.dao.GetMonitorAlertEventByFingerprintId(ctx, alert.Fingerprint)
 	if err != nil {
 		wc.logger.Error("查询 MonitorAlertEvent 失败",
@@ -220,7 +213,6 @@ func (wc *webhookConsumer) HandleAlert(ctx context.Context, alert template.Alert
 		return
 	}
 
-	// 生成飞书卡片内容
 	if err := wc.content.GenerateFeishuCardContentOneAlert(ctx, alert, updatedEvent, rule, sendGroup); err != nil {
 		wc.logger.Error("生成飞书卡片内容失败",
 			zap.Error(err),

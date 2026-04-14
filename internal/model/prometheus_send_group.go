@@ -25,7 +25,6 @@
 
 package model
 
-// MonitorSendGroup 发送组的配置
 type MonitorSendGroup struct {
 	Model
 	Name                   string     `json:"name" binding:"required,min=1,max=50" gorm:"size:100;not null;comment:发送组英文名称"`
@@ -53,7 +52,6 @@ func (m *MonitorSendGroup) TableName() string {
 	return "cl_monitor_send_groups"
 }
 
-// CreateMonitorSendGroupReq 创建发送组请求
 type CreateMonitorSendGroupReq struct {
 	Name                string     `json:"name" binding:"required,min=1,max=50"`
 	NameZh              string     `json:"name_zh" binding:"required,min=1,max=50"`
@@ -73,7 +71,6 @@ type CreateMonitorSendGroupReq struct {
 	CreateUserName      string     `json:"create_user_name"`
 }
 
-// UpdateMonitorSendGroupReq 更新发送组请求
 type UpdateMonitorSendGroupReq struct {
 	ID                  int        `json:"id" form:"id" binding:"required"`
 	Name                string     `json:"name" binding:"required,min=1,max=50"`
@@ -92,17 +89,14 @@ type UpdateMonitorSendGroupReq struct {
 	SecondUpgradeUsers  []*User    `json:"second_upgrade_users"`
 }
 
-// DeleteMonitorSendGroupReq 删除发送组请求
 type DeleteMonitorSendGroupReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }
 
-// GetMonitorSendGroupReq 获取发送组请求
 type GetMonitorSendGroupReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }
 
-// GetMonitorSendGroupListReq 获取发送组列表请求
 type GetMonitorSendGroupListReq struct {
 	ListReq
 	PoolID        *int  `json:"pool_id" form:"pool_id"`

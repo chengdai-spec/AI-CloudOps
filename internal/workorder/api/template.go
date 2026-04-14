@@ -54,7 +54,6 @@ func (h *TemplateHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateTemplate 创建模板
 func (h *TemplateHandler) CreateTemplate(ctx *gin.Context) {
 	var req model.CreateWorkorderTemplateReq
 
@@ -63,11 +62,10 @@ func (h *TemplateHandler) CreateTemplate(ctx *gin.Context) {
 	req.OperatorName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.CreateTemplate(ctx, &req)
+		return nil, h.service.CreateTemplate(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateTemplate 更新模板
 func (h *TemplateHandler) UpdateTemplate(ctx *gin.Context) {
 	var req model.UpdateWorkorderTemplateReq
 
@@ -80,11 +78,10 @@ func (h *TemplateHandler) UpdateTemplate(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.UpdateTemplate(ctx, &req)
+		return nil, h.service.UpdateTemplate(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteTemplate 删除模板
 func (h *TemplateHandler) DeleteTemplate(ctx *gin.Context) {
 	var req model.DeleteWorkorderTemplateReq
 	id, err := base.GetParamID(ctx)
@@ -96,20 +93,18 @@ func (h *TemplateHandler) DeleteTemplate(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteTemplate(ctx, &req)
+		return nil, h.service.DeleteTemplate(ctx.Request.Context(), &req)
 	})
 }
 
-// ListTemplate 获取模板列表
 func (h *TemplateHandler) ListTemplate(ctx *gin.Context) {
 	var req model.ListWorkorderTemplateReq
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return h.service.ListTemplate(ctx, &req)
+		return h.service.ListTemplate(ctx.Request.Context(), &req)
 	})
 }
 
-// DetailTemplate 获取模板详情
 func (h *TemplateHandler) DetailTemplate(ctx *gin.Context) {
 	var req model.DetailWorkorderTemplateReq
 
@@ -122,6 +117,6 @@ func (h *TemplateHandler) DetailTemplate(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.DetailTemplate(ctx, &req)
+		return h.service.DetailTemplate(ctx.Request.Context(), &req)
 	})
 }

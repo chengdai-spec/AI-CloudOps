@@ -35,7 +35,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// AlertManagerOnDutyDAO 值班组数据访问接口
 type AlertManagerOnDutyDAO interface {
 	// 值班组管理
 	GetMonitorOnDutyList(ctx context.Context, req *model.GetMonitorOnDutyGroupListReq) ([]*model.MonitorOnDutyGroup, int64, error)
@@ -45,7 +44,6 @@ type AlertManagerOnDutyDAO interface {
 	DeleteMonitorOnDutyGroup(ctx context.Context, id int) error
 	CheckMonitorOnDutyGroupExists(ctx context.Context, group *model.MonitorOnDutyGroup) (bool, error)
 
-	// 换班记录管理
 	CreateMonitorOnDutyGroupChange(ctx context.Context, change *model.MonitorOnDutyChange) error
 	GetMonitorOnDutyChangesByGroupAndTimeRange(ctx context.Context, groupID int, startTime, endTime string) ([]*model.MonitorOnDutyChange, int64, error)
 
@@ -75,14 +73,12 @@ func NewAlertManagerOnDutyDAO(db *gorm.DB, l *zap.Logger, userDao userDao.UserDA
 func (d *onDutyDAO) GetMonitorOnDutyList(ctx context.Context, req *model.GetMonitorOnDutyGroupListReq) ([]*model.MonitorOnDutyGroup, int64, error) {
 	query := d.buildGroupQuery(ctx, req)
 
-	// 获取总数
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		d.logger.Error("获取值班组总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 分页查询
 	var groups []*model.MonitorOnDutyGroup
 	offset := d.calculateOffset(req.Page, req.Size)
 	if err := query.Order("id DESC").
@@ -134,7 +130,6 @@ func (d *onDutyDAO) GetMonitorOnDutyGroupByID(ctx context.Context, id int) (*mod
 
 func (d *onDutyDAO) UpdateMonitorOnDutyGroup(ctx context.Context, group *model.MonitorOnDutyGroup) error {
 	return d.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// 更新基本信息
 		if err := tx.Model(group).Updates(map[string]interface{}{
 			"name":        group.Name,
 			"shift_days":  group.ShiftDays,
@@ -145,7 +140,6 @@ func (d *onDutyDAO) UpdateMonitorOnDutyGroup(ctx context.Context, group *model.M
 			return err
 		}
 
-		// 更新多对多关系
 		if err := tx.Model(group).Association("Users").Replace(group.Users); err != nil {
 			d.logger.Error("更新值班组成员关联失败", zap.Error(err))
 			return err
@@ -157,7 +151,6 @@ func (d *onDutyDAO) UpdateMonitorOnDutyGroup(ctx context.Context, group *model.M
 
 func (d *onDutyDAO) DeleteMonitorOnDutyGroup(ctx context.Context, id int) error {
 	return d.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// 获取值班组
 		var group model.MonitorOnDutyGroup
 		if err := tx.First(&group, id).Error; err != nil {
 			d.logger.Error("获取要删除的值班组失败", zap.Int("id", id), zap.Error(err))
@@ -170,19 +163,16 @@ func (d *onDutyDAO) DeleteMonitorOnDutyGroup(ctx context.Context, id int) error 
 			return err
 		}
 
-		// 删除相关的值班历史记录
 		if err := tx.Where("on_duty_group_id = ?", id).Delete(&model.MonitorOnDutyHistory{}).Error; err != nil {
 			d.logger.Error("删除值班历史记录失败", zap.Int("group_id", id), zap.Error(err))
 			return err
 		}
 
-		// 删除相关的换班记录
 		if err := tx.Where("on_duty_group_id = ?", id).Delete(&model.MonitorOnDutyChange{}).Error; err != nil {
 			d.logger.Error("删除换班记录失败", zap.Int("group_id", id), zap.Error(err))
 			return err
 		}
 
-		// 删除值班组
 		return tx.Delete(&model.MonitorOnDutyGroup{}, id).Error
 	})
 }
@@ -200,8 +190,6 @@ func (d *onDutyDAO) CheckMonitorOnDutyGroupExists(ctx context.Context, group *mo
 
 	return count > 0, err
 }
-
-// 换班记录管理方法
 
 func (d *onDutyDAO) CreateMonitorOnDutyGroupChange(ctx context.Context, change *model.MonitorOnDutyChange) error {
 	if err := d.db.WithContext(ctx).Create(change).Error; err != nil {
@@ -252,7 +240,6 @@ func (d *onDutyDAO) CreateMonitorOnDutyHistory(ctx context.Context, history *mod
 			}).Error
 	}
 
-	// 不存在则创建新记录
 	if err := d.db.WithContext(ctx).Create(history).Error; err != nil {
 		d.logger.Error("创建值班历史记录失败", zap.Error(err))
 		return err
@@ -371,7 +358,6 @@ func (d *onDutyDAO) buildHistoryQuery(ctx context.Context, req *model.GetMonitor
 		query = query.Where("date_string BETWEEN ? AND ?", req.StartDate, req.EndDate)
 	}
 
-	// 处理搜索条件
 	if req.Search != "" {
 		query = query.Where("date_string LIKE ?", "%"+req.Search+"%")
 	}

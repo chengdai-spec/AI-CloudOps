@@ -32,17 +32,23 @@ import (
 	"github.com/GoSimplicity/AI-CloudOps/pkg/jwt"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/ssh"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 type TreeLocalHandler struct {
-	service   service.TreeLocalService
-	sshClient ssh.Client
+	service    service.TreeLocalService
+	sshClient  ssh.Client
+	wsUpgrader *websocket.Upgrader
+	logger     *zap.Logger
 }
 
-func NewTreeLocalHandler(service service.TreeLocalService, sshClient ssh.Client) *TreeLocalHandler {
+func NewTreeLocalHandler(service service.TreeLocalService, sshClient ssh.Client, wsUpgrader *websocket.Upgrader, logger *zap.Logger) *TreeLocalHandler {
 	return &TreeLocalHandler{
-		service:   service,
-		sshClient: sshClient,
+		service:    service,
+		sshClient:  sshClient,
+		wsUpgrader: wsUpgrader,
+		logger:     logger,
 	}
 }
 
@@ -60,16 +66,14 @@ func (h *TreeLocalHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetTreeLocalList 获取本地资源列表
 func (h *TreeLocalHandler) GetTreeLocalList(ctx *gin.Context) {
 	var req model.GetTreeLocalResourceListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetTreeLocalList(ctx, &req)
+		return h.service.GetTreeLocalList(ctx.Request.Context(), &req)
 	})
 }
 
-// GetTreeLocalDetail 获取本地资源详情
 func (h *TreeLocalHandler) GetTreeLocalDetail(ctx *gin.Context) {
 	var req model.GetTreeLocalResourceDetailReq
 
@@ -82,11 +86,10 @@ func (h *TreeLocalHandler) GetTreeLocalDetail(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetTreeLocalDetail(ctx, &req)
+		return h.service.GetTreeLocalDetail(ctx.Request.Context(), &req)
 	})
 }
 
-// CreateTreeLocal 创建本地资源
 func (h *TreeLocalHandler) CreateTreeLocal(ctx *gin.Context) {
 	var req model.CreateTreeLocalResourceReq
 
@@ -96,11 +99,10 @@ func (h *TreeLocalHandler) CreateTreeLocal(ctx *gin.Context) {
 	req.CreateUserName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.CreateTreeLocal(ctx, &req)
+		return nil, h.service.CreateTreeLocal(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateTreeLocal 更新本地资源
 func (h *TreeLocalHandler) UpdateTreeLocal(ctx *gin.Context) {
 	var req model.UpdateTreeLocalResourceReq
 
@@ -113,11 +115,10 @@ func (h *TreeLocalHandler) UpdateTreeLocal(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateTreeLocal(ctx, &req)
+		return nil, h.service.UpdateTreeLocal(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteTreeLocal 删除本地资源
 func (h *TreeLocalHandler) DeleteTreeLocal(ctx *gin.Context) {
 	var req model.DeleteTreeLocalResourceReq
 
@@ -130,7 +131,7 @@ func (h *TreeLocalHandler) DeleteTreeLocal(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteTreeLocal(ctx, &req)
+		return nil, h.service.DeleteTreeLocal(ctx.Request.Context(), &req)
 	})
 }
 
@@ -147,7 +148,7 @@ func (h *TreeLocalHandler) ConnectTerminal(ctx *gin.Context) {
 	uc := ctx.MustGet("user").(jwt.UserClaims)
 	req.ID = id
 
-	ld, err := h.service.GetTreeLocalForConnection(ctx, &req)
+	ld, err := h.service.GetTreeLocalForConnection(ctx.Request.Context(), &req)
 	if err != nil {
 		base.ErrorWithMessage(ctx, "获取主机信息失败: "+err.Error())
 		return
@@ -176,13 +177,22 @@ func (h *TreeLocalHandler) ConnectTerminal(ctx *gin.Context) {
 		return
 	}
 
+	if h.wsUpgrader == nil {
+		base.ErrorWithMessage(ctx, "WebSocket升级器未初始化")
+		return
+	}
+
 	// 升级WebSocket连接
-	ws, err := ssh.UpGrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	ws, err := h.wsUpgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		base.ErrorWithMessage(ctx, "升级WebSocket连接失败: "+err.Error())
 		return
 	}
-	defer ws.Close()
+	defer func() {
+		if closeErr := ws.Close(); closeErr != nil {
+			h.logger.Error("关闭WebSocket连接失败", zap.Error(closeErr))
+		}
+	}()
 
 	// 启动终端会话
 	if err := h.sshClient.WebTerminal(uc.Uid, ws); err != nil {
@@ -191,7 +201,6 @@ func (h *TreeLocalHandler) ConnectTerminal(ctx *gin.Context) {
 	}
 }
 
-// BindTreeLocal 绑定本地资源
 func (h *TreeLocalHandler) BindTreeLocal(ctx *gin.Context) {
 	var req model.BindTreeLocalResourceReq
 
@@ -204,12 +213,11 @@ func (h *TreeLocalHandler) BindTreeLocal(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.BindTreeLocal(ctx, &req)
+		return nil, h.service.BindTreeLocal(ctx.Request.Context(), &req)
 	})
 
 }
 
-// UnbindTreeLocal 解绑本地资源
 func (h *TreeLocalHandler) UnbindTreeLocal(ctx *gin.Context) {
 	var req model.UnBindTreeLocalResourceReq
 
@@ -222,6 +230,6 @@ func (h *TreeLocalHandler) UnbindTreeLocal(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UnBindLocalResource(ctx, &req)
+		return nil, h.service.UnBindLocalResource(ctx.Request.Context(), &req)
 	})
 }

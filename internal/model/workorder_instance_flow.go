@@ -53,7 +53,6 @@ func (WorkorderInstanceFlow) TableName() string {
 	return "cl_workorder_instance_flow"
 }
 
-// CreateWorkorderInstanceFlowReq 创建工单流转记录请求
 type CreateWorkorderInstanceFlowReq struct {
 	InstanceID     int    `json:"instance_id" binding:"required,min=1"`
 	Action         string `json:"action" binding:"required,oneof=submit approve reject assign cancel complete return"`
@@ -65,7 +64,6 @@ type CreateWorkorderInstanceFlowReq struct {
 	IsSystemAction int8   `json:"is_system_action" binding:"omitempty,oneof=1 2"`
 }
 
-// ListWorkorderInstanceFlowReq 工单流转记录列表请求
 type ListWorkorderInstanceFlowReq struct {
 	ListReq
 	InstanceID     *int    `json:"instance_id" form:"instance_id" binding:"omitempty,min=1"`
@@ -73,7 +71,6 @@ type ListWorkorderInstanceFlowReq struct {
 	IsSystemAction *int8   `json:"is_system_action" form:"is_system_action" binding:"omitempty,oneof=1 2"`
 }
 
-// DetailWorkorderInstanceFlowReq 获取工单流转记录详情请求
 type DetailWorkorderInstanceFlowReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }

@@ -29,7 +29,6 @@ import (
 	"time"
 )
 
-// CronJobStatus 定时任务状态枚举
 type CronJobStatus int8
 
 const (
@@ -39,7 +38,6 @@ const (
 	CronJobStatusError                             // 错误
 )
 
-// CronJobType 定时任务类型枚举
 type CronJobType int8
 
 const (
@@ -93,7 +91,6 @@ func (c *CronJob) TableName() string {
 	return "cl_cron_jobs"
 }
 
-// GetCronJobListReq 获取定时任务列表请求
 type GetCronJobListReq struct {
 	ListReq
 	Status  *CronJobStatus `json:"status" form:"status" binding:"omitempty,oneof=1 2 3 4"`
@@ -101,7 +98,6 @@ type GetCronJobListReq struct {
 	Search  string         `json:"search" form:"search"`
 }
 
-// CreateCronJobReq 创建定时任务请求
 type CreateCronJobReq struct {
 	Name           string       `json:"name" binding:"required,min=1,max=100"`
 	Description    string       `json:"description" binding:"max=500"`
@@ -127,7 +123,6 @@ type CreateCronJobReq struct {
 	CreatedByName  string       `json:"created_by_name"`
 }
 
-// UpdateCronJobReq 更新定时任务请求
 type UpdateCronJobReq struct {
 	ID             int          `json:"id" form:"id" binding:"required"`
 	Name           string       `json:"name" binding:"required,min=1,max=100"`

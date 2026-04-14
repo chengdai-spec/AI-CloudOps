@@ -59,10 +59,8 @@ func TestConvertK8sRoleToRoleInfo(t *testing.T) {
 		},
 	}
 
-	// 转换
 	roleInfo := ConvertK8sRoleToRoleInfo(k8sRole, 1)
 
-	// 验证基本字段
 	if roleInfo.Name != "test-role" {
 		t.Errorf("Expected name 'test-role', got '%s'", roleInfo.Name)
 	}
@@ -84,7 +82,6 @@ func TestConvertK8sRoleToRoleInfo(t *testing.T) {
 		t.Fatalf("Expected 1 rule, got %d", len(roleInfo.Rules))
 	}
 
-	// 验证规则内容
 	rule := roleInfo.Rules[0]
 	if len(rule.APIGroups) != 1 || rule.APIGroups[0] != "" {
 		t.Errorf("Expected APIGroups [''], got %v", rule.APIGroups)
@@ -123,7 +120,6 @@ func TestConvertPolicyRulesToK8s(t *testing.T) {
 
 	rule := k8sRules[0]
 
-	// 验证空字符串被过滤
 	if len(rule.Resources) == 0 {
 		t.Fatal("Resources should not be empty after filtering!")
 	}
@@ -170,7 +166,6 @@ func TestConvertK8sPolicyRulesToModel(t *testing.T) {
 
 	rule := modelRules[0]
 
-	// 验证所有字段
 	if len(rule.APIGroups) != 1 || rule.APIGroups[0] != "" {
 		t.Errorf("APIGroups not correct: %v", rule.APIGroups)
 	}

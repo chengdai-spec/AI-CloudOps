@@ -39,19 +39,16 @@ package manager
 // )
 
 // type ResourceManager interface {
-// 	// 资源概览和统计
 // 	GetClusterResourceOverview(ctx context.Context, clusterID int) (*model.ClusterStats, error)
 // 	GetResourceDistribution(ctx context.Context, clusterID int) (*model.ResourceDistribution, error)
 // 	GetResourceUtilization(ctx context.Context, clusterID int) (*model.ResourceUtilization, error)
 
-// 	// 资源健康和监控
 // 	GetClusterHealth(ctx context.Context, clusterID int) (*model.ClusterHealth, error)
 // 	GetResourceIssues(ctx context.Context, clusterID int) ([]model.ResourceIssue, error)
 
 // 	CompareMultiClusterResources(ctx context.Context, clusterIDs []int) (*model.ResourceComparisonChart, error)
 // 	GetAllClustersOverview(ctx context.Context, clusterIDs []int) (*model.AllClustersSummary, error)
 
-// 	// 资源预测和建议
 // 	PredictResourceTrend(ctx context.Context, clusterID int, period string) (*model.ResourceTrend, error)
 // 	GenerateOptimizationAdvice(ctx context.Context, clusterID int) ([]model.UtilizationAdvice, error)
 
@@ -100,7 +97,6 @@ package manager
 
 // // GetClusterResourceOverview
 // func (r *resourceManager) GetClusterResourceOverview(ctx context.Context, clusterID int) (*model.ClusterStats, error) {
-// 	// 尝试从缓存获取
 // 	if stats := r.getCachedStats(clusterID); stats != nil {
 // 		r.logger.Debug("从缓存获取集群统计信息", zap.Int("clusterID", clusterID))
 // 		return stats, nil
@@ -112,7 +108,6 @@ package manager
 // 		return nil, err
 // 	}
 
-// 	// 收集统计信息
 // 	stats := &model.ClusterStats{
 // 		ClusterID:      clusterID,
 // 		LastUpdateTime: time.Now().Format(time.DateTime),
@@ -179,10 +174,8 @@ package manager
 // 		r.logger.Warn("部分统计信息收集失败",
 // 			zap.Int("clusterID", clusterID),
 // 			zap.Int("errorCount", len(errors)))
-// 		// 继续返回部分数据
 // 	}
 
-// 	// 缓存结果
 // 	r.setCachedStats(clusterID, stats)
 
 // 	r.logger.Info("成功收集集群资源概览",
@@ -209,7 +202,6 @@ package manager
 // 	var wg sync.WaitGroup
 // 	errChan := make(chan error, 3)
 
-// 	// 获取节点分布
 // 	wg.Add(1)
 // 	go func() {
 // 		defer wg.Done()
@@ -221,7 +213,6 @@ package manager
 // 		distribution.NodeDistribution = nodeDistrib
 // 	}()
 
-// 	// 获取命名空间分布
 // 	wg.Add(1)
 // 	go func() {
 // 		defer wg.Done()
@@ -233,7 +224,6 @@ package manager
 // 		distribution.NSDistribution = nsDistrib
 // 	}()
 
-// 	// 获取工作负载分布
 // 	wg.Add(1)
 // 	go func() {
 // 		defer wg.Done()
@@ -262,7 +252,6 @@ package manager
 // 			zap.Errors("errors", errors))
 // 	}
 
-// 	// 生成资源分配图表
 // 	distribution.ResourceAllocation = r.generateResourceAllocationChart(
 // 		distribution.NodeDistribution,
 // 		distribution.NSDistribution,
@@ -274,7 +263,6 @@ package manager
 
 // // GetResourceUtilization
 // func (r *resourceManager) GetResourceUtilization(ctx context.Context, clusterID int) (*model.ResourceUtilization, error) {
-// 	// 获取基本统计信息
 // 	stats, err := r.GetClusterResourceOverview(ctx, clusterID)
 // 	if err != nil {
 // 		return nil, fmt.Errorf("获取集群统计失败: %w", err)
@@ -301,7 +289,6 @@ package manager
 // 	var wg sync.WaitGroup
 // 	errChan := make(chan error, 2)
 
-// 	// 获取节点利用率
 // 	wg.Add(1)
 // 	go func() {
 // 		defer wg.Done()
@@ -313,7 +300,6 @@ package manager
 // 		utilization.NodeUtils = nodeUtils
 // 	}()
 
-// 	// 获取命名空间利用率
 // 	wg.Add(1)
 // 	go func() {
 // 		defer wg.Done()
@@ -349,7 +335,6 @@ package manager
 
 // // GetClusterHealth
 // func (r *resourceManager) GetClusterHealth(ctx context.Context, clusterID int) (*model.ClusterHealth, error) {
-// 	// 获取基本统计信息
 // 	stats, err := r.GetClusterResourceOverview(ctx, clusterID)
 // 	if err != nil {
 // 		return nil, fmt.Errorf("获取集群统计失败: %w", err)
@@ -358,7 +343,6 @@ package manager
 // 	// 计算健康评分
 // 	healthScore := r.calculateHealthScore(stats)
 
-// 	// 获取组件健康状态
 // 	kubeClient, err := r.getKubeClient(clusterID)
 // 	if err != nil {
 // 		return nil, err
@@ -396,7 +380,6 @@ package manager
 
 // // GetResourceIssues
 // func (r *resourceManager) GetResourceIssues(ctx context.Context, clusterID int) ([]model.ResourceIssue, error) {
-// 	// 获取统计信息
 // 	stats, err := r.GetClusterResourceOverview(ctx, clusterID)
 // 	if err != nil {
 // 		return nil, fmt.Errorf("获取集群统计失败: %w", err)
@@ -548,7 +531,6 @@ package manager
 // 				return
 // 			}
 
-// 			// 计算健康状态
 // 			healthScore := r.calculateHealthScore(stats)
 
 // 			mu.Lock()
@@ -560,7 +542,6 @@ package manager
 // 				unhealthyCount++
 // 			}
 
-// 			// 累计资源
 // 			totalNodes += stats.NodeStats.TotalNodes
 // 			totalPods += stats.PodStats.TotalPods
 // 			totalCPUUtil += stats.ResourceStats.CPUUtilization
@@ -580,7 +561,6 @@ package manager
 // 				Issues:      stats.EventStats.WarningEvents,
 // 			})
 
-// 			// 统计警报
 // 			summary.AlertsSummary.AlertsByCluster[stats.ClusterName] = stats.EventStats.WarningEvents
 // 			summary.AlertsSummary.TotalAlerts += stats.EventStats.WarningEvents
 // 		}(clusterID)
@@ -588,7 +568,6 @@ package manager
 
 // 	wg.Wait()
 
-// 	// 设置汇总信息
 // 	summary.HealthyClusters = healthyCount
 // 	summary.UnhealthyClusters = unhealthyCount
 // 	summary.TotalResources.TotalNodes = totalNodes
@@ -620,7 +599,6 @@ package manager
 // 		return nil, err
 // 	}
 
-// 	// 生成模拟趋势数据
 // 	trend := &model.ResourceTrend{
 // 		ClusterID: clusterID,
 // 		Period:    period,
@@ -644,7 +622,6 @@ package manager
 
 // // GenerateOptimizationAdvice 生成优化建议
 // func (r *resourceManager) GenerateOptimizationAdvice(ctx context.Context, clusterID int) ([]model.UtilizationAdvice, error) {
-// 	// 获取利用率信息
 // 	utilization, err := r.GetResourceUtilization(ctx, clusterID)
 // 	if err != nil {
 // 		return nil, fmt.Errorf("获取利用率信息失败: %w", err)
@@ -680,7 +657,6 @@ package manager
 // 		})
 // 	}
 
-// 	// 节点效率建议
 // 	for _, node := range utilization.NodeUtils {
 // 		if node.Efficiency == "低效" {
 // 			advice = append(advice, model.UtilizationAdvice{
@@ -708,7 +684,6 @@ package manager
 // 	// 清除旧缓存
 // 	r.clearCachedStats(clusterID)
 
-// 	// 重新收集统计信息
 // 	_, err := r.GetClusterResourceOverview(ctx, clusterID)
 // 	if err != nil {
 // 		return fmt.Errorf("刷新缓存失败: %w", err)

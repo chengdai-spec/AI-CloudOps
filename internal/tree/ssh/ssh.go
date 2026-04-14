@@ -44,7 +44,6 @@ func NewSSH(logger *zap.Logger) EcsSSH {
 
 // Connect 建立SSH连接
 func (s *ecsSSH) Connect(ip string, port int, username string, password string, key string, mode int8, userID int) error {
-	// 参数验证
 	if ip == "" {
 		return fmt.Errorf("IP地址不能为空")
 	}
@@ -61,7 +60,6 @@ func (s *ecsSSH) Connect(ip string, port int, username string, password string, 
 		return fmt.Errorf("私钥认证模式下私钥不能为空")
 	}
 
-	// 设置连接参数
 	s.IP = ip
 	s.Port = port
 	s.Username = username
@@ -93,7 +91,6 @@ func (s *ecsSSH) Connect(ip string, port int, username string, password string, 
 		Timeout:         10 * time.Second,
 	}
 
-	// 根据认证方式配置认证方法
 	var auth ssh.AuthMethod
 	if mode == 2 {
 		// 解析私钥
@@ -128,7 +125,6 @@ func (s *ecsSSH) Connect(ip string, port int, username string, password string, 
 	session, err := s.Client.NewSession()
 	if err != nil {
 		s.logger.Error("创建SSH会话失败", zap.Error(err))
-		// 连接失败时清理资源
 		err := s.Client.Close()
 		if err != nil {
 			s.logger.Error("关闭SSH客户端失败", zap.Error(err))
@@ -185,7 +181,6 @@ func (s *ecsSSH) Run(command string) (string, error) {
 		}
 	}
 
-	// 为每个命令创建新的会话
 	session, err := s.Client.NewSession()
 	if err != nil {
 		s.logger.Error("创建命令执行会话失败", zap.Error(err))
@@ -199,7 +194,6 @@ func (s *ecsSSH) Run(command string) (string, error) {
 		}
 	}()
 
-	// 执行命令并获取输出
 	s.logger.Debug("执行命令", zap.String("命令", command))
 	buf, err := session.CombinedOutput(command)
 	s.LastResult = string(buf)
@@ -297,7 +291,6 @@ func (r MyReader) Read(p []byte) (n int, err error) {
 
 // Write 向WebSocket发送终端输出数据
 func (w MyWriter) Write(p []byte) (n int, err error) {
-	// 空数据直接返回
 	if len(p) == 0 {
 		return 0, nil
 	}
@@ -361,14 +354,12 @@ func (s *ecsSSH) Web2SSH(ws *websocket.Conn) {
 		return
 	}
 
-	// 配置伪终端模式
 	modes := ssh.TerminalModes{
 		ssh.ECHO:          0, // 禁用回显
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400, // 输出波特率
 	}
 
-	// 请求伪终端
 	// 25: 终端行数
 	// 80: 终端列数
 	if err := session.RequestPty("xterm", 25, 80, modes); err != nil {

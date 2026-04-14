@@ -63,7 +63,6 @@ func (n *notAuthService) BuildPrometheusServiceDiscovery(ctx context.Context, po
 		return nil, fmt.Errorf("内部配置缺失: TreeNodeDAO 未初始化")
 	}
 
-	// 收集所有绑定资源
 	targetsSet := make(map[string]struct{})
 	var orderedAddrs []string
 

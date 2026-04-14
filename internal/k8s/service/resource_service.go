@@ -44,12 +44,10 @@ package service
 // )
 
 // type ResourceService interface {
-// 	// 基础资源概览功能
 // 	GetResourceOverview(ctx context.Context, clusterID int) (*model.ResourceOverview, error)
 // 	GetResourceStatistics(ctx context.Context, clusterID int) (*model.ClusterStats, error)
 // 	GetResourceDistribution(ctx context.Context, clusterID int) (*model.ResourceDistribution, error)
 
-// 	// 资源分析功能
 // 	GetResourceTrend(ctx context.Context, req *model.ResourceTrendReq) (*model.ResourceTrend, error)
 // 	GetResourceUtilization(ctx context.Context, clusterID int) (*model.ResourceUtilization, error)
 // 	GetResourceHealth(ctx context.Context, clusterID int) (*model.ResourceHealth, error)
@@ -83,7 +81,6 @@ package service
 
 // // GetResourceOverview
 // func (r *resourceService) GetResourceOverview(ctx context.Context, clusterID int) (*model.ResourceOverview, error) {
-// 	// 获取集群信息
 // 	cluster, err := s.dao.GetClusterByID(ctx, clusterID)
 // 	if err != nil {
 // 		s.logger.Error("获取集群信息失败", zap.Int("clusterID", clusterID), zap.Error(err))
@@ -101,7 +98,6 @@ package service
 // 		return nil, pkg.NewBusinessError(constants.ErrK8sClientInit, "无法连接到Kubernetes集群")
 // 	}
 
-// 	// 收集统计信息
 // 	stats := &model.ClusterStats{
 // 		ClusterID:   clusterID,
 // 		ClusterName: cluster.Name,
@@ -196,7 +192,6 @@ package service
 // 	// 获取Top命名空间
 // 	overview.TopNamespaces = s.buildTopNamespaces(stats.NamespaceStats.TopNamespaces, stats)
 
-// 	// 获取最近事件
 // 	overview.RecentEvents = s.buildRecentEvents(ctx, kubeClient, 10)
 
 // 	s.logger.Info("成功获取集群资源概览",
@@ -208,7 +203,6 @@ package service
 
 // // GetResourceStatistics
 // func (r *resourceService) GetResourceStatistics(ctx context.Context, clusterID int) (*model.ClusterStats, error) {
-// 	// 获取集群信息
 // 	cluster, err := s.dao.GetClusterByID(ctx, clusterID)
 // 	if err != nil || cluster == nil {
 // 		s.logger.Error("获取集群信息失败", zap.Int("clusterID", clusterID), zap.Error(err))
@@ -222,7 +216,6 @@ package service
 // 		return nil, pkg.NewBusinessError(constants.ErrK8sClientInit, "无法连接到Kubernetes集群")
 // 	}
 
-// 	// 收集完整的统计信息
 // 	stats := &model.ClusterStats{
 // 		ClusterID:      clusterID,
 // 		ClusterName:    cluster.Name,
@@ -275,7 +268,6 @@ package service
 
 // 	if len(errors) > 0 {
 // 		s.logger.Warn("部分统计信息收集失败", zap.Int("errorCount", len(errors)))
-// 		// 继续返回部分数据
 // 	}
 
 // 	s.logger.Info("成功获取集群资源统计",
@@ -298,7 +290,6 @@ package service
 // 		ClusterID: clusterID,
 // 	}
 
-// 	// 获取节点分布
 // 	nodeDistrib, err := s.getNodeDistribution(ctx, kubeClient)
 // 	if err != nil {
 // 		s.logger.Warn("获取节点分布失败", zap.Error(err))
@@ -306,7 +297,6 @@ package service
 // 		distribution.NodeDistribution = nodeDistrib
 // 	}
 
-// 	// 获取命名空间分布
 // 	nsDistrib, err := s.getNamespaceDistribution(ctx, kubeClient)
 // 	if err != nil {
 // 		s.logger.Warn("获取命名空间分布失败", zap.Error(err))
@@ -314,7 +304,6 @@ package service
 // 		distribution.NSDistribution = nsDistrib
 // 	}
 
-// 	// 获取工作负载分布
 // 	workloadDistrib, err := s.getDetailedWorkloadDistribution(ctx, kubeClient)
 // 	if err != nil {
 // 		s.logger.Warn("获取工作负载分布失败", zap.Error(err))
@@ -322,7 +311,6 @@ package service
 // 		distribution.WorkloadDistrib = *workloadDistrib
 // 	}
 
-// 	// 生成资源分配图表
 // 	distribution.ResourceAllocation = s.generateResourceAllocationChart(nodeDistrib, nsDistrib)
 
 // 	s.logger.Info("成功获取资源分布信息", zap.Int("clusterID", clusterID))
@@ -349,7 +337,6 @@ package service
 // 		return nil, pkg.NewBusinessError(constants.ErrK8sClientInit, "无法连接到Kubernetes集群")
 // 	}
 
-// 	// 模拟生成趋势数据
 // 	trend := &model.ResourceTrend{
 // 		ClusterID: req.ClusterID,
 // 		Period:    req.Period,
@@ -363,7 +350,6 @@ package service
 // 		NodeTrend:   s.generateMockTrendData("Node", duration),
 // 	}
 
-// 	// 生成预测数据
 // 	trend.Predictions = s.generateResourcePredictions()
 
 // 	s.logger.Info("成功获取资源趋势", zap.Int("clusterID", req.ClusterID), zap.String("period", req.Period))
@@ -383,7 +369,6 @@ package service
 // 		ClusterID: clusterID,
 // 	}
 
-// 	// 收集基本统计信息
 // 	stats := &model.ClusterStats{}
 // 	utils.CollectResourceStats(ctx, kubeClient, stats)
 // 	utils.CollectNodeStats(ctx, kubeClient, stats)
@@ -398,7 +383,6 @@ package service
 // 		Overall: (stats.ResourceStats.CPUUtilization + stats.ResourceStats.MemoryUtilization) / 2,
 // 	}
 
-// 	// 获取节点利用率
 // 	nodeUtils, err := s.getNodeUtilizations(ctx, kubeClient)
 // 	if err != nil {
 // 		s.logger.Warn("获取节点利用率失败", zap.Error(err))
@@ -406,7 +390,6 @@ package service
 // 		utilization.NodeUtils = nodeUtils
 // 	}
 
-// 	// 获取命名空间利用率
 // 	nsUtils, err := s.getNamespaceUtilizations(ctx, kubeClient)
 // 	if err != nil {
 // 		s.logger.Warn("获取命名空间利用率失败", zap.Error(err))
@@ -437,7 +420,6 @@ package service
 // 		ClusterID: clusterID,
 // 	}
 
-// 	// 收集健康相关信息
 // 	stats := &model.ClusterStats{}
 // 	utils.CollectNodeStats(ctx, kubeClient, stats)
 // 	utils.CollectPodStats(ctx, kubeClient, stats)
@@ -446,7 +428,6 @@ package service
 // 	// 计算总体健康评分
 // 	health.OverallHealth = s.calculateHealthScore(stats)
 
-// 	// 获取组件健康状态
 // 	components, err := s.getComponentHealth(ctx, kubeClient)
 // 	if err != nil {
 // 		s.logger.Warn("获取组件健康状态失败", zap.Error(err))
@@ -454,7 +435,6 @@ package service
 // 		health.ComponentHealth = components
 // 	}
 
-// 	// 识别资源问题
 // 	health.ResourceIssues = s.identifyResourceIssues(ctx, kubeClient, stats)
 
 // 	// 生成健康趋势（模拟）
@@ -488,7 +468,6 @@ package service
 // 		return nil, pkg.NewBusinessError(constants.ErrK8sClientInit, "无法连接到Kubernetes集群")
 // 	}
 
-// 	// 获取所有命名空间
 // 	namespaces, err := kubeClient.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 // 	if err != nil {
 // 		s.logger.Error("获取命名空间列表失败", zap.Error(err))
@@ -555,7 +534,6 @@ package service
 // 		return nil, pkg.NewBusinessError(constants.ErrK8sClientInit, "无法连接到Kubernetes集群")
 // 	}
 
-// 	// 收集存储统计信息
 // 	stats := &model.ClusterStats{}
 // 	err = utils.CollectStorageStats(ctx, kubeClient, stats)
 // 	if err != nil {
@@ -576,7 +554,6 @@ package service
 // 		return nil, pkg.NewBusinessError(constants.ErrK8sClientInit, "无法连接到Kubernetes集群")
 // 	}
 
-// 	// 收集网络统计信息
 // 	stats := &model.ClusterStats{}
 // 	err = utils.CollectNetworkStats(ctx, kubeClient, stats)
 // 	if err != nil {
@@ -603,14 +580,12 @@ package service
 // 	}
 
 // 	for _, clusterID := range clusterIDs {
-// 		// 获取集群信息
 // 		cluster, err := s.dao.GetClusterByID(ctx, clusterID)
 // 		if err != nil || cluster == nil {
 // 			s.logger.Warn("获取集群信息失败", zap.Int("clusterID", clusterID))
 // 			continue
 // 		}
 
-// 		// 获取集群统计信息
 // 		stats, err := s.GetResourceStatistics(ctx, clusterID)
 // 		if err != nil {
 // 			s.logger.Warn("获取集群统计失败", zap.Int("clusterID", clusterID))
@@ -641,7 +616,6 @@ package service
 
 // // GetAllClustersSummary
 // func (r *resourceService) GetAllClustersSummary(ctx context.Context) (*model.AllClustersSummary, error) {
-// 	// 获取所有集群
 // 	clusters, total, err := s.dao.GetClusterList(ctx, &model.ListClustersReq{
 // 		ListReq: model.ListReq{Page: 1, Size: 100}, // 假设最多100个集群
 // 	})
@@ -659,7 +633,6 @@ package service
 // 		},
 // 	}
 
-// 	// 初始化资源对比图表
 // 	comparison := &model.ResourceComparisonChart{
 // 		ClusterNames: make([]string, 0, len(clusters)),
 // 		CPUData:      make([]float64, 0, len(clusters)),
@@ -673,7 +646,6 @@ package service
 // 	validClusters := 0
 
 // 	for _, cluster := range clusters {
-// 		// 获取集群统计
 // 		stats, err := s.GetResourceStatistics(ctx, cluster.ID)
 // 		if err != nil {
 // 			s.logger.Warn("获取集群统计失败", zap.Int("clusterID", cluster.ID))
@@ -681,7 +653,6 @@ package service
 // 			continue
 // 		}
 
-// 		// 计算健康状态
 // 		healthScore := s.calculateHealthScore(stats)
 // 		if healthScore.Score > 70 {
 // 			healthyCount++
@@ -689,7 +660,6 @@ package service
 // 			unhealthyCount++
 // 		}
 
-// 		// 累计资源
 // 		totalNodes += stats.NodeStats.TotalNodes
 // 		totalPods += stats.PodStats.TotalPods
 // 		totalCPUUtil += stats.ResourceStats.CPUUtilization
@@ -715,7 +685,6 @@ package service
 // 		comparison.MemoryData = append(comparison.MemoryData, stats.ResourceStats.MemoryUtilization)
 // 		comparison.PodData = append(comparison.PodData, float64(stats.PodStats.TotalPods))
 
-// 		// 统计警报
 // 		summary.AlertsSummary.AlertsByCluster[cluster.Name] = stats.EventStats.WarningEvents
 // 		summary.AlertsSummary.TotalAlerts += stats.EventStats.WarningEvents
 // 		if stats.EventStats.WarningEvents > 10 {
@@ -723,7 +692,6 @@ package service
 // 		}
 // 	}
 
-// 	// 设置汇总信息
 // 	summary.HealthyClusters = healthyCount
 // 	summary.UnhealthyClusters = unhealthyCount
 // 	summary.TotalResources.TotalNodes = totalNodes
@@ -773,7 +741,6 @@ package service
 // 	score := 100
 // 	factors := make([]string, 0)
 
-// 	// 节点健康检查
 // 	if stats.NodeStats.TotalNodes > 0 {
 // 		nodeHealthRate := float64(stats.NodeStats.ReadyNodes) / float64(stats.NodeStats.TotalNodes)
 // 		if nodeHealthRate < 0.9 {
@@ -791,7 +758,6 @@ package service
 // 		}
 // 	}
 
-// 	// 资源利用率检查
 // 	if stats.ResourceStats.CPUUtilization > 90 {
 // 		score -= 15
 // 		factors = append(factors, "CPU利用率过高")
@@ -801,7 +767,6 @@ package service
 // 		factors = append(factors, "内存利用率过高")
 // 	}
 
-// 	// 事件检查
 // 	if stats.EventStats.WarningEvents > 10 {
 // 		score -= 10
 // 		factors = append(factors, "警告事件过多")
@@ -822,7 +787,6 @@ package service
 // 		description = "集群需要关注"
 // 	case score < 90:
 // 		level = "good"
-// 		description = "集群运行状态良好"
 // 	}
 
 // 	return model.HealthScore{

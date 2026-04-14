@@ -255,7 +255,6 @@ func (r *recordRuleConfigCache) GenerateConfigForPool(ctx context.Context, pool 
 		var myRecordGroups RecordGroups
 
 		for _, rule := range rules {
-			// 检查表达式和名称
 			if strings.TrimSpace(rule.Name) == "" || strings.TrimSpace(rule.Expr) == "" {
 				r.logger.Warn(LogModuleMonitor+"预聚合规则缺少名称或表达式，已跳过",
 					zap.String("pool_name", pool.Name),

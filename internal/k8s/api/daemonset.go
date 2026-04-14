@@ -72,7 +72,7 @@ func (h *K8sDaemonSetHandler) GetDaemonSetList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.daemonSetService.GetDaemonSetList(ctx, &req)
+		return h.daemonSetService.GetDaemonSetList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -102,7 +102,7 @@ func (h *K8sDaemonSetHandler) GetDaemonSetDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.daemonSetService.GetDaemonSetDetails(ctx, &req)
+		return h.daemonSetService.GetDaemonSetDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -132,7 +132,7 @@ func (h *K8sDaemonSetHandler) GetDaemonSetYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.daemonSetService.GetDaemonSetYaml(ctx, &req)
+		return h.daemonSetService.GetDaemonSetYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -148,7 +148,7 @@ func (h *K8sDaemonSetHandler) CreateDaemonSet(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.daemonSetService.CreateDaemonSet(ctx, &req)
+		return nil, h.daemonSetService.CreateDaemonSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -164,7 +164,7 @@ func (h *K8sDaemonSetHandler) CreateDaemonSetByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.daemonSetService.CreateDaemonSetByYaml(ctx, &req)
+		return nil, h.daemonSetService.CreateDaemonSetByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -194,7 +194,7 @@ func (h *K8sDaemonSetHandler) UpdateDaemonSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.daemonSetService.UpdateDaemonSet(ctx, &req)
+		return nil, h.daemonSetService.UpdateDaemonSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -224,7 +224,7 @@ func (h *K8sDaemonSetHandler) UpdateDaemonSetByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.daemonSetService.UpdateDaemonSetByYaml(ctx, &req)
+		return nil, h.daemonSetService.UpdateDaemonSetByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -254,7 +254,7 @@ func (h *K8sDaemonSetHandler) DeleteDaemonSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.daemonSetService.DeleteDaemonSet(ctx, &req)
+		return nil, h.daemonSetService.DeleteDaemonSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -284,7 +284,7 @@ func (h *K8sDaemonSetHandler) RestartDaemonSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.daemonSetService.RestartDaemonSet(ctx, &req)
+		return nil, h.daemonSetService.RestartDaemonSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -314,7 +314,7 @@ func (h *K8sDaemonSetHandler) GetDaemonSetPods(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.daemonSetService.GetDaemonSetPods(ctx, &req)
+		return h.daemonSetService.GetDaemonSetPods(ctx.Request.Context(), &req)
 	})
 }
 
@@ -344,7 +344,7 @@ func (h *K8sDaemonSetHandler) GetDaemonSetHistory(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.daemonSetService.GetDaemonSetHistory(ctx, &req)
+		return h.daemonSetService.GetDaemonSetHistory(ctx.Request.Context(), &req)
 	})
 }
 
@@ -374,6 +374,6 @@ func (h *K8sDaemonSetHandler) RollbackDaemonSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.daemonSetService.RollbackDaemonSet(ctx, &req)
+		return nil, h.daemonSetService.RollbackDaemonSet(ctx.Request.Context(), &req)
 	})
 }

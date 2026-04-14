@@ -86,7 +86,6 @@ func (f *FeishuChannel) GetName() string {
 func (f *FeishuChannel) Send(ctx context.Context, request *SendRequest) (*SendResponse, error) {
 	startTime := time.Now()
 
-	// 验证收件人地址不为空
 	if request.RecipientAddr == "" {
 		return f.createErrorResponse(request.MessageID, "recipient address is empty",
 			fmt.Errorf("飞书收件人地址不能为空"), startTime), fmt.Errorf("飞书收件人地址不能为空")
@@ -137,16 +136,13 @@ func (f *FeishuChannel) determineRecipientType(recipientAddr string) (string, er
 func (f *FeishuChannel) sendGroupMessage(ctx context.Context, request *SendRequest, startTime time.Time) (*SendResponse, error) {
 	webhookURL := f.config.GetWebhookURL() + request.RecipientAddr
 
-	// 构建内容
 	message := f.buildGroupMessage(request)
 
-	// 发送请求
 	return f.sendHTTPRequest(ctx, webhookURL, message, request.MessageID, startTime, false)
 }
 
 // sendPrivateMessage 发送私聊消息
 func (f *FeishuChannel) sendPrivateMessage(ctx context.Context, request *SendRequest, startTime time.Time) (*SendResponse, error) {
-	// 获取令牌
 	if err := f.ensureAccessToken(ctx); err != nil {
 		return f.createErrorResponse(request.MessageID, "get access token failed", err, startTime), err
 	}
@@ -165,7 +161,6 @@ func (f *FeishuChannel) sendPrivateMessage(ctx context.Context, request *SendReq
 		return f.createErrorResponse(request.MessageID, "recipient type is empty", err, startTime), err
 	}
 
-	// 构建消息
 	message := f.buildPrivateMessageContent(request, recipientType)
 
 	// 构建带查询参数的URL
@@ -185,7 +180,6 @@ func (f *FeishuChannel) sendPrivateMessage(ctx context.Context, request *SendReq
 		zap.String("message_json", string(jsonData)),
 		zap.Any("message_struct", message))
 
-	// 验证关键字段存在
 	if receive_id, ok := message["receive_id"].(string); !ok || receive_id == "" {
 		err := fmt.Errorf("receive_id is missing or empty")
 		f.logger.Error("receive_id字段缺失", zap.Any("message", message))
@@ -224,13 +218,11 @@ func (f *FeishuChannel) sendHTTPRequest(ctx context.Context, url string, message
 	}
 	defer resp.Body.Close()
 
-	// 读取响应
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return f.createErrorResponse(messageID, "read response failed", err, startTime), err
 	}
 
-	// 解析响应
 	var response map[string]interface{}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return f.createErrorResponse(messageID, "parse response failed", err, startTime), err
@@ -246,7 +238,6 @@ func (f *FeishuChannel) sendHTTPRequest(ctx context.Context, url string, message
 		return f.createErrorResponse(messageID, errorMsg, errors.New(errorMsg), startTime), errors.New(errorMsg)
 	}
 
-	// 检查飞书响应码
 	if code, ok := response["code"].(float64); ok && code != 0 {
 		errorMsg := fmt.Sprintf("Feishu API error (code: %.0f): %v", code, response["msg"])
 		f.logger.Error("飞书API返回业务错误",
@@ -258,7 +249,6 @@ func (f *FeishuChannel) sendHTTPRequest(ctx context.Context, url string, message
 		return f.createErrorResponse(messageID, errorMsg, errors.New(errorMsg), startTime), errors.New(errorMsg)
 	}
 
-	// 成功响应
 	msgType := "群消息"
 	if needAuth {
 		msgType = "私聊消息"
@@ -287,16 +277,13 @@ func (f *FeishuChannel) sendHTTPRequest(ctx context.Context, url string, message
 	}, nil
 }
 
-// ensureAccessToken 获取或刷新飞书访问令牌
 func (f *FeishuChannel) ensureAccessToken(ctx context.Context) error {
-	// 检查令牌是否有效且未过期
 	if f.accessToken != "" && time.Now().Before(f.tokenExpiry) {
 		return nil
 	}
 
 	f.logger.Debug("获取飞书访问令牌", zap.String("api_url", f.config.GetTenantAccessTokenAPI()))
 
-	// 获取新令牌
 	tokenReq := map[string]string{
 		"app_id":     f.config.GetAppID(),
 		"app_secret": f.config.GetAppSecret(),
@@ -330,7 +317,6 @@ func (f *FeishuChannel) ensureAccessToken(ctx context.Context) error {
 		return fmt.Errorf("parse token response failed: %w", err)
 	}
 
-	// 检查响应状态
 	if code, ok := tokenResp["code"].(float64); ok && code != 0 {
 		return fmt.Errorf("get access token error (code: %.0f): %v", code, tokenResp["msg"])
 	}
@@ -350,7 +336,6 @@ func (f *FeishuChannel) ensureAccessToken(ctx context.Context) error {
 	return fmt.Errorf("invalid token response: missing tenant_access_token")
 }
 
-// getPriorityConfig 获取优先级对应的显示配置
 func (f *FeishuChannel) getPriorityConfig(priority int) (icon, text, color, templateColor string) {
 	icon = FormatPriorityIcon(int8(priority))
 	text = FormatPriority(int8(priority))
@@ -366,16 +351,12 @@ func (f *FeishuChannel) getPriorityConfig(priority int) (icon, text, color, temp
 	return
 }
 
-// buildGroupMessage 构建群聊消息内容
 func (f *FeishuChannel) buildGroupMessage(request *SendRequest) map[string]interface{} {
-	// 获取优先级和事件类型配置
 	priorityIcon, priorityText, _, templateColor := f.getPriorityConfig(int(request.Priority))
 	eventText := GetEventTypeText(request.EventType)
 
-	// 构建简洁的卡片标题
 	headerTitle := fmt.Sprintf("⚡ AI-CloudOps | %s", eventText)
 
-	// 构建工单编号显示
 	workorderNumber := "系统通知"
 	if request.InstanceID != nil {
 		workorderNumber = fmt.Sprintf("WO-%d", *request.InstanceID)
@@ -420,7 +401,6 @@ func (f *FeishuChannel) buildGroupMessage(request *SendRequest) map[string]inter
 			},
 		},
 
-		// 系统信息栏 - 简化版
 		{
 			"tag": "note",
 			"elements": []map[string]interface{}{
@@ -479,21 +459,16 @@ func (f *FeishuChannel) buildGroupMessage(request *SendRequest) map[string]inter
 	}
 }
 
-// buildPrivateMessageContent 构建私聊消息内容
 func (f *FeishuChannel) buildPrivateMessageContent(request *SendRequest, recipientType string) map[string]interface{} {
-	// 记录输入参数
 	f.logger.Debug("构建商务化私聊消息内容",
 		zap.String("recipient_addr", request.RecipientAddr),
 		zap.String("recipient_type", recipientType))
 
-	// 获取优先级和事件类型配置
 	priorityIcon, priorityText, _, templateColor := f.getPriorityConfig(int(request.Priority))
 	eventText := GetEventTypeText(request.EventType)
 
-	// 构建专业化卡片标题
 	headerTitle := fmt.Sprintf("⚡ AI-CloudOps | %s", eventText)
 
-	// 构建工单编号显示
 	workorderNumber := "系统通知"
 	if request.InstanceID != nil {
 		workorderNumber = fmt.Sprintf("WO-%d", *request.InstanceID)
@@ -538,7 +513,6 @@ func (f *FeishuChannel) buildPrivateMessageContent(request *SendRequest, recipie
 			},
 		},
 
-		// 系统信息栏 - 简化版
 		{
 			"tag": "note",
 			"elements": []map[string]interface{}{
@@ -602,14 +576,12 @@ func (f *FeishuChannel) buildPrivateMessageContent(request *SendRequest, recipie
 		contentBytes = []byte(`{"text":"消息内容序列化失败"}`)
 	}
 
-	// 构建最终的消息结构
 	finalMessage := map[string]interface{}{
 		"receive_id": request.RecipientAddr,
 		"msg_type":   "interactive",
 		"content":    string(contentBytes), // content字段的值是卡片的JSON字符串
 	}
 
-	// 记录最终构建的消息
 	f.logger.Debug("私聊消息构建完成",
 		zap.String("receive_id", request.RecipientAddr),
 		zap.String("msg_type", "interactive"),
@@ -618,9 +590,7 @@ func (f *FeishuChannel) buildPrivateMessageContent(request *SendRequest, recipie
 	return finalMessage
 }
 
-// renderContent 渲染消息内容
 func (f *FeishuChannel) renderContent(request *SendRequest) string {
-	// 对内容进行模板渲染
 	renderedContent, err := RenderTemplate(request.Content, request)
 	if err != nil {
 		return request.Content // 渲染失败时使用原始内容
@@ -628,7 +598,6 @@ func (f *FeishuChannel) renderContent(request *SendRequest) string {
 	return renderedContent
 }
 
-// getDisplayName 获取用户显示名称
 func (f *FeishuChannel) getDisplayName(name string) string {
 	if name == "" {
 		return "系统用户"
@@ -636,7 +605,6 @@ func (f *FeishuChannel) getDisplayName(name string) string {
 	return name
 }
 
-// createErrorResponse 创建错误响应结构
 func (f *FeishuChannel) createErrorResponse(messageID, errorMsg string, err error, startTime time.Time) *SendResponse {
 	return &SendResponse{
 		Success:      false,
@@ -650,22 +618,18 @@ func (f *FeishuChannel) createErrorResponse(messageID, errorMsg string, err erro
 	}
 }
 
-// Validate 验证飞书配置有效性
 func (f *FeishuChannel) Validate() error {
 	return f.config.Validate()
 }
 
-// IsEnabled 检查通道是否启用
 func (f *FeishuChannel) IsEnabled() bool {
 	return f.config.IsEnabled()
 }
 
-// GetMaxRetries 获取最大重试次数
 func (f *FeishuChannel) GetMaxRetries() int {
 	return f.config.GetMaxRetries()
 }
 
-// GetRetryInterval 获取重试间隔时间
 func (f *FeishuChannel) GetRetryInterval() time.Duration {
 	return f.config.GetRetryInterval()
 }

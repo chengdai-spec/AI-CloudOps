@@ -58,7 +58,6 @@ func (h *NotificationHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateNotification 创建通知配置
 func (h *NotificationHandler) CreateNotification(ctx *gin.Context) {
 	var req model.CreateWorkorderNotificationReq
 
@@ -66,12 +65,11 @@ func (h *NotificationHandler) CreateNotification(ctx *gin.Context) {
 	req.UserID = user.Uid
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.CreateNotification(ctx, &req)
+		return nil, h.service.CreateNotification(ctx.Request.Context(), &req)
 	})
 
 }
 
-// UpdateNotification 更新通知配置
 func (h *NotificationHandler) UpdateNotification(ctx *gin.Context) {
 	var req model.UpdateWorkorderNotificationReq
 
@@ -84,11 +82,10 @@ func (h *NotificationHandler) UpdateNotification(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateNotification(ctx, &req)
+		return nil, h.service.UpdateNotification(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteNotification 删除通知配置
 func (h *NotificationHandler) DeleteNotification(ctx *gin.Context) {
 	var req model.DeleteWorkorderNotificationReq
 
@@ -101,20 +98,18 @@ func (h *NotificationHandler) DeleteNotification(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteNotification(ctx, &req)
+		return nil, h.service.DeleteNotification(ctx.Request.Context(), &req)
 	})
 }
 
-// ListNotification 获取通知配置列表
 func (h *NotificationHandler) ListNotification(ctx *gin.Context) {
 	var req model.ListWorkorderNotificationReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.ListNotification(ctx, &req)
+		return h.service.ListNotification(ctx.Request.Context(), &req)
 	})
 }
 
-// DetailNotification 获取通知配置详情
 func (h *NotificationHandler) DetailNotification(ctx *gin.Context) {
 	var req model.DetailWorkorderNotificationReq
 
@@ -126,16 +121,15 @@ func (h *NotificationHandler) DetailNotification(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.DetailNotification(ctx, &req)
+		return h.service.DetailNotification(ctx.Request.Context(), &req)
 	})
 }
 
-// GetSendLogs 获取通知发送日志
 func (h *NotificationHandler) GetSendLogs(ctx *gin.Context) {
 	var req model.ListWorkorderNotificationLogReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetSendLogs(ctx, &req)
+		return h.service.GetSendLogs(ctx.Request.Context(), &req)
 	})
 }
 
@@ -144,11 +138,10 @@ func (h *NotificationHandler) TestSendNotification(ctx *gin.Context) {
 	var req model.TestSendWorkorderNotificationReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.TestSendNotification(ctx, &req)
+		return nil, h.service.TestSendNotification(ctx.Request.Context(), &req)
 	})
 }
 
-// GetAvailableChannels 获取可用的通知渠道
 func (h *NotificationHandler) GetAvailableChannels(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
 		return h.service.GetAvailableChannels(), nil
@@ -160,6 +153,6 @@ func (h *NotificationHandler) SendNotificationManually(ctx *gin.Context) {
 	var req model.ManualSendNotificationReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.SendNotificationByChannels(ctx, req.Channels, req.Recipient, req.Subject, req.Content)
+		return nil, h.service.SendNotificationByChannels(ctx.Request.Context(), req.Channels, req.Recipient, req.Subject, req.Content)
 	})
 }

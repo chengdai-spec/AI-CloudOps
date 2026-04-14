@@ -80,7 +80,6 @@ func (s *eventService) GetEventList(ctx context.Context, req *model.GetEventList
 	for _, event := range eventList.Items {
 		eventEntity := s.eventManager.ConvertEventToK8sEvent(&event, req.ClusterID)
 
-		// 根据请求参数进行过滤
 		if req.EventType != "" && event.Type != req.EventType {
 			continue
 		}
@@ -103,7 +102,6 @@ func (s *eventService) GetEventList(ctx context.Context, req *model.GetEventList
 		filteredTotal = int64(len(events))
 	}
 
-	// 分页处理
 	page := req.Page
 	size := req.Size
 	if page <= 0 {

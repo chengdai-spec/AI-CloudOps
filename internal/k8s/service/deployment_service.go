@@ -239,7 +239,6 @@ func (s *deploymentService) GetDeploymentList(ctx context.Context, req *model.Ge
 	// 应用过滤条件
 	var filteredDeployments []*model.K8sDeployment
 	for _, k8sDeployment := range k8sDeployments {
-		// 状态过滤
 		if req.Status != "" {
 			var statusStr string
 			switch k8sDeployment.Status {
@@ -270,7 +269,6 @@ func (s *deploymentService) GetDeploymentList(ctx context.Context, req *model.Ge
 		return deployment.CreatedAt
 	})
 
-	// 分页处理
 	pagedItems, total := utils.Paginate(filteredDeployments, req.Page, req.Size)
 
 	return model.ListResp[*model.K8sDeployment]{
@@ -481,7 +479,6 @@ func (s *deploymentService) UpdateDeployment(ctx context.Context, req *model.Upd
 
 	updatedDeployment := existingDeployment.DeepCopy()
 
-	// 更新基本字段
 	if req.Replicas != nil {
 		updatedDeployment.Spec.Replicas = req.Replicas
 	}

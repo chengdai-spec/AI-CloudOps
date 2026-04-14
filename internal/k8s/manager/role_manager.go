@@ -119,7 +119,6 @@ func (m *roleManager) GetRole(ctx context.Context, clusterID int, namespace, nam
 		zap.String("name", name),
 		zap.Int("rulesCount", len(role.Rules)))
 
-	// 详细记录规则信息
 	if len(role.Rules) > 0 {
 		for i, rule := range role.Rules {
 			m.logger.Debug("Role规则详情",

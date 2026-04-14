@@ -34,7 +34,6 @@ import (
 )
 
 type RBACService interface {
-	// 权限分析和检查
 	AnalyzeRBACPermissions(ctx context.Context, req *model.AnalyzeRBACPermissionsReq) (*model.EffectivePermissions, error)
 	CheckRBACPermission(ctx context.Context, req *model.CheckRBACPermissionReq) (*model.PermissionCheckResult, error)
 }
@@ -108,7 +107,6 @@ func (s *rbacService) CheckRBACPermission(ctx context.Context, req *model.CheckR
 		zap.String("verb", req.Verb),
 		zap.String("namespace", req.Namespace))
 
-	// 权限检查逻辑在这里实现
 	// 1. 根据Subject查找相关的RoleBindings和ClusterRoleBindings
 	// 2. 检查对应的Role和ClusterRole是否包含所需权限
 	// 3. 返回检查结果

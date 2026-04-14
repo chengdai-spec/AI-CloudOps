@@ -1,6 +1,5 @@
 package model
 
-// System 系统硬件信息
 type System struct {
 	Model
 	Hostname       string  `json:"hostname" gorm:"type:varchar(255);comment:主机名"`         // 主机名
@@ -26,7 +25,6 @@ type System struct {
 	LastUpdateTime int64   `json:"last_update_time" gorm:"comment:最后更新时间;autoUpdateTime"` // 最后更新时间
 }
 
-// SystemInfoResponse 系统信息响应结构
 type SystemInfoResponse struct {
 	*System
 	MemoryUsageFormatted string `json:"memory_usage_formatted"` // 格式化的内存使用情况

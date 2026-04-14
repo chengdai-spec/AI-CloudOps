@@ -261,7 +261,6 @@ func (m *deploymentManager) ScaleDeployment(ctx context.Context, clusterID int, 
 		return fmt.Errorf("获取 Deployment Scale 失败: %w", err)
 	}
 
-	// 更新副本数
 	scale.Spec.Replicas = replicas
 	_, err = kubeClient.AppsV1().Deployments(namespace).UpdateScale(ctx, name, scale, metav1.UpdateOptions{})
 	if err != nil {
@@ -458,7 +457,6 @@ func (m *deploymentManager) PauseDeployment(ctx context.Context, clusterID int, 
 		return nil
 	}
 
-	// 设置暂停状态
 	deployment.Spec.Paused = true
 
 	_, err = kubeClient.AppsV1().Deployments(namespace).Update(ctx, deployment, metav1.UpdateOptions{})
@@ -502,7 +500,6 @@ func (m *deploymentManager) ResumeDeployment(ctx context.Context, clusterID int,
 		return nil
 	}
 
-	// 设置恢复状态
 	deployment.Spec.Paused = false
 
 	_, err = kubeClient.AppsV1().Deployments(namespace).Update(ctx, deployment, metav1.UpdateOptions{})

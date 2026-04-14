@@ -61,7 +61,6 @@ func (WorkorderInstanceTimeline) TableName() string {
 	return "cl_workorder_instance_timeline"
 }
 
-// CreateWorkorderInstanceTimelineReq 创建工单操作时间线请求
 type CreateWorkorderInstanceTimelineReq struct {
 	InstanceID   int    `json:"instance_id" binding:"required,min=1"`
 	Action       string `json:"action" binding:"required,oneof=create submit approve reject assign cancel complete return comment update view attach notify remind"`
@@ -72,14 +71,12 @@ type CreateWorkorderInstanceTimelineReq struct {
 	RelatedID    *int   `json:"related_id" binding:"omitempty,min=1"`
 }
 
-// UpdateWorkorderInstanceTimelineReq 更新工单操作时间线请求
 type UpdateWorkorderInstanceTimelineReq struct {
 	ID           int    `json:"id" binding:"required,min=1"`
 	ActionDetail string `json:"action_detail" binding:"omitempty"`
 	Comment      string `json:"comment" binding:"omitempty,max=2000"`
 }
 
-// DeleteWorkorderInstanceTimelineReq 删除工单实例时间线请求
 type DeleteWorkorderInstanceTimelineReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
@@ -89,7 +86,6 @@ type DetailWorkorderInstanceTimelineReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// ListWorkorderInstanceTimelineReq 工单操作时间线列表请求
 type ListWorkorderInstanceTimelineReq struct {
 	ListReq
 	InstanceID *int       `json:"instance_id" form:"instance_id" binding:"omitempty,min=1"`

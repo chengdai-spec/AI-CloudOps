@@ -25,7 +25,6 @@
 
 package model
 
-// MonitorOnDutyGroup 值班组的配置
 type MonitorOnDutyGroup struct {
 	Model
 	Name                      string  `json:"name" binding:"required,min=1,max=50" gorm:"size:100;not null;comment:值班组名称"`
@@ -43,7 +42,6 @@ func (m *MonitorOnDutyGroup) TableName() string {
 	return "cl_monitor_on_duty_groups"
 }
 
-// MonitorOnDutyChange 值班换班记录
 type MonitorOnDutyChange struct {
 	Model
 	OnDutyGroupID  int    `json:"on_duty_group_id" gorm:"index:idx_group_date_deleted_at;comment:值班组ID"`
@@ -59,7 +57,6 @@ func (m *MonitorOnDutyChange) TableName() string {
 	return "cl_monitor_on_duty_changes"
 }
 
-// MonitorOnDutyHistory 值班历史记录
 type MonitorOnDutyHistory struct {
 	Model
 	OnDutyGroupID int    `json:"on_duty_group_id" gorm:"index:idx_group_date_deleted_at;comment:值班组ID"`
@@ -72,20 +69,17 @@ func (m *MonitorOnDutyHistory) TableName() string {
 	return "cl_monitor_on_duty_histories"
 }
 
-// MonitorOnDutyOne 单日值班信息
 type MonitorOnDutyOne struct {
 	Date       string `json:"date"`        // 值班日期
 	User       *User  `json:"user"`        // 值班人信息
 	OriginUser string `json:"origin_user"` // 原始值班人姓名
 }
 
-// GetMonitorOnDutyGroupListReq 获取值班组列表请求
 type GetMonitorOnDutyGroupListReq struct {
 	ListReq
 	Enable *int8 `json:"enable" form:"enable" binding:"omitempty,oneof=1 2"`
 }
 
-// CreateMonitorOnDutyGroupReq 创建值班组请求
 type CreateMonitorOnDutyGroupReq struct {
 	Name           string `json:"name" binding:"required,min=1,max=50"`
 	UserID         int    `json:"user_id" form:"user_id" binding:"required"`
@@ -95,7 +89,6 @@ type CreateMonitorOnDutyGroupReq struct {
 	Description    string `json:"description" binding:"max=255"`
 }
 
-// CreateMonitorOnDutyGroupChangeReq 创建值班组换班记录请求
 type CreateMonitorOnDutyGroupChangeReq struct {
 	OnDutyGroupID  int    `json:"on_duty_group_id" binding:"required"`
 	Date           string `json:"date" binding:"required"`
@@ -106,7 +99,6 @@ type CreateMonitorOnDutyGroupChangeReq struct {
 	Reason         string `json:"reason" binding:"max=255"`
 }
 
-// UpdateMonitorOnDutyGroupReq 更新值班组信息请求
 type UpdateMonitorOnDutyGroupReq struct {
 	ID          int    `json:"id" form:"id" binding:"required"`
 	Name        string `json:"name" binding:"required,min=1,max=50"`
@@ -116,24 +108,20 @@ type UpdateMonitorOnDutyGroupReq struct {
 	Enable      *int8  `json:"enable" binding:"omitempty,oneof=1 2"`
 }
 
-// DeleteMonitorOnDutyGroupReq 删除值班组请求
 type DeleteMonitorOnDutyGroupReq struct {
 	ID int `json:"id" binding:"required"`
 }
 
-// GetMonitorOnDutyGroupReq 获取指定值班组信息请求
 type GetMonitorOnDutyGroupReq struct {
 	ID int `json:"id" binding:"required"`
 }
 
-// GetMonitorOnDutyGroupFuturePlanReq 获取值班组未来计划请求
 type GetMonitorOnDutyGroupFuturePlanReq struct {
 	ID        int    `json:"id" form:"id" binding:"required"`
 	StartTime string `json:"start_time" form:"start_time" binding:"required"`
 	EndTime   string `json:"end_time" form:"end_time" binding:"required"`
 }
 
-// GetMonitorOnDutyHistoryReq 获取值班历史记录请求
 type GetMonitorOnDutyHistoryReq struct {
 	ListReq
 	OnDutyGroupID int    `json:"on_duty_group_id" form:"on_duty_group_id" binding:"required"`

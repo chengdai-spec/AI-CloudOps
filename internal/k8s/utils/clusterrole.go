@@ -112,7 +112,6 @@ func ValidateClusterRole(clusterRole *rbacv1.ClusterRole) error {
 	return nil
 }
 
-// validatePolicyRule 验证策略规则
 func validatePolicyRule(rule rbacv1.PolicyRule, index int) error {
 	if len(rule.Verbs) == 0 {
 		return fmt.Errorf("规则 %d: 动作(verbs)不能为空", index)
@@ -362,7 +361,6 @@ func ConvertPolicyRulesToK8s(rules []model.PolicyRule) []rbacv1.PolicyRule {
 		resourceNames := filterEmptyStrings(rule.ResourceNames)
 		nonResourceURLs := filterEmptyStrings(rule.NonResourceURLs)
 
-		// 验证规则的有效性
 		// 1. Verbs 不能为空
 		if len(verbs) == 0 {
 			continue

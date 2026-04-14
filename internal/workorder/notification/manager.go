@@ -37,13 +37,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// NotificationConfig 通知配置
 type NotificationConfig interface {
 	GetEmail() EmailConfig
 	GetFeishu() FeishuConfig
 }
 
-// EmailConfig 邮箱配置
 type EmailConfig interface {
 	IsEnabled() bool
 	GetMaxRetries() int
@@ -59,7 +57,6 @@ type EmailConfig interface {
 	GetUseTLS() bool
 }
 
-// FeishuConfig 飞书配置
 type FeishuConfig interface {
 	IsEnabled() bool
 	GetMaxRetries() int
@@ -128,7 +125,6 @@ func (m *Manager) SendNotification(ctx context.Context, request *SendRequest) (*
 		request.MessageID = uuid.New().String()
 	}
 
-	// 获取渠道
 	channel, err := m.getChannel(request.RecipientType)
 	if err != nil {
 		return &SendResponse{
@@ -140,7 +136,6 @@ func (m *Manager) SendNotification(ctx context.Context, request *SendRequest) (*
 		}, err
 	}
 
-	// 检查启用状态
 	if !channel.IsEnabled() {
 		err := fmt.Errorf("通知渠道 %s 未启用", channel.GetName())
 		return &SendResponse{
@@ -194,7 +189,6 @@ func (m *Manager) SendNotification(ctx context.Context, request *SendRequest) (*
 			return response, nil
 		}
 
-		// 记录错误
 		m.logger.Error("发送通知失败",
 			zap.String("channel", channel.GetName()),
 			zap.String("message_id", request.MessageID),
@@ -225,16 +219,13 @@ func (m *Manager) SendNotificationAsync(ctx context.Context, request *SendReques
 		request.MessageID = uuid.New().String()
 	}
 
-	// 创建任务
 	task := asynq.NewTask("notification:send", serializeRequest(request))
 
-	// 设置选项
 	opts := []asynq.Option{
 		asynq.ProcessIn(delay),
 		asynq.TaskID(request.MessageID),
 	}
 
-	// 获取重试次数
 	if channel, err := m.getChannel(request.RecipientType); err == nil {
 		opts = append(opts, asynq.MaxRetry(channel.GetMaxRetries()))
 	}
@@ -256,7 +247,6 @@ func (m *Manager) SendNotificationAsync(ctx context.Context, request *SendReques
 	return nil
 }
 
-// GetAvailableChannels 获取所有可用通知渠道
 func (m *Manager) GetAvailableChannels() []string {
 	var channels []string
 	for name, channel := range m.channels {
@@ -300,7 +290,6 @@ func (m *Manager) BatchSendNotification(ctx context.Context, requests []*SendReq
 	return responses, nil
 }
 
-// ValidateChannelConfig 验证指定渠道配置
 func (m *Manager) ValidateChannelConfig(channelName string) error {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -313,7 +302,6 @@ func (m *Manager) ValidateChannelConfig(channelName string) error {
 	return channel.Validate()
 }
 
-// ReloadChannel 重新加载指定渠道
 func (m *Manager) ReloadChannel(channelName string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -344,7 +332,6 @@ func (m *Manager) ReloadChannel(channelName string) error {
 	return nil
 }
 
-// getChannel 根据类型获取通知渠道
 func (m *Manager) getChannel(recipientType string) (NotificationChannel, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -385,7 +372,6 @@ func (m *Manager) inferChannelFromAddress(address string) string {
 	return model.NotificationChannelEmail
 }
 
-// ProcessNotificationTask 处理通知队列任务
 func (m *Manager) ProcessNotificationTask(ctx context.Context, task *asynq.Task) error {
 	request, err := deserializeRequest(task.Payload())
 	if err != nil {
@@ -397,7 +383,6 @@ func (m *Manager) ProcessNotificationTask(ctx context.Context, task *asynq.Task)
 	return err
 }
 
-// GetChannelStats 获取渠道统计信息
 func (m *Manager) GetChannelStats() map[string]interface{} {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -413,7 +398,6 @@ func (m *Manager) GetChannelStats() map[string]interface{} {
 	return stats
 }
 
-// Close 关闭管理器资源
 func (m *Manager) Close() error {
 	if m.queueClient != nil {
 		return m.queueClient.Close()

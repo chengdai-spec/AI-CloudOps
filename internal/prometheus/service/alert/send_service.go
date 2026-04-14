@@ -65,7 +65,6 @@ func NewAlertManagerSendService(dao alert.AlertManagerSendDAO, ruleDao alert.Ale
 	}
 }
 
-// GetMonitorSendGroupList 获取发送组列表
 func (a *alertManagerSendService) GetMonitorSendGroupList(ctx context.Context, req *model.GetMonitorSendGroupListReq) (model.ListResp[*model.MonitorSendGroup], error) {
 	groups, total, err := a.dao.GetMonitorSendGroupList(ctx, req)
 	if err != nil {
@@ -79,7 +78,6 @@ func (a *alertManagerSendService) GetMonitorSendGroupList(ctx context.Context, r
 	}, nil
 }
 
-// CreateMonitorSendGroup 创建发送组
 func (a *alertManagerSendService) CreateMonitorSendGroup(ctx context.Context, req *model.CreateMonitorSendGroupReq) error {
 	monitorSendGroup := &model.MonitorSendGroup{
 		Name:                req.Name,
@@ -100,7 +98,6 @@ func (a *alertManagerSendService) CreateMonitorSendGroup(ctx context.Context, re
 		CreateUserName:      req.CreateUserName,
 	}
 
-	// 检查发送组是否已存在
 	exists, err := a.dao.CheckMonitorSendGroupNameExists(ctx, monitorSendGroup)
 	if err != nil {
 		a.l.Error("创建发送组失败：检查发送组是否存在时出错", zap.Error(err))
@@ -111,7 +108,6 @@ func (a *alertManagerSendService) CreateMonitorSendGroup(ctx context.Context, re
 		return errors.New("发送组已存在")
 	}
 
-	// 创建发送组
 	if err := a.dao.CreateMonitorSendGroup(ctx, monitorSendGroup); err != nil {
 		a.l.Error("创建发送组失败", zap.Error(err))
 		return err
@@ -126,7 +122,6 @@ func (a *alertManagerSendService) CreateMonitorSendGroup(ctx context.Context, re
 	return nil
 }
 
-// UpdateMonitorSendGroup 更新发送组
 func (a *alertManagerSendService) UpdateMonitorSendGroup(ctx context.Context, req *model.UpdateMonitorSendGroupReq) error {
 	monitorSendGroup := &model.MonitorSendGroup{
 		Model: model.Model{
@@ -148,7 +143,6 @@ func (a *alertManagerSendService) UpdateMonitorSendGroup(ctx context.Context, re
 		SecondUpgradeUsers:  req.SecondUpgradeUsers,
 	}
 
-	// 检查发送组是否存在
 	exists, err := a.dao.CheckMonitorSendGroupExists(ctx, monitorSendGroup)
 	if err != nil {
 		a.l.Error("检查发送组存在失败", zap.Int("id", monitorSendGroup.ID), zap.Error(err))
@@ -170,7 +164,6 @@ func (a *alertManagerSendService) UpdateMonitorSendGroup(ctx context.Context, re
 		return errors.New("发送组名称已被使用")
 	}
 
-	// 更新发送组
 	if err := a.dao.UpdateMonitorSendGroup(ctx, monitorSendGroup); err != nil {
 		a.l.Error("更新发送组失败", zap.Error(err))
 		return fmt.Errorf("更新失败，请稍后重试")
@@ -185,7 +178,6 @@ func (a *alertManagerSendService) UpdateMonitorSendGroup(ctx context.Context, re
 	return nil
 }
 
-// DeleteMonitorSendGroup 删除发送组
 func (a *alertManagerSendService) DeleteMonitorSendGroup(ctx context.Context, req *model.DeleteMonitorSendGroupReq) error {
 	// 检查发送组是否有关联的资源
 	_, total, err := a.ruleDao.GetAssociatedResourcesBySendGroupID(ctx, req.ID)
@@ -198,7 +190,6 @@ func (a *alertManagerSendService) DeleteMonitorSendGroup(ctx context.Context, re
 		return errors.New("发送组存在关联资源，无法删除")
 	}
 
-	// 删除发送组
 	if err := a.dao.DeleteMonitorSendGroup(ctx, req.ID); err != nil {
 		a.l.Error("删除发送组失败", zap.Error(err))
 		return err
@@ -213,7 +204,6 @@ func (a *alertManagerSendService) DeleteMonitorSendGroup(ctx context.Context, re
 	return nil
 }
 
-// GetMonitorSendGroup 获取发送组详情
 func (a *alertManagerSendService) GetMonitorSendGroup(ctx context.Context, req *model.GetMonitorSendGroupReq) (*model.MonitorSendGroup, error) {
 	group, err := a.dao.GetMonitorSendGroupByID(ctx, req.ID)
 	if err != nil {
@@ -221,7 +211,6 @@ func (a *alertManagerSendService) GetMonitorSendGroup(ctx context.Context, req *
 		return nil, err
 	}
 
-	// 处理用户名列表
 	if group.StaticReceiveUsers != nil {
 		group.StaticReceiveUserNames = make([]string, 0, len(group.StaticReceiveUsers))
 		for _, user := range group.StaticReceiveUsers {
@@ -246,7 +235,6 @@ func (a *alertManagerSendService) GetMonitorSendGroup(ctx context.Context, req *
 	return group, nil
 }
 
-// GetMonitorSendGroupAll 获取所有发送组
 func (a *alertManagerSendService) GetMonitorSendGroupAll(ctx context.Context) (model.ListResp[*model.MonitorSendGroup], error) {
 	groups, count, err := a.dao.GetMonitorSendGroups(ctx)
 	if err != nil {

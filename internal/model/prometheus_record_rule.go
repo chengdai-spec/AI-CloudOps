@@ -25,7 +25,6 @@
 
 package model
 
-// MonitorRecordRule 记录规则的配置
 type MonitorRecordRule struct {
 	Model
 	Name           string     `json:"name" binding:"required,min=1,max=50" gorm:"size:100;not null;comment:记录规则名称"`
@@ -43,14 +42,12 @@ func (m *MonitorRecordRule) TableName() string {
 	return "cl_monitor_record_rules"
 }
 
-// GetMonitorRecordRuleListReq 获取记录规则列表的请求
 type GetMonitorRecordRuleListReq struct {
 	ListReq
 	PoolID *int  `json:"pool_id" form:"pool_id" binding:"omitempty"`
 	Enable *int8 `json:"enable" form:"enable" binding:"omitempty,oneof=1 2"`
 }
 
-// CreateMonitorRecordRuleReq 创建记录规则请求
 type CreateMonitorRecordRuleReq struct {
 	Name           string     `json:"name" binding:"required,min=1,max=50"`
 	UserID         int        `json:"user_id"`
@@ -62,7 +59,6 @@ type CreateMonitorRecordRuleReq struct {
 	CreateUserName string     `json:"create_user_name"`
 }
 
-// UpdateMonitorRecordRuleReq 更新记录规则请求
 type UpdateMonitorRecordRuleReq struct {
 	ID        int        `json:"id" form:"id" binding:"required"`
 	Name      string     `json:"name" binding:"required,min=1,max=50"`
@@ -73,7 +69,6 @@ type UpdateMonitorRecordRuleReq struct {
 	Labels    StringList `json:"labels"`
 }
 
-// DeleteMonitorRecordRuleReq 删除记录规则请求
 type DeleteMonitorRecordRuleReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }
@@ -83,7 +78,6 @@ type PromqlRecordRuleExprCheckReq struct {
 	PromqlExpr string `json:"promql_expr" binding:"required"`
 }
 
-// GetMonitorRecordRuleReq 获取记录规则请求
 type GetMonitorRecordRuleReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }

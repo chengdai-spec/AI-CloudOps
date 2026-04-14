@@ -32,17 +32,23 @@ import (
 	"github.com/GoSimplicity/AI-CloudOps/pkg/jwt"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/ssh"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 type TreeCloudHandler struct {
-	service   service.TreeCloudService
-	sshClient ssh.Client
+	service    service.TreeCloudService
+	sshClient  ssh.Client
+	wsUpgrader *websocket.Upgrader
+	logger     *zap.Logger
 }
 
-func NewTreeCloudHandler(service service.TreeCloudService, sshClient ssh.Client) *TreeCloudHandler {
+func NewTreeCloudHandler(service service.TreeCloudService, sshClient ssh.Client, wsUpgrader *websocket.Upgrader, logger *zap.Logger) *TreeCloudHandler {
 	return &TreeCloudHandler{
-		service:   service,
-		sshClient: sshClient,
+		service:    service,
+		sshClient:  sshClient,
+		wsUpgrader: wsUpgrader,
+		logger:     logger,
 	}
 }
 
@@ -66,16 +72,14 @@ func (h *TreeCloudHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetTreeCloudResourceList 获取云资源列表
 func (h *TreeCloudHandler) GetTreeCloudResourceList(ctx *gin.Context) {
 	var req model.GetTreeCloudResourceListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetTreeCloudResourceList(ctx, &req)
+		return h.service.GetTreeCloudResourceList(ctx.Request.Context(), &req)
 	})
 }
 
-// GetTreeCloudResourceDetail 获取云资源详情
 func (h *TreeCloudHandler) GetTreeCloudResourceDetail(ctx *gin.Context) {
 	var req model.GetTreeCloudResourceDetailReq
 
@@ -88,11 +92,10 @@ func (h *TreeCloudHandler) GetTreeCloudResourceDetail(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetTreeCloudResourceDetail(ctx, &req)
+		return h.service.GetTreeCloudResourceDetail(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateTreeCloudResource 更新云资源本地元数据
 func (h *TreeCloudHandler) UpdateTreeCloudResource(ctx *gin.Context) {
 	var req model.UpdateTreeCloudResourceReq
 
@@ -102,18 +105,16 @@ func (h *TreeCloudHandler) UpdateTreeCloudResource(ctx *gin.Context) {
 		return
 	}
 
-	// 获取当前用户信息
 	uc := ctx.MustGet("user").(jwt.UserClaims)
 	req.ID = id
 	req.OperatorID = uc.Uid
 	req.OperatorName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateTreeCloudResource(ctx, &req)
+		return nil, h.service.UpdateTreeCloudResource(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteTreeCloudResource 删除云资源
 func (h *TreeCloudHandler) DeleteTreeCloudResource(ctx *gin.Context) {
 	var req model.DeleteTreeCloudResourceReq
 
@@ -123,18 +124,16 @@ func (h *TreeCloudHandler) DeleteTreeCloudResource(ctx *gin.Context) {
 		return
 	}
 
-	// 获取当前用户信息
 	uc := ctx.MustGet("user").(jwt.UserClaims)
 	req.ID = id
 	req.OperatorID = uc.Uid
 	req.OperatorName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteTreeCloudResource(ctx, &req)
+		return nil, h.service.DeleteTreeCloudResource(ctx.Request.Context(), &req)
 	})
 }
 
-// BindTreeCloudResource 绑定云资源到树节点
 func (h *TreeCloudHandler) BindTreeCloudResource(ctx *gin.Context) {
 	var req model.BindTreeCloudResourceReq
 
@@ -147,11 +146,10 @@ func (h *TreeCloudHandler) BindTreeCloudResource(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.BindTreeCloudResource(ctx, &req)
+		return nil, h.service.BindTreeCloudResource(ctx.Request.Context(), &req)
 	})
 }
 
-// UnBindTreeCloudResource 解绑云资源与树节点
 func (h *TreeCloudHandler) UnBindTreeCloudResource(ctx *gin.Context) {
 	var req model.UnBindTreeCloudResourceReq
 
@@ -164,43 +162,38 @@ func (h *TreeCloudHandler) UnBindTreeCloudResource(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UnBindTreeCloudResource(ctx, &req)
+		return nil, h.service.UnBindTreeCloudResource(ctx.Request.Context(), &req)
 	})
 }
 
-// SyncTreeCloudResource 从云厂商同步资源
 func (h *TreeCloudHandler) SyncTreeCloudResource(ctx *gin.Context) {
 	var req model.SyncTreeCloudResourceReq
 
-	// 获取当前用户信息
 	uc := ctx.MustGet("user").(jwt.UserClaims)
 	req.OperatorID = uc.Uid
 	req.OperatorName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.SyncTreeCloudResource(ctx, &req)
+		return h.service.SyncTreeCloudResource(ctx.Request.Context(), &req)
 	})
 }
 
-// GetSyncHistory 获取云资源同步历史
 func (h *TreeCloudHandler) GetSyncHistory(ctx *gin.Context) {
 	var req model.GetCloudResourceSyncHistoryReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetSyncHistory(ctx, &req)
+		return h.service.GetSyncHistory(ctx.Request.Context(), &req)
 	})
 }
 
-// GetChangeLog 获取云资源变更日志
 func (h *TreeCloudHandler) GetChangeLog(ctx *gin.Context) {
 	var req model.GetCloudResourceChangeLogReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetChangeLog(ctx, &req)
+		return h.service.GetChangeLog(ctx.Request.Context(), &req)
 	})
 }
 
-// GetTreeNodeCloudResources 获取树节点下的云资源
 func (h *TreeCloudHandler) GetTreeNodeCloudResources(ctx *gin.Context) {
 	var req model.GetTreeNodeCloudResourcesReq
 
@@ -213,11 +206,10 @@ func (h *TreeCloudHandler) GetTreeNodeCloudResources(ctx *gin.Context) {
 	req.NodeID = nodeId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetTreeNodeCloudResources(ctx, &req)
+		return h.service.GetTreeNodeCloudResources(ctx.Request.Context(), &req)
 	})
 }
 
-// ConnectCloudResourceTerminal 连接云资源终端
 func (h *TreeCloudHandler) ConnectCloudResourceTerminal(ctx *gin.Context) {
 	var req model.ConnectTreeCloudResourceTerminalReq
 
@@ -231,9 +223,8 @@ func (h *TreeCloudHandler) ConnectCloudResourceTerminal(ctx *gin.Context) {
 	req.ID = id
 	req.UserID = uc.Uid
 
-	// 获取云资源详情
 	detailReq := &model.GetTreeCloudResourceDetailReq{ID: req.ID}
-	cloud, err := h.service.GetTreeCloudResourceForConnection(ctx, detailReq)
+	cloud, err := h.service.GetTreeCloudResourceForConnection(ctx.Request.Context(), detailReq)
 	if err != nil {
 		base.ErrorWithMessage(ctx, "获取云资源信息失败: "+err.Error())
 		return
@@ -256,13 +247,11 @@ func (h *TreeCloudHandler) ConnectCloudResourceTerminal(ctx *gin.Context) {
 		return
 	}
 
-	// 设置默认端口
 	port := cloud.Port
 	if port == 0 {
 		port = 22
 	}
 
-	// 设置默认用户名
 	username := cloud.Username
 	if username == "" {
 		username = "root"
@@ -292,13 +281,22 @@ func (h *TreeCloudHandler) ConnectCloudResourceTerminal(ctx *gin.Context) {
 		}
 	}()
 
+	if h.wsUpgrader == nil {
+		base.ErrorWithMessage(ctx, "WebSocket升级器未初始化")
+		return
+	}
+
 	// 升级WebSocket连接
-	ws, err := ssh.UpGrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	ws, err := h.wsUpgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		base.ErrorWithMessage(ctx, "升级WebSocket连接失败: "+err.Error())
 		return
 	}
-	defer ws.Close()
+	defer func() {
+		if closeErr := ws.Close(); closeErr != nil {
+			h.logger.Error("关闭WebSocket连接失败", zap.Error(closeErr))
+		}
+	}()
 
 	// 启动终端会话
 	if err := h.sshClient.WebTerminal(uc.Uid, ws); err != nil {
@@ -307,7 +305,6 @@ func (h *TreeCloudHandler) ConnectCloudResourceTerminal(ctx *gin.Context) {
 	}
 }
 
-// UpdateCloudResourceStatus 更新云资源状态
 func (h *TreeCloudHandler) UpdateCloudResourceStatus(ctx *gin.Context) {
 	var req model.UpdateCloudResourceStatusReq
 
@@ -320,34 +317,30 @@ func (h *TreeCloudHandler) UpdateCloudResourceStatus(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateCloudResourceStatus(ctx, &req)
+		return nil, h.service.UpdateCloudResourceStatus(ctx.Request.Context(), &req)
 	})
 }
 
-// BatchDeleteTreeCloudResource 批量删除云资源
 func (h *TreeCloudHandler) BatchDeleteTreeCloudResource(ctx *gin.Context) {
 	var req model.BatchDeleteTreeCloudResourceReq
 
-	// 获取当前用户信息
 	uc := ctx.MustGet("user").(jwt.UserClaims)
 	req.OperatorID = uc.Uid
 	req.OperatorName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.BatchDeleteTreeCloudResource(ctx, &req)
+		return nil, h.service.BatchDeleteTreeCloudResource(ctx.Request.Context(), &req)
 	})
 }
 
-// BatchUpdateCloudResourceStatus 批量更新云资源状态
 func (h *TreeCloudHandler) BatchUpdateCloudResourceStatus(ctx *gin.Context) {
 	var req model.BatchUpdateCloudResourceStatusReq
 
-	// 获取当前用户信息
 	uc := ctx.MustGet("user").(jwt.UserClaims)
 	req.OperatorID = uc.Uid
 	req.OperatorName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.BatchUpdateCloudResourceStatus(ctx, &req)
+		return nil, h.service.BatchUpdateCloudResourceStatus(ctx.Request.Context(), &req)
 	})
 }

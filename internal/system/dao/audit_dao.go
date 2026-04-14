@@ -53,7 +53,6 @@ func NewAuditDAO(db *gorm.DB) AuditDAO {
 	return &auditDAO{db: db}
 }
 
-// CreateAuditLog 创建单条审计日志
 func (d *auditDAO) CreateAuditLog(ctx context.Context, log *model.AuditLog) error {
 	return d.db.WithContext(ctx).Create(log).Error
 }
@@ -101,22 +100,18 @@ func (d *auditDAO) ListAuditLogs(ctx context.Context, req *model.ListAuditLogsRe
 	// 计算偏移量
 	offset := (req.Page - 1) * req.Size
 
-	// 验证偏移量是否超出范围
 	if offset >= int(total) {
 		return total, logs, nil // 返回空结果但保留总数
 	}
 
-	// 构建数据查询
 	dataQuery := d.buildListQuery(ctx, req)
 
-	// 优化大偏移量查询
 	if offset > 5000 {
 		// 使用游标分页优化
 		err := d.efficientPaginationQuery(ctx, req, dataQuery, &logs)
 		return total, logs, err
 	}
 
-	// 常规分页查询
 	err := dataQuery.
 		Select("id, user_id, trace_id, ip_address, http_method, endpoint, operation_type, target_type, target_id, status_code, duration, error_msg, created_at").
 		Offset(offset).
@@ -127,7 +122,6 @@ func (d *auditDAO) ListAuditLogs(ctx context.Context, req *model.ListAuditLogsRe
 	return total, logs, err
 }
 
-// efficientPaginationQuery 优化的大偏移量分页查询
 func (d *auditDAO) efficientPaginationQuery(ctx context.Context, req *model.ListAuditLogsRequest, baseQuery *gorm.DB, logs *[]model.AuditLog) error {
 	offset := (req.Page - 1) * req.Size
 
@@ -153,7 +147,6 @@ func (d *auditDAO) SearchAuditLogs(ctx context.Context, req *model.SearchAuditLo
 
 	query := d.buildSearchQuery(ctx, req)
 
-	// 计数查询
 	countQuery := d.buildSearchQuery(ctx, req)
 	if err := countQuery.Count(&total).Error; err != nil {
 		return 0, nil, err
@@ -163,13 +156,11 @@ func (d *auditDAO) SearchAuditLogs(ctx context.Context, req *model.SearchAuditLo
 		return 0, logs, nil
 	}
 
-	// 验证分页参数
 	offset := (req.Page - 1) * req.Size
 	if offset >= int(total) {
 		return total, logs, nil
 	}
 
-	// 分页查询
 	err := query.
 		Offset(offset).
 		Limit(req.Size).
@@ -212,7 +203,6 @@ func (d *auditDAO) GetAuditStatistics(ctx context.Context) (*model.AuditStatisti
 	stats.ErrorCount = basicStats.ErrorCount
 	stats.AvgDuration = basicStats.AvgDuration
 
-	// 并发获取其他统计信息
 	errChan := make(chan error, 4)
 
 	// 操作类型分布
@@ -228,7 +218,6 @@ func (d *auditDAO) GetAuditStatistics(ctx context.Context) (*model.AuditStatisti
 		errChan <- err
 	}()
 
-	// 状态码分布
 	go func() {
 		var statusDistribution []model.StatusDistributionItem
 		err := d.db.WithContext(ctx).Model(&model.AuditLog{}).
@@ -276,7 +265,6 @@ func (d *auditDAO) GetAuditStatistics(ctx context.Context) (*model.AuditStatisti
 	return stats, nil
 }
 
-// DeleteAuditLog 删除单条审计日志
 func (d *auditDAO) DeleteAuditLog(ctx context.Context, id int) error {
 	return d.db.WithContext(ctx).Delete(&model.AuditLog{}, id).Error
 }
@@ -308,11 +296,9 @@ func (d *auditDAO) ArchiveAuditLogs(ctx context.Context, startTime, endTime int6
 	start := time.Unix(startTime, 0)
 	end := time.Unix(endTime, 0)
 
-	// 分批处理，避免长时间锁表
 	batchSize := 10000
 	for {
 		var count int64
-		// 检查还有多少数据需要处理
 		err := d.db.WithContext(ctx).Model(&model.AuditLog{}).
 			Where("created_at BETWEEN ? AND ?", start, end).
 			Count(&count).Error
@@ -324,7 +310,6 @@ func (d *auditDAO) ArchiveAuditLogs(ctx context.Context, startTime, endTime int6
 			break
 		}
 
-		// 分批删除
 		err = d.db.WithContext(ctx).
 			Where("created_at BETWEEN ? AND ?", start, end).
 			Limit(batchSize).
@@ -337,7 +322,6 @@ func (d *auditDAO) ArchiveAuditLogs(ctx context.Context, startTime, endTime int6
 	return nil
 }
 
-// buildSearchQuery 修复搜索查询构建
 func (d *auditDAO) buildSearchQuery(ctx context.Context, req *model.SearchAuditLogsRequest) *gorm.DB {
 	query := d.buildListQuery(ctx, &req.ListAuditLogsRequest)
 
@@ -353,7 +337,6 @@ func (d *auditDAO) buildSearchQuery(ctx context.Context, req *model.SearchAuditL
 			query = query.Where("status_code IN ?", adv.StatusCodeList)
 		}
 
-		// 范围查询优化
 		if adv.DurationMin > 0 {
 			query = query.Where("duration >= ?", adv.DurationMin)
 		}
@@ -362,7 +345,6 @@ func (d *auditDAO) buildSearchQuery(ctx context.Context, req *model.SearchAuditL
 			query = query.Where("duration <= ?", adv.DurationMax)
 		}
 
-		// 布尔查询优化
 		if adv.HasError != nil {
 			if *adv.HasError {
 				query = query.Where("status_code >= 400 OR error_msg != ''")
@@ -380,11 +362,9 @@ func (d *auditDAO) buildSearchQuery(ctx context.Context, req *model.SearchAuditL
 	return query
 }
 
-// buildListQuery 修复上下文问题和查询逻辑
 func (d *auditDAO) buildListQuery(ctx context.Context, req *model.ListAuditLogsRequest) *gorm.DB {
 	query := d.db.WithContext(ctx).Model(&model.AuditLog{}) // 使用传入的ctx
 
-	// 时间范围查询
 	if req.StartTime > 0 && req.EndTime > 0 {
 		start := time.Unix(req.StartTime, 0)
 		end := time.Unix(req.EndTime, 0)

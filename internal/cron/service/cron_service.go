@@ -32,8 +32,8 @@ import (
 	"time"
 
 	"github.com/GoSimplicity/AI-CloudOps/internal/cron/dao"
-	"github.com/GoSimplicity/AI-CloudOps/internal/cron/handler"
 	"github.com/GoSimplicity/AI-CloudOps/internal/cron/scheduler"
+	"github.com/GoSimplicity/AI-CloudOps/internal/cron/task"
 	"github.com/GoSimplicity/AI-CloudOps/internal/model"
 	userDao "github.com/GoSimplicity/AI-CloudOps/internal/system/dao"
 	"github.com/hibiken/asynq"
@@ -77,11 +77,9 @@ func NewCronService(
 	}
 }
 
-// CreateCronJob 创建任务
 func (s *cronService) CreateCronJob(ctx context.Context, req *model.CreateCronJobReq) error {
 	s.logger.Info("创建任务", zap.String("name", req.Name))
 
-	// 基本验证
 	if err := s.validateBasicJobConfig(req.JobType, req.Command, req.HTTPUrl, req.ScriptContent, req.SSHResourceID, req.SSHCommand); err != nil {
 		s.logger.Error("任务配置验证失败", zap.String("name", req.Name), zap.Error(err))
 		return err
@@ -121,11 +119,9 @@ func (s *cronService) CreateCronJob(ctx context.Context, req *model.CreateCronJo
 	return nil
 }
 
-// UpdateCronJob 更新任务
 func (s *cronService) UpdateCronJob(ctx context.Context, req *model.UpdateCronJobReq) error {
 	s.logger.Info("更新任务", zap.Int("id", req.ID), zap.String("name", req.Name))
 
-	// 基本验证
 	if err := s.validateBasicJobConfig(req.JobType, req.Command, req.HTTPUrl, req.ScriptContent, req.SSHResourceID, req.SSHCommand); err != nil {
 		s.logger.Error("任务配置验证失败", zap.Int("id", req.ID), zap.Error(err))
 		return err
@@ -164,7 +160,6 @@ func (s *cronService) UpdateCronJob(ctx context.Context, req *model.UpdateCronJo
 	return nil
 }
 
-// DeleteCronJob 删除任务
 func (s *cronService) DeleteCronJob(ctx context.Context, id int) error {
 	s.logger.Info("删除任务", zap.Int("id", id))
 
@@ -175,7 +170,6 @@ func (s *cronService) DeleteCronJob(ctx context.Context, id int) error {
 		return err
 	}
 
-	// 检查是否为内置任务
 	if job.IsBuiltIn == 1 {
 		s.logger.Warn("尝试删除内置任务被拒绝", zap.Int("id", id), zap.String("name", job.Name))
 		return fmt.Errorf("内置系统任务不能被删除")
@@ -203,7 +197,6 @@ func (s *cronService) DeleteCronJob(ctx context.Context, id int) error {
 	return nil
 }
 
-// GetCronJob 获取任务详情
 func (s *cronService) GetCronJob(ctx context.Context, id int) (*model.CronJob, error) {
 	job, err := s.cronDAO.GetCronJob(ctx, id)
 	if err != nil {
@@ -214,7 +207,6 @@ func (s *cronService) GetCronJob(ctx context.Context, id int) (*model.CronJob, e
 	return job, nil
 }
 
-// GetCronJobList 获取任务列表
 func (s *cronService) GetCronJobList(ctx context.Context, req *model.GetCronJobListReq) (model.ListResp[*model.CronJob], error) {
 	jobs, total, err := s.cronDAO.GetCronJobList(ctx, req)
 	if err != nil {
@@ -236,7 +228,6 @@ func (s *cronService) GetCronJobList(ctx context.Context, req *model.GetCronJobL
 	}, nil
 }
 
-// EnableCronJob 启用任务
 func (s *cronService) EnableCronJob(ctx context.Context, id int) error {
 	s.logger.Info("启用任务", zap.Int("id", id))
 
@@ -249,7 +240,6 @@ func (s *cronService) EnableCronJob(ctx context.Context, id int) error {
 	return nil
 }
 
-// DisableCronJob 禁用任务
 func (s *cronService) DisableCronJob(ctx context.Context, id int) error {
 	s.logger.Info("禁用任务", zap.Int("id", id))
 
@@ -262,18 +252,15 @@ func (s *cronService) DisableCronJob(ctx context.Context, id int) error {
 	return nil
 }
 
-// TriggerCronJob 手动触发任务
 func (s *cronService) TriggerCronJob(ctx context.Context, id int) error {
 	s.logger.Info("手动触发任务", zap.Int("id", id))
 
-	// 获取任务详情
 	job, err := s.cronDAO.GetCronJob(ctx, id)
 	if err != nil {
 		s.logger.Error("获取任务详情失败", zap.Int("id", id), zap.Error(err))
 		return fmt.Errorf("获取任务详情失败: %w", err)
 	}
 
-	// 检查任务状态
 	if job.Status != model.CronJobStatusEnabled {
 		return fmt.Errorf("任务未启用，无法手动触发")
 	}
@@ -286,8 +273,7 @@ func (s *cronService) TriggerCronJob(ctx context.Context, id int) error {
 			zap.String("taskType", job.Command))
 	}
 
-	// 创建任务载荷
-	payload := handler.CronTaskPayload{
+	payload := task.CronTaskPayload{
 		JobID:     job.ID,
 		JobName:   job.Name,
 		TaskType:  job.JobType,
@@ -307,7 +293,6 @@ func (s *cronService) TriggerCronJob(ctx context.Context, id int) error {
 	// 创建Asynq任务
 	task := asynq.NewTask("cron:task", payloadBytes)
 
-	// 立即执行任务
 	taskInfo, err := s.client.Enqueue(task, asynq.ProcessIn(0))
 	if err != nil {
 		s.logger.Error("入队任务失败", zap.Int("id", id), zap.Error(err))
@@ -320,7 +305,6 @@ func (s *cronService) TriggerCronJob(ctx context.Context, id int) error {
 	return nil
 }
 
-// ValidateSchedule 验证调度表达式
 func (s *cronService) ValidateSchedule(ctx context.Context, req *model.ValidateScheduleReq) (*model.ValidateScheduleResp, error) {
 	s.logger.Info("验证调度表达式", zap.String("schedule", req.Schedule))
 
@@ -375,7 +359,6 @@ func (s *cronService) fillNextRunTime(job *model.CronJob) {
 	job.NextRunTime = &nextTime
 }
 
-// fillCreatedByName 填充创建者姓名
 func (s *cronService) fillCreatedByName(ctx context.Context, job *model.CronJob) {
 	if job == nil || job.CreatedBy <= 0 {
 		return
@@ -386,7 +369,6 @@ func (s *cronService) fillCreatedByName(ctx context.Context, job *model.CronJob)
 		return
 	}
 
-	// 查询用户信息
 	user, err := s.userDAO.GetByID(ctx, job.CreatedBy)
 	if err != nil {
 		s.logger.Warn("查询创建者信息失败",
@@ -401,7 +383,6 @@ func (s *cronService) fillCreatedByName(ctx context.Context, job *model.CronJob)
 	}
 }
 
-// validateBasicJobConfig 验证任务配置的基本要求
 func (s *cronService) validateBasicJobConfig(jobType model.CronJobType, command, httpUrl, scriptContent string, sshResourceID *int, sshCommand string) error {
 	switch jobType {
 	case model.CronJobTypeCommand:

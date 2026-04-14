@@ -61,7 +61,6 @@ func NewCronJobDAO(logger *zap.Logger, db *gorm.DB) CronJobDAO {
 	}
 }
 
-// CreateCronJob 创建任务
 func (d *cronJobDAO) CreateCronJob(ctx context.Context, job *model.CronJob) error {
 	if job == nil {
 		return errors.New("任务信息不能为空")
@@ -73,7 +72,6 @@ func (d *cronJobDAO) CreateCronJob(ctx context.Context, job *model.CronJob) erro
 		return errors.New("调度表达式不能为空")
 	}
 
-	// 检查名称唯一性
 	var count int64
 	if err := d.db.WithContext(ctx).Model(&model.CronJob{}).
 		Where("name = ?", job.Name).
@@ -84,7 +82,6 @@ func (d *cronJobDAO) CreateCronJob(ctx context.Context, job *model.CronJob) erro
 		return errors.New("任务名称已存在")
 	}
 
-	// 设置默认值
 	if job.Status == 0 {
 		job.Status = model.CronJobStatusEnabled
 	}
@@ -107,7 +104,6 @@ func (d *cronJobDAO) CreateCronJob(ctx context.Context, job *model.CronJob) erro
 	return nil
 }
 
-// GetCronJob 获取任务详情
 func (d *cronJobDAO) GetCronJob(ctx context.Context, id int) (*model.CronJob, error) {
 	var job model.CronJob
 	if err := d.db.WithContext(ctx).Where("id = ?", id).First(&job).Error; err != nil {
@@ -120,7 +116,6 @@ func (d *cronJobDAO) GetCronJob(ctx context.Context, id int) (*model.CronJob, er
 	return &job, nil
 }
 
-// GetCronJobByName 根据名称获取任务详情
 func (d *cronJobDAO) GetCronJobByName(ctx context.Context, name string) (*model.CronJob, error) {
 	var job model.CronJob
 	if err := d.db.WithContext(ctx).Where("name = ?", name).First(&job).Error; err != nil {
@@ -133,7 +128,6 @@ func (d *cronJobDAO) GetCronJobByName(ctx context.Context, name string) (*model.
 	return &job, nil
 }
 
-// GetCronJobList 获取任务列表
 func (d *cronJobDAO) GetCronJobList(ctx context.Context, req *model.GetCronJobListReq) ([]*model.CronJob, int64, error) {
 	var jobs []*model.CronJob
 	var count int64
@@ -152,13 +146,11 @@ func (d *cronJobDAO) GetCronJobList(ctx context.Context, req *model.GetCronJobLi
 		query = query.Where("name LIKE ? OR description LIKE ?", like, like)
 	}
 
-	// 获取总数
 	if err := query.Count(&count).Error; err != nil {
 		d.logger.Error("获取任务总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	if err := query.Order("created_at DESC").
 		Offset(offset).
@@ -171,7 +163,6 @@ func (d *cronJobDAO) GetCronJobList(ctx context.Context, req *model.GetCronJobLi
 	return jobs, count, nil
 }
 
-// UpdateCronJob 更新任务
 func (d *cronJobDAO) UpdateCronJob(ctx context.Context, job *model.CronJob) error {
 	if job == nil {
 		return errors.New("任务信息不能为空")
@@ -183,7 +174,6 @@ func (d *cronJobDAO) UpdateCronJob(ctx context.Context, job *model.CronJob) erro
 		return errors.New("调度表达式不能为空")
 	}
 
-	// 检查任务是否存在
 	existingJob, err := d.GetCronJob(ctx, job.ID)
 	if err != nil {
 		return err
@@ -200,7 +190,6 @@ func (d *cronJobDAO) UpdateCronJob(ctx context.Context, job *model.CronJob) erro
 		return errors.New("任务名称已存在")
 	}
 
-	// 保留运行时信息
 	job.NextRunTime = existingJob.NextRunTime
 	job.LastRunTime = existingJob.LastRunTime
 	job.LastRunStatus = existingJob.LastRunStatus
@@ -221,25 +210,20 @@ func (d *cronJobDAO) UpdateCronJob(ctx context.Context, job *model.CronJob) erro
 	return nil
 }
 
-// DeleteCronJob 删除任务
 func (d *cronJobDAO) DeleteCronJob(ctx context.Context, id int) error {
-	// 检查任务是否存在
 	job, err := d.GetCronJob(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	// 检查是否为内置任务
 	if job.IsBuiltIn == 1 {
 		return errors.New("内置系统任务不能被删除")
 	}
 
-	// 检查任务是否在运行中
 	if job.Status == model.CronJobStatusRunning {
 		return errors.New("无法删除正在运行的任务")
 	}
 
-	// 删除任务
 	if err := d.db.WithContext(ctx).Delete(&model.CronJob{}, id).Error; err != nil {
 		d.logger.Error("删除任务失败", zap.Int("id", id), zap.Error(err))
 		return err
@@ -251,7 +235,6 @@ func (d *cronJobDAO) DeleteCronJob(ctx context.Context, id int) error {
 	return nil
 }
 
-// UpdateCronJobStatus 更新任务状态
 func (d *cronJobDAO) UpdateCronJobStatus(ctx context.Context, id int, status model.CronJobStatus) error {
 	if err := d.db.WithContext(ctx).Model(&model.CronJob{}).
 		Where("id = ?", id).
@@ -262,7 +245,6 @@ func (d *cronJobDAO) UpdateCronJobStatus(ctx context.Context, id int, status mod
 	return nil
 }
 
-// UpdateCronJobRunInfo 更新任务运行信息
 func (d *cronJobDAO) UpdateCronJobRunInfo(ctx context.Context, id int, lastRunTime *time.Time, status int8, duration int, output, errorMsg string) error {
 	updates := map[string]interface{}{
 		"last_run_status":   status,
@@ -275,7 +257,6 @@ func (d *cronJobDAO) UpdateCronJobRunInfo(ctx context.Context, id int, lastRunTi
 		updates["last_run_time"] = *lastRunTime
 	}
 
-	// 更新计数器
 	if status == 1 { // 成功
 		updates["success_count"] = gorm.Expr("success_count + 1")
 	} else if status == 2 { // 失败
@@ -292,7 +273,6 @@ func (d *cronJobDAO) UpdateCronJobRunInfo(ctx context.Context, id int, lastRunTi
 	return nil
 }
 
-// GetEnabledCronJobs 获取所有启用的任务
 func (d *cronJobDAO) GetEnabledCronJobs(ctx context.Context) ([]*model.CronJob, error) {
 	var jobs []*model.CronJob
 	if err := d.db.WithContext(ctx).
@@ -304,7 +284,6 @@ func (d *cronJobDAO) GetEnabledCronJobs(ctx context.Context) ([]*model.CronJob, 
 	return jobs, nil
 }
 
-// UpdateNextRunTime 更新下次运行时间
 func (d *cronJobDAO) UpdateNextRunTime(ctx context.Context, id int, nextRunTime time.Time) error {
 	if err := d.db.WithContext(ctx).Model(&model.CronJob{}).
 		Where("id = ?", id).

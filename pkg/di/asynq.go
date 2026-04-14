@@ -26,22 +26,22 @@
 package di
 
 import (
+	"github.com/GoSimplicity/AI-CloudOps/internal/config"
 	"github.com/hibiken/asynq"
-	"github.com/spf13/viper"
 )
 
-func InitAsynqClient() *asynq.Client {
+func InitAsynqClient(cfg *config.Config) *asynq.Client {
 	return asynq.NewClient(asynq.RedisClientOpt{
-		Addr:     viper.GetString("redis.addr"),
-		Password: viper.GetString("redis.password"),
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
 	})
 }
 
-func InitAsynqServer() *asynq.Server {
+func InitAsynqServer(cfg *config.Config) *asynq.Server {
 	return asynq.NewServer(
 		asynq.RedisClientOpt{
-			Addr:     viper.GetString("redis.addr"),
-			Password: viper.GetString("redis.password"),
+			Addr:     cfg.Redis.Addr,
+			Password: cfg.Redis.Password,
 		},
 		asynq.Config{
 			Concurrency: 10, // 设置并发数
@@ -49,9 +49,9 @@ func InitAsynqServer() *asynq.Server {
 	)
 }
 
-func InitScheduler() *asynq.Scheduler {
+func InitScheduler(cfg *config.Config) *asynq.Scheduler {
 	return asynq.NewScheduler(asynq.RedisClientOpt{
-		Addr:     viper.GetString("redis.addr"),
-		Password: viper.GetString("redis.password"),
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
 	}, nil)
 }

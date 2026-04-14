@@ -411,7 +411,6 @@ func (s *pvcService) convertPVCToEntity(pvc *corev1.PersistentVolumeClaim, clust
 		return nil
 	}
 
-	// 获取请求容量
 	requestedStorage := ""
 	if pvc.Spec.Resources.Requests != nil {
 		if storage, ok := pvc.Spec.Resources.Requests[corev1.ResourceStorage]; ok {
@@ -419,7 +418,6 @@ func (s *pvcService) convertPVCToEntity(pvc *corev1.PersistentVolumeClaim, clust
 		}
 	}
 
-	// 获取实际容量
 	actualStorage := ""
 	if pvc.Status.Capacity != nil {
 		if storage, ok := pvc.Status.Capacity[corev1.ResourceStorage]; ok {
@@ -427,19 +425,16 @@ func (s *pvcService) convertPVCToEntity(pvc *corev1.PersistentVolumeClaim, clust
 		}
 	}
 
-	// 获取存储类
 	storageClass := ""
 	if pvc.Spec.StorageClassName != nil {
 		storageClass = *pvc.Spec.StorageClassName
 	}
 
-	// 获取访问模式
 	accessModes := make([]string, 0, len(pvc.Spec.AccessModes))
 	for _, mode := range pvc.Spec.AccessModes {
 		accessModes = append(accessModes, string(mode))
 	}
 
-	// 获取卷模式
 	volumeMode := string(corev1.PersistentVolumeFilesystem)
 	if pvc.Spec.VolumeMode != nil {
 		volumeMode = string(*pvc.Spec.VolumeMode)
@@ -447,7 +442,6 @@ func (s *pvcService) convertPVCToEntity(pvc *corev1.PersistentVolumeClaim, clust
 
 	status := s.convertPVCStatus(pvc.Status.Phase)
 
-	// 获取选择器
 	selector := make(map[string]string)
 	if pvc.Spec.Selector != nil && pvc.Spec.Selector.MatchLabels != nil {
 		selector = pvc.Spec.Selector.MatchLabels

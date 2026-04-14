@@ -98,7 +98,6 @@ func (s *clusterRoleService) GetClusterRoleList(ctx context.Context, req *model.
 		return t
 	})
 
-	// 分页处理
 	pagedItems, total := utils.Paginate(filteredClusterRoles, req.Page, req.Size)
 
 	return model.ListResp[*model.K8sClusterRole]{
@@ -206,7 +205,6 @@ func (s *clusterRoleService) UpdateClusterRoleYaml(ctx context.Context, req *mod
 		return fmt.Errorf("解析YAML失败: %w", err)
 	}
 
-	// 保持必要的元数据
 	updatedClusterRole.ResourceVersion = existingClusterRole.ResourceVersion
 	updatedClusterRole.UID = existingClusterRole.UID
 
@@ -223,7 +221,6 @@ func (s *clusterRoleService) UpdateClusterRoleYaml(ctx context.Context, req *mod
 }
 
 func (s *clusterRoleService) CreateClusterRole(ctx context.Context, req *model.CreateClusterRoleReq) error {
-	// 验证规则
 	if len(req.Rules) == 0 {
 		s.logger.Warn("创建ClusterRole时规则为空",
 			zap.Int("clusterID", req.ClusterID),
@@ -231,16 +228,13 @@ func (s *clusterRoleService) CreateClusterRole(ctx context.Context, req *model.C
 		return fmt.Errorf("ClusterRole规则不能为空")
 	}
 
-	// 记录原始规则信息
 	s.logger.Info("创建ClusterRole",
 		zap.Int("clusterID", req.ClusterID),
 		zap.String("name", req.Name),
 		zap.Int("rulesCount", len(req.Rules)))
 
-	// 转换规则
 	k8sRules := utils.ConvertPolicyRulesToK8s(req.Rules)
 
-	// 检查转换后的规则
 	if len(k8sRules) == 0 {
 		s.logger.Error("规则转换后为空，可能包含无效规则",
 			zap.Int("clusterID", req.ClusterID),
@@ -290,7 +284,6 @@ func (s *clusterRoleService) UpdateClusterRole(ctx context.Context, req *model.U
 		return fmt.Errorf("failed to get existing cluster role: %w", err)
 	}
 
-	// 验证规则
 	if len(req.Rules) == 0 {
 		s.logger.Warn("更新ClusterRole时规则为空",
 			zap.Int("clusterID", req.ClusterID),
@@ -298,10 +291,8 @@ func (s *clusterRoleService) UpdateClusterRole(ctx context.Context, req *model.U
 		return fmt.Errorf("ClusterRole规则不能为空")
 	}
 
-	// 转换规则
 	k8sRules := utils.ConvertPolicyRulesToK8s(req.Rules)
 
-	// 检查转换后的规则
 	if len(k8sRules) == 0 {
 		s.logger.Error("规则转换后为空，可能包含无效规则",
 			zap.Int("clusterID", req.ClusterID),

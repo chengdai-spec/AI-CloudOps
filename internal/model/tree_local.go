@@ -72,18 +72,15 @@ func (t *TreeLocalResource) TableName() string {
 	return "cl_tree_local_resource"
 }
 
-// GetTreeLocalListReq 获取本地树资源列表请求
 type GetTreeLocalResourceListReq struct {
 	ListReq
 	Status ResourceStatus `json:"status" form:"status"`
 }
 
-// GetTreeLocalDetailReq 获取本地树资源详情请求
 type GetTreeLocalResourceDetailReq struct {
 	ID int `json:"id" form:"id"`
 }
 
-// CreateTreeLocalReq 创建本地树资源请求
 type CreateTreeLocalResourceReq struct {
 	Name           string       `json:"name" binding:"required"`
 	Environment    string       `json:"environment"`
@@ -102,7 +99,6 @@ type CreateTreeLocalResourceReq struct {
 	AuthMode       AuthMode     `json:"auth_mode"`
 }
 
-// UpdateTreeLocalReq 更新本地树资源请求
 type UpdateTreeLocalResourceReq struct {
 	ID          int          `json:"id" form:"id"`
 	Name        string       `json:"name"`
@@ -120,12 +116,10 @@ type UpdateTreeLocalResourceReq struct {
 	AuthMode    AuthMode     `json:"auth_mode"`
 }
 
-// DeleteTreeLocalResourceReq 删除本地树资源请求
 type DeleteTreeLocalResourceReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }
 
-// ConnectTreeLocalResourceTerminalReq 连接本地资源终端请求
 type ConnectTreeLocalResourceTerminalReq struct {
 	ID     int `json:"id" form:"id" binding:"required"`
 	UserID int `json:"user_id"`

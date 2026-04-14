@@ -47,13 +47,11 @@ func ConvertToPVCEntity(pvc *corev1.PersistentVolumeClaim, clusterID int) *model
 		accessModes = append(accessModes, string(mode))
 	}
 
-	// 获取存储类
 	storageClass := ""
 	if pvc.Spec.StorageClassName != nil {
 		storageClass = *pvc.Spec.StorageClassName
 	}
 
-	// 获取请求容量
 	requestStorage := ""
 	if pvc.Spec.Resources.Requests != nil {
 		if storage, ok := pvc.Spec.Resources.Requests[corev1.ResourceStorage]; ok {
@@ -61,7 +59,6 @@ func ConvertToPVCEntity(pvc *corev1.PersistentVolumeClaim, clusterID int) *model
 		}
 	}
 
-	// 获取实际容量
 	capacity := ""
 	if pvc.Status.Capacity != nil {
 		if storage, ok := pvc.Status.Capacity[corev1.ResourceStorage]; ok {
@@ -72,7 +69,6 @@ func ConvertToPVCEntity(pvc *corev1.PersistentVolumeClaim, clusterID int) *model
 	// 获取绑定的 PV
 	volumeName := pvc.Spec.VolumeName
 
-	// 获取卷模式
 	volumeMode := string(corev1.PersistentVolumeFilesystem)
 	if pvc.Spec.VolumeMode != nil {
 		volumeMode = string(*pvc.Spec.VolumeMode)
@@ -80,7 +76,6 @@ func ConvertToPVCEntity(pvc *corev1.PersistentVolumeClaim, clusterID int) *model
 
 	status := convertPVCStatusToEnum(pvc.Status.Phase)
 
-	// 获取选择器
 	selector := make(map[string]string)
 	if pvc.Spec.Selector != nil && pvc.Spec.Selector.MatchLabels != nil {
 		selector = pvc.Spec.Selector.MatchLabels
@@ -238,17 +233,14 @@ func ConvertCreatePVCReqToPVC(req *model.CreatePVCReq) *corev1.PersistentVolumeC
 		},
 	}
 
-	// 设置存储类
 	if req.Spec.StorageClass != "" {
 		pvc.Spec.StorageClassName = &req.Spec.StorageClass
 	}
 
-	// 设置卷名
 	if req.Spec.VolumeName != "" {
 		pvc.Spec.VolumeName = req.Spec.VolumeName
 	}
 
-	// 设置资源请求
 	if req.Spec.RequestStorage != "" {
 		pvc.Spec.Resources = corev1.VolumeResourceRequirements{
 			Requests: corev1.ResourceList{
@@ -257,7 +249,6 @@ func ConvertCreatePVCReqToPVC(req *model.CreatePVCReq) *corev1.PersistentVolumeC
 		}
 	}
 
-	// 设置选择器
 	if len(req.Spec.Selector) > 0 {
 		pvc.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: req.Spec.Selector,
@@ -296,17 +287,14 @@ func ConvertUpdatePVCReqToPVC(req *model.UpdatePVCReq) *corev1.PersistentVolumeC
 		},
 	}
 
-	// 设置存储类
 	if req.Spec.StorageClass != "" {
 		pvc.Spec.StorageClassName = &req.Spec.StorageClass
 	}
 
-	// 设置卷名
 	if req.Spec.VolumeName != "" {
 		pvc.Spec.VolumeName = req.Spec.VolumeName
 	}
 
-	// 设置资源请求
 	if req.Spec.RequestStorage != "" {
 		pvc.Spec.Resources = corev1.VolumeResourceRequirements{
 			Requests: corev1.ResourceList{
@@ -315,7 +303,6 @@ func ConvertUpdatePVCReqToPVC(req *model.UpdatePVCReq) *corev1.PersistentVolumeC
 		}
 	}
 
-	// 设置选择器
 	if len(req.Spec.Selector) > 0 {
 		pvc.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: req.Spec.Selector,
@@ -543,7 +530,6 @@ func ComparePVCs(pvc1, pvc2 *corev1.PersistentVolumeClaim) bool {
 		}
 	}
 
-	// 比较存储请求
 	req1 := pvc1.Spec.Resources.Requests[corev1.ResourceStorage]
 	req2 := pvc2.Spec.Resources.Requests[corev1.ResourceStorage]
 	return req1.Equal(req2)
@@ -565,13 +551,11 @@ func GetPVCAccessModes(pvc corev1.PersistentVolumeClaim) []string {
 }
 
 func CalculatePVCStorageUsage(pvc corev1.PersistentVolumeClaim) (float64, error) {
-	// 获取请求大小
 	requestedStorage, exists := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
 	if !exists {
 		return 0, fmt.Errorf("PVC未设置存储请求")
 	}
 
-	// 获取实际大小
 	actualStorage, exists := pvc.Status.Capacity[corev1.ResourceStorage]
 	if !exists {
 		return 0, fmt.Errorf("PVC未绑定存储")

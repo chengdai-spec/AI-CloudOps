@@ -78,7 +78,7 @@ func (n *NotAuthHandler) GetBindIps(ctx *gin.Context) {
 		}
 	}
 
-	res, err := n.svc.BuildPrometheusServiceDiscovery(ctx, port, ids)
+	res, err := n.svc.BuildPrometheusServiceDiscovery(ctx.Request.Context(), port, ids)
 	if err != nil {
 		base.ErrorWithMessage(ctx, "服务器内部错误")
 		return

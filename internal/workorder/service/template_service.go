@@ -67,7 +67,6 @@ func NewWorkorderTemplateService(
 	}
 }
 
-// CreateTemplate 创建模板
 func (s *workorderTemplateService) CreateTemplate(ctx context.Context, req *model.CreateWorkorderTemplateReq) error {
 	exists, err := s.checkTemplateNameExists(ctx, req.Name)
 	if err != nil {
@@ -109,7 +108,6 @@ func (s *workorderTemplateService) CreateTemplate(ctx context.Context, req *mode
 	return nil
 }
 
-// UpdateTemplate 更新模板
 func (s *workorderTemplateService) UpdateTemplate(ctx context.Context, req *model.UpdateWorkorderTemplateReq) error {
 	if req.ID <= 0 {
 		return errors.New("模板ID无效")
@@ -164,7 +162,6 @@ func (s *workorderTemplateService) UpdateTemplate(ctx context.Context, req *mode
 	return nil
 }
 
-// DeleteTemplate 删除模板
 func (s *workorderTemplateService) DeleteTemplate(ctx context.Context, req *model.DeleteWorkorderTemplateReq) error {
 	if req.ID <= 0 {
 		return errors.New("模板ID无效")
@@ -196,7 +193,6 @@ func (s *workorderTemplateService) DeleteTemplate(ctx context.Context, req *mode
 	return nil
 }
 
-// ListTemplate 获取模板列表
 func (s *workorderTemplateService) ListTemplate(ctx context.Context, req *model.ListWorkorderTemplateReq) (*model.ListResp[*model.WorkorderTemplate], error) {
 	templates, total, err := s.dao.ListTemplate(ctx, req)
 	if err != nil {
@@ -212,7 +208,6 @@ func (s *workorderTemplateService) ListTemplate(ctx context.Context, req *model.
 	return result, nil
 }
 
-// DetailTemplate 获取模板
 func (s *workorderTemplateService) DetailTemplate(ctx context.Context, req *model.DetailWorkorderTemplateReq) (*model.WorkorderTemplate, error) {
 	if req.ID <= 0 {
 		return nil, errors.New("模板ID无效")
@@ -227,7 +222,6 @@ func (s *workorderTemplateService) DetailTemplate(ctx context.Context, req *mode
 	return template, nil
 }
 
-// checkTemplateNameExists 检查模板名称
 func (s *workorderTemplateService) checkTemplateNameExists(ctx context.Context, name string, excludeID ...int) (bool, error) {
 	if name == "" {
 		return false, errors.New("模板名称不能为空")
@@ -242,7 +236,6 @@ func (s *workorderTemplateService) checkTemplateNameExists(ctx context.Context, 
 	return s.dao.IsTemplateNameExists(ctx, name, id)
 }
 
-// validateProcessExists 验证流程是否存在
 func (s *workorderTemplateService) validateProcessExists(ctx context.Context, processID int) error {
 	if processID <= 0 {
 		return errors.New("流程ID无效")
@@ -257,7 +250,6 @@ func (s *workorderTemplateService) validateProcessExists(ctx context.Context, pr
 	return nil
 }
 
-// validateCategoryExists 验证分类
 func (s *workorderTemplateService) validateCategoryExists(ctx context.Context, categoryID int) error {
 	if categoryID <= 0 {
 		return errors.New("分类ID无效")

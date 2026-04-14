@@ -54,7 +54,6 @@ func NewBatchConfigManager(configDAO configDao.MonitorConfigDAO, logger *zap.Log
 	}
 }
 
-// BatchSaveConfigs 批量保存配置到数据库
 func (b *BatchConfigManager) BatchSaveConfigs(ctx context.Context, configMap map[string]ConfigData) error {
 	if len(configMap) == 0 {
 		return nil
@@ -73,7 +72,6 @@ func (b *BatchConfigManager) BatchSaveConfigs(ctx context.Context, configMap map
 		break
 	}
 
-	// 批量查询现有配置
 	existingConfigs, err := b.configDAO.GetMonitorConfigsByInstances(ctx, instanceIPs, configType)
 	if err != nil && !strings.Contains(err.Error(), "未找到对应的监控配置") {
 		b.logger.Error(LogModuleMonitor+"批量查询监控配置失败",
@@ -88,7 +86,6 @@ func (b *BatchConfigManager) BatchSaveConfigs(ctx context.Context, configMap map
 		existingMap[config.InstanceIP] = config
 	}
 
-	// 准备要创建和更新的配置
 	toCreate := make([]*model.MonitorConfig, 0)
 	toUpdate := make([]*model.MonitorConfig, 0)
 	now := time.Now().Unix()
@@ -106,7 +103,6 @@ func (b *BatchConfigManager) BatchSaveConfigs(ctx context.Context, configMap map
 		configHash := calculateConfigHash(data.Content)
 
 		if existing, ok := existingMap[ip]; ok {
-			// 配置内容未变化则跳过更新
 			if existing.ConfigHash == configHash {
 				b.logger.Debug(LogModuleMonitor+"配置内容未变化，跳过更新",
 					zap.String("instance_ip", ip),
@@ -114,7 +110,6 @@ func (b *BatchConfigManager) BatchSaveConfigs(ctx context.Context, configMap map
 				continue
 			}
 
-			// 更新现有配置
 			existing.Name = data.Name
 			existing.ConfigContent = data.Content
 			existing.ConfigHash = configHash
@@ -122,7 +117,6 @@ func (b *BatchConfigManager) BatchSaveConfigs(ctx context.Context, configMap map
 			existing.LastGeneratedTime = now
 			toUpdate = append(toUpdate, existing)
 		} else {
-			// 创建新配置
 			newConfig := &model.MonitorConfig{
 				Name:              data.Name,
 				PoolID:            data.PoolID,
@@ -137,7 +131,6 @@ func (b *BatchConfigManager) BatchSaveConfigs(ctx context.Context, configMap map
 		}
 	}
 
-	// 批量创建新配置
 	if len(toCreate) > 0 {
 		if err := b.configDAO.BatchCreateMonitorConfigs(ctx, toCreate); err != nil {
 			b.logger.Error(LogModuleMonitor+"批量创建监控配置失败",
@@ -149,7 +142,6 @@ func (b *BatchConfigManager) BatchSaveConfigs(ctx context.Context, configMap map
 			zap.Int("count", len(toCreate)))
 	}
 
-	// 批量更新现有配置
 	if len(toUpdate) > 0 {
 		if err := b.configDAO.BatchUpdateMonitorConfigs(ctx, toUpdate); err != nil {
 			b.logger.Error(LogModuleMonitor+"批量更新监控配置失败",

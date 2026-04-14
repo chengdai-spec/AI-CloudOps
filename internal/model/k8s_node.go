@@ -31,7 +31,6 @@ import (
 	core "k8s.io/api/core/v1"
 )
 
-// NodeStatus 节点状态枚举
 type NodeStatus int8
 
 const (
@@ -42,7 +41,6 @@ const (
 	NodeStatusError                                    // 异常
 )
 
-// NodeTaint 节点污点
 type NodeTaint struct {
 	Key    string `json:"key"`    // 污点键
 	Value  string `json:"value"`  // 污点值
@@ -76,7 +74,6 @@ type K8sNode struct {
 	RawNode          *core.Node           `json:"-"`                                            // 原始 Node 对象，不序列化到 JSON
 }
 
-// GetNodeListReq 获取节点列表请求
 type GetNodeListReq struct {
 	ListReq
 	ClusterID     int          `json:"cluster_id" binding:"required"` // 集群ID
@@ -84,20 +81,17 @@ type GetNodeListReq struct {
 	LabelSelector string       `json:"label_selector"`                // 标签选择器
 }
 
-// GetNodeDetailReq 获取节点详情请求
 type GetNodeDetailReq struct {
 	ClusterID int    `json:"cluster_id" binding:"required"` // 集群ID
 	NodeName  string `json:"node_name" binding:"required"`  // 节点名称
 }
 
-// UpdateNodeLabelsReq 更新节点标签请求
 type UpdateNodeLabelsReq struct {
 	ClusterID int               `json:"cluster_id" binding:"required"` // 集群ID
 	NodeName  string            `json:"node_name" binding:"required"`  // 节点名称
 	Labels    map[string]string `json:"labels"`                        // 标签（完全覆盖现有标签，传空map表示清空所有标签）
 }
 
-// DrainNodeReq 驱逐节点请求
 type DrainNodeReq struct {
 	ClusterID          int    `json:"cluster_id" binding:"required"`                   // 集群ID
 	NodeName           string `json:"node_name" binding:"required"`                    // 节点名称
@@ -108,32 +102,27 @@ type DrainNodeReq struct {
 	TimeoutSeconds     int    `json:"timeout_seconds"`                                 // 超时时间(秒)
 }
 
-// NodeCordonReq 禁止节点调度请求
 type NodeCordonReq struct {
 	ClusterID int    `json:"cluster_id" binding:"required"` // 集群ID
 	NodeName  string `json:"node_name" binding:"required"`  // 节点名称
 }
 
-// NodeUncordonReq 解除节点调度限制请求
 type NodeUncordonReq struct {
 	ClusterID int    `json:"cluster_id" binding:"required"` // 集群ID
 	NodeName  string `json:"node_name" binding:"required"`  // 节点名称
 }
 
-// GetNodeTaintsReq 获取节点污点请求
 type GetNodeTaintsReq struct {
 	ClusterID int    `json:"cluster_id" binding:"required"` // 集群ID
 	NodeName  string `json:"node_name" binding:"required"`  // 节点名称
 }
 
-// AddNodeTaintsReq 添加节点污点请求
 type AddNodeTaintsReq struct {
 	ClusterID int          `json:"cluster_id" binding:"required"` // 集群ID
 	NodeName  string       `json:"node_name" binding:"required"`  // 节点名称
 	Taints    []core.Taint `json:"taints" binding:"required"`     // 要添加的污点
 }
 
-// DeleteNodeTaintsReq 删除节点污点请求
 type DeleteNodeTaintsReq struct {
 	ClusterID int      `json:"cluster_id" binding:"required"` // 集群ID
 	NodeName  string   `json:"node_name" binding:"required"`  // 节点名称

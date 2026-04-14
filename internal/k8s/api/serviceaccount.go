@@ -70,7 +70,7 @@ func (h *K8sServiceAccountHandler) GetServiceAccountList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.serviceAccountService.GetServiceAccountList(ctx, &req)
+		return h.serviceAccountService.GetServiceAccountList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -100,7 +100,7 @@ func (h *K8sServiceAccountHandler) GetServiceAccountDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.serviceAccountService.GetServiceAccountDetails(ctx, &req)
+		return h.serviceAccountService.GetServiceAccountDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -116,7 +116,7 @@ func (h *K8sServiceAccountHandler) CreateServiceAccount(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.serviceAccountService.CreateServiceAccount(ctx, &req)
+		return nil, h.serviceAccountService.CreateServiceAccount(ctx.Request.Context(), &req)
 	})
 }
 
@@ -132,7 +132,7 @@ func (h *K8sServiceAccountHandler) CreateServiceAccountByYaml(ctx *gin.Context) 
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.serviceAccountService.CreateServiceAccountByYaml(ctx, &req)
+		return nil, h.serviceAccountService.CreateServiceAccountByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -162,7 +162,7 @@ func (h *K8sServiceAccountHandler) UpdateServiceAccount(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.serviceAccountService.UpdateServiceAccount(ctx, &req)
+		return nil, h.serviceAccountService.UpdateServiceAccount(ctx.Request.Context(), &req)
 	})
 }
 
@@ -192,7 +192,7 @@ func (h *K8sServiceAccountHandler) DeleteServiceAccount(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.serviceAccountService.DeleteServiceAccount(ctx, &req)
+		return nil, h.serviceAccountService.DeleteServiceAccount(ctx.Request.Context(), &req)
 	})
 }
 
@@ -222,7 +222,7 @@ func (h *K8sServiceAccountHandler) GetServiceAccountYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.serviceAccountService.GetServiceAccountYaml(ctx, &req)
+		return h.serviceAccountService.GetServiceAccountYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -252,7 +252,7 @@ func (h *K8sServiceAccountHandler) UpdateServiceAccountYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.serviceAccountService.UpdateServiceAccountYaml(ctx, &req)
+		return nil, h.serviceAccountService.UpdateServiceAccountYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -282,7 +282,7 @@ func (h *K8sServiceAccountHandler) GetServiceAccountToken(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.serviceAccountService.GetServiceAccountToken(ctx, &req)
+		return h.serviceAccountService.GetServiceAccountToken(ctx.Request.Context(), &req)
 	})
 }
 
@@ -312,6 +312,6 @@ func (h *K8sServiceAccountHandler) CreateServiceAccountToken(ctx *gin.Context) {
 	req.ServiceAccountName = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.serviceAccountService.CreateServiceAccountToken(ctx, &req)
+		return h.serviceAccountService.CreateServiceAccountToken(ctx.Request.Context(), &req)
 	})
 }

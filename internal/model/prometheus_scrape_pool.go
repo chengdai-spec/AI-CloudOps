@@ -25,7 +25,6 @@
 
 package model
 
-// MonitorScrapePool 采集池的配置
 type MonitorScrapePool struct {
 	Model
 	Name                 string     `json:"name" binding:"required,min=1,max=50" gorm:"size:100;not null;comment:pool池名称"`

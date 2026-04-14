@@ -88,7 +88,6 @@ func (s *SSHExecutor) ExecuteSSHJob(ctx context.Context, job *model.CronJob) (st
 		return "", fmt.Errorf("SSH资源不存在: ID=%d", *job.SSHResourceID)
 	}
 
-	// 验证资源状态
 	if resource.Status != model.RUNNING {
 		return "", fmt.Errorf("SSH资源状态不可用: %v", resource.Status)
 	}
@@ -129,10 +128,8 @@ func (s *SSHExecutor) ExecuteSSHJob(ctx context.Context, job *model.CronJob) (st
 
 	s.logger.Info("SSH连接成功", zap.String("地址", resource.IpAddr))
 
-	// 构建执行命令
 	command := s.buildSSHCommand(job)
 
-	// 设置超时控制
 	cmdCtx, cancel := context.WithTimeout(ctx, time.Duration(job.Timeout)*time.Second)
 	defer cancel()
 
@@ -170,12 +167,10 @@ func (s *SSHExecutor) ExecuteSSHJob(ctx context.Context, job *model.CronJob) (st
 func (s *SSHExecutor) buildSSHCommand(job *model.CronJob) string {
 	var commandParts []string
 
-	// 设置工作目录
 	if job.SSHWorkDir != "" {
 		commandParts = append(commandParts, fmt.Sprintf("cd %s", job.SSHWorkDir))
 	}
 
-	// 设置环境变量
 	if len(job.SSHEnvironment) > 0 {
 		for _, kv := range job.SSHEnvironment {
 			commandParts = append(commandParts, fmt.Sprintf("export %s=%s", kv.Key, kv.Value))

@@ -60,7 +60,6 @@ func NewSystemService(l *zap.Logger, redis redis.Cmdable) SystemService {
 	}
 }
 
-// GetCurrentSystemInfo 获取当前系统信息
 func (s *systemService) GetCurrentSystemInfo(ctx context.Context) (*model.System, error) {
 	const cacheKey = "system:info"
 	const cacheExpiry = 5 * time.Minute
@@ -95,7 +94,6 @@ func (s *systemService) GetCurrentSystemInfo(ctx context.Context) (*model.System
 	return systemInfo, nil
 }
 
-// GetSystemMetrics 获取系统性能指标
 func (s *systemService) GetSystemMetrics(ctx context.Context) (*model.System, error) {
 	// 实时采集系统指标
 	systemInfo, err := s.collectSystemInfo(ctx)
@@ -107,12 +105,10 @@ func (s *systemService) GetSystemMetrics(ctx context.Context) (*model.System, er
 	return systemInfo, nil
 }
 
-// RefreshSystemInfo 刷新系统信息
 func (s *systemService) RefreshSystemInfo(ctx context.Context) (*model.System, error) {
 	const cacheKey = "system:info"
 	const cacheExpiry = 5 * time.Minute
 
-	// 强制采集新的系统信息
 	systemInfo, err := s.collectSystemInfo(ctx)
 	if err != nil {
 		s.l.Error("刷新系统信息失败", zap.Error(err))
@@ -130,20 +126,17 @@ func (s *systemService) RefreshSystemInfo(ctx context.Context) (*model.System, e
 	return systemInfo, nil
 }
 
-// collectSystemInfo 采集系统信息
 func (s *systemService) collectSystemInfo(ctx context.Context) (*model.System, error) {
 	systemInfo := &model.System{
 		LastUpdateTime: time.Now().Unix(),
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	default:
 	}
 
-	// 获取主机名
 	hostname, err := os.Hostname()
 	if err != nil {
 		s.l.Warn("获取主机名失败", zap.Error(err))
@@ -151,7 +144,6 @@ func (s *systemService) collectSystemInfo(ctx context.Context) (*model.System, e
 	}
 	systemInfo.Hostname = hostname
 
-	// 获取操作系统信息
 	systemInfo.OS = runtime.GOOS
 	systemInfo.Arch = runtime.GOARCH
 	systemInfo.CPUCores = runtime.NumCPU()
@@ -175,7 +167,6 @@ func (s *systemService) collectSystemInfo(ctx context.Context) (*model.System, e
 
 // collectUnixSystemInfo 采集Unix系统信息
 func (s *systemService) collectUnixSystemInfo(ctx context.Context, systemInfo *model.System) error {
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -187,7 +178,6 @@ func (s *systemService) collectUnixSystemInfo(ctx context.Context, systemInfo *m
 		systemInfo.CPUUsage = cpuUsage
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -199,35 +189,30 @@ func (s *systemService) collectUnixSystemInfo(ctx context.Context, systemInfo *m
 		systemInfo.CPUModel = cpuModel
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 	}
 
-	// 内存信息
 	if memInfo, err := s.getMemoryInfo(ctx); err == nil {
 		systemInfo.MemoryTotal = memInfo["total"]
 		systemInfo.MemoryUsed = memInfo["used"]
 		systemInfo.MemoryUsage = utils.GetMemoryUsagePercentage(systemInfo)
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 	}
 
-	// 磁盘信息
 	if diskInfo, err := s.getDiskInfo(ctx); err == nil {
 		systemInfo.DiskTotal = diskInfo["total"]
 		systemInfo.DiskUsed = diskInfo["used"]
 		systemInfo.DiskUsage = utils.GetDiskUsagePercentage(systemInfo)
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -241,7 +226,6 @@ func (s *systemService) collectUnixSystemInfo(ctx context.Context, systemInfo *m
 		systemInfo.LoadAvg15 = loadAvg[2]
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -253,7 +237,6 @@ func (s *systemService) collectUnixSystemInfo(ctx context.Context, systemInfo *m
 		systemInfo.Uptime = uptime
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -265,26 +248,22 @@ func (s *systemService) collectUnixSystemInfo(ctx context.Context, systemInfo *m
 		systemInfo.ProcessCount = processCount
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 	}
 
-	// 获取操作系统版本
 	if osVersion, err := s.getOSVersion(ctx); err == nil {
 		systemInfo.OSVersion = osVersion
 	}
 
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 	}
 
-	// 获取网络流量信息
 	if networkInfo, err := s.getNetworkTraffic(ctx); err == nil {
 		systemInfo.NetworkIn = networkInfo["in"]
 		systemInfo.NetworkOut = networkInfo["out"]
@@ -295,7 +274,6 @@ func (s *systemService) collectUnixSystemInfo(ctx context.Context, systemInfo *m
 
 // collectWindowsSystemInfo 采集Windows系统信息
 func (s *systemService) collectWindowsSystemInfo(ctx context.Context, systemInfo *model.System) error {
-	// 检查上下文是否已取消
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -449,7 +427,6 @@ func (s *systemService) getCPUModel(ctx context.Context) (string, error) {
 	return "Unknown", nil
 }
 
-// getMemoryInfo 获取内存信息
 func (s *systemService) getMemoryInfo(ctx context.Context) (map[string]uint64, error) {
 	switch runtime.GOOS {
 	case "linux":
@@ -498,7 +475,6 @@ func (s *systemService) getLinuxMemoryInfo(ctx context.Context) (map[string]uint
 
 // getMacOSMemoryInfo 获取macOS内存信息
 func (s *systemService) getMacOSMemoryInfo(ctx context.Context) (map[string]uint64, error) {
-	// 获取总内存
 	cmd := exec.CommandContext(ctx, "sysctl", "-n", "hw.memsize")
 	output, err := cmd.Output()
 	if err != nil {
@@ -510,7 +486,6 @@ func (s *systemService) getMacOSMemoryInfo(ctx context.Context) (map[string]uint
 		return nil, err
 	}
 
-	// 获取内存使用情况
 	cmd = exec.CommandContext(ctx, "vm_stat")
 	output, err = cmd.Output()
 	if err != nil {
@@ -548,7 +523,6 @@ func (s *systemService) getMacOSMemoryInfo(ctx context.Context) (map[string]uint
 	return result, nil
 }
 
-// getDiskInfo 获取磁盘信息
 func (s *systemService) getDiskInfo(ctx context.Context) (map[string]uint64, error) {
 	switch runtime.GOOS {
 	case "darwin":
@@ -560,7 +534,6 @@ func (s *systemService) getDiskInfo(ctx context.Context) (map[string]uint64, err
 
 // getMacOSDiskInfo 获取macOS磁盘信息，优先获取数据分区使用情况
 func (s *systemService) getMacOSDiskInfo(ctx context.Context) (map[string]uint64, error) {
-	// 获取所有挂载点信息
 	cmd := exec.CommandContext(ctx, "df", "-k")
 	output, err := cmd.Output()
 	if err != nil {
@@ -577,7 +550,6 @@ func (s *systemService) getMacOSDiskInfo(ctx context.Context) (map[string]uint64
 		if len(fields) >= 6 {
 			mountPoint := fields[len(fields)-1]
 
-			// 优先检查数据分区和根分区
 			if mountPoint == "/System/Volumes/Data" || mountPoint == "/" {
 				totalKB, err1 := strconv.ParseUint(fields[1], 10, 64)
 				usedKB, err2 := strconv.ParseUint(fields[2], 10, 64)
@@ -706,7 +678,6 @@ func (s *systemService) parseSize(sizeStr string) (uint64, error) {
 	}
 }
 
-// getLoadAverage 获取系统负载
 func (s *systemService) getLoadAverage(ctx context.Context) ([]float64, error) {
 	switch runtime.GOOS {
 	case "linux":
@@ -811,7 +782,6 @@ func (s *systemService) getMacOSLoadAverageFromUptime(ctx context.Context) ([]fl
 	return []float64{0, 0, 0}, nil
 }
 
-// getUptime 获取系统运行时间
 func (s *systemService) getUptime(ctx context.Context) (uint64, error) {
 	switch runtime.GOOS {
 	case "linux":
@@ -926,7 +896,6 @@ func (s *systemService) getMacOSUptimeFromUptime(ctx context.Context) (uint64, e
 	return 0, nil
 }
 
-// getProcessCount 获取进程数
 func (s *systemService) getProcessCount(ctx context.Context) (int, error) {
 	cmd := exec.CommandContext(ctx, "ps", "aux")
 	output, err := cmd.Output()
@@ -944,7 +913,6 @@ func (s *systemService) getProcessCount(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-// getOSVersion 获取操作系统版本
 func (s *systemService) getOSVersion(ctx context.Context) (string, error) {
 	switch runtime.GOOS {
 	case "linux":
@@ -979,7 +947,6 @@ func (s *systemService) getOSVersion(ctx context.Context) (string, error) {
 	return "Unknown", nil
 }
 
-// getNetworkTraffic 获取网络流量信息
 func (s *systemService) getNetworkTraffic(ctx context.Context) (map[string]uint64, error) {
 	switch runtime.GOOS {
 	case "linux":

@@ -66,7 +66,7 @@ func (h *K8sRBACHandler) AnalyzeRBACPermissions(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.rbacService.AnalyzeRBACPermissions(ctx, &req)
+		return h.rbacService.AnalyzeRBACPermissions(ctx.Request.Context(), &req)
 	})
 }
 
@@ -82,6 +82,6 @@ func (h *K8sRBACHandler) CheckRBACPermission(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.rbacService.CheckRBACPermission(ctx, &req)
+		return h.rbacService.CheckRBACPermission(ctx.Request.Context(), &req)
 	})
 }

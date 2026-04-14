@@ -44,7 +44,6 @@ type AliyunClient struct {
 	logger *zap.Logger
 }
 
-// NewAliyunClient 创建阿里云客户端
 func NewAliyunClient(accessKey, secretKey, region string, logger *zap.Logger) (*AliyunClient, error) {
 	client, err := ecs.NewClientWithAccessKey(region, accessKey, secretKey)
 	if err != nil {
@@ -58,7 +57,6 @@ func NewAliyunClient(accessKey, secretKey, region string, logger *zap.Logger) (*
 	}, nil
 }
 
-// VerifyCredentials 验证阿里云凭证
 func (c *AliyunClient) VerifyCredentials(ctx context.Context) error {
 	request := ecs.CreateDescribeRegionsRequest()
 	request.Scheme = "https"
@@ -111,7 +109,6 @@ func (c *AliyunClient) ListECSInstances(ctx context.Context, instanceIDs []strin
 			zap.Int("currentPageCount", len(response.Instances.Instance)),
 			zap.Int("pageSize", response.PageSize))
 
-		// 转换实例数据
 		for _, instance := range response.Instances.Instance {
 			resource := c.convertECSToResource(&instance)
 			allResources = append(allResources, resource)
@@ -174,7 +171,6 @@ func (c *AliyunClient) convertECSToResource(instance *ecs.Instance) *model.TreeC
 		resource.PrivateIP = instance.VpcAttributes.PrivateIpAddress.IpAddress[0]
 	}
 
-	// 设置镜像名称
 	if instance.OSName != "" {
 		resource.ImageName = instance.OSName
 	} else {

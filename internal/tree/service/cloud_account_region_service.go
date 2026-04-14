@@ -63,9 +63,7 @@ func NewCloudAccountRegionService(logger *zap.Logger, dao dao.CloudAccountRegion
 	}
 }
 
-// GetCloudAccountRegionList 获取云账号区域列表
 func (s *cloudAccountRegionService) GetCloudAccountRegionList(ctx context.Context, req *model.GetCloudAccountRegionListReq) (model.ListResp[*model.CloudAccountRegion], error) {
-	// 兜底分页参数
 	treeUtils.ValidateAndSetPaginationDefaults(&req.Page, &req.Size)
 
 	regions, total, err := s.dao.GetList(ctx, req)
@@ -80,7 +78,6 @@ func (s *cloudAccountRegionService) GetCloudAccountRegionList(ctx context.Contex
 	}, nil
 }
 
-// GetCloudAccountRegionDetail 获取云账号区域详情
 func (s *cloudAccountRegionService) GetCloudAccountRegionDetail(ctx context.Context, id int) (*model.CloudAccountRegion, error) {
 	if err := treeUtils.ValidateID(id); err != nil {
 		return nil, fmt.Errorf("无效的云账号区域ID: %w", err)
@@ -98,9 +95,7 @@ func (s *cloudAccountRegionService) GetCloudAccountRegionDetail(ctx context.Cont
 	return region, nil
 }
 
-// CreateCloudAccountRegion 创建云账号区域关联
 func (s *cloudAccountRegionService) CreateCloudAccountRegion(ctx context.Context, req *model.CreateCloudAccountRegionReq) error {
-	// 验证云账号是否存在
 	_, err := s.cloudAccountService.GetCloudAccountDetail(ctx, &model.GetCloudAccountDetailReq{ID: req.CloudAccountID})
 	if err != nil {
 		return fmt.Errorf("云账号不存在: %w", err)
@@ -124,7 +119,6 @@ func (s *cloudAccountRegionService) CreateCloudAccountRegion(ctx context.Context
 		}
 	}
 
-	// 创建云账号区域关联
 	region := &model.CloudAccountRegion{
 		CloudAccountID: req.CloudAccountID,
 		Region:         req.Region,
@@ -144,15 +138,12 @@ func (s *cloudAccountRegionService) CreateCloudAccountRegion(ctx context.Context
 	return nil
 }
 
-// BatchCreateCloudAccountRegion 批量创建云账号区域关联
 func (s *cloudAccountRegionService) BatchCreateCloudAccountRegion(ctx context.Context, req *model.BatchCreateCloudAccountRegionReq) error {
-	// 验证云账号是否存在
 	_, err := s.cloudAccountService.GetCloudAccountDetail(ctx, &model.GetCloudAccountDetailReq{ID: req.CloudAccountID})
 	if err != nil {
 		return fmt.Errorf("云账号不存在: %w", err)
 	}
 
-	// 检查是否有重复的区域
 	regionMap := make(map[string]bool)
 	var defaultCount int
 	for _, regionItem := range req.Regions {
@@ -171,7 +162,6 @@ func (s *cloudAccountRegionService) BatchCreateCloudAccountRegion(ctx context.Co
 		return errors.New("只能设置一个默认区域")
 	}
 
-	// 检查区域是否已存在
 	for _, regionItem := range req.Regions {
 		existing, err := s.dao.GetByCloudAccountAndRegion(ctx, req.CloudAccountID, regionItem.Region)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -191,7 +181,6 @@ func (s *cloudAccountRegionService) BatchCreateCloudAccountRegion(ctx context.Co
 		}
 	}
 
-	// 批量创建区域关联
 	var regions []*model.CloudAccountRegion
 	for _, regionItem := range req.Regions {
 		region := &model.CloudAccountRegion{
@@ -215,13 +204,11 @@ func (s *cloudAccountRegionService) BatchCreateCloudAccountRegion(ctx context.Co
 	return nil
 }
 
-// UpdateCloudAccountRegion 更新云账号区域关联
 func (s *cloudAccountRegionService) UpdateCloudAccountRegion(ctx context.Context, req *model.UpdateCloudAccountRegionReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云账号区域ID: %w", err)
 	}
 
-	// 检查区域是否存在
 	existing, err := s.dao.GetByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -238,7 +225,6 @@ func (s *cloudAccountRegionService) UpdateCloudAccountRegion(ctx context.Context
 		}
 	}
 
-	// 构建更新对象
 	region := &model.CloudAccountRegion{
 		Model:       model.Model{ID: req.ID},
 		RegionName:  req.RegionName,
@@ -254,13 +240,11 @@ func (s *cloudAccountRegionService) UpdateCloudAccountRegion(ctx context.Context
 	return nil
 }
 
-// DeleteCloudAccountRegion 删除云账号区域关联
 func (s *cloudAccountRegionService) DeleteCloudAccountRegion(ctx context.Context, req *model.DeleteCloudAccountRegionReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云账号区域ID: %w", err)
 	}
 
-	// 检查区域是否存在
 	region, err := s.dao.GetByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -269,7 +253,6 @@ func (s *cloudAccountRegionService) DeleteCloudAccountRegion(ctx context.Context
 		return err
 	}
 
-	// 检查是否有关联的云资源
 	resourceCount, err := s.dao.GetResourceCountByRegion(ctx, req.ID)
 	if err != nil {
 		s.logger.Error("检查关联资源失败", zap.Error(err))
@@ -307,7 +290,6 @@ func (s *cloudAccountRegionService) DeleteCloudAccountRegion(ctx context.Context
 	return nil
 }
 
-// UpdateCloudAccountRegionStatus 更新云账号区域状态
 func (s *cloudAccountRegionService) UpdateCloudAccountRegionStatus(ctx context.Context, req *model.UpdateCloudAccountRegionStatusReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云账号区域ID: %w", err)

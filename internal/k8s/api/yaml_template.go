@@ -67,7 +67,7 @@ func (h *K8sYamlTemplateHandler) GetYamlTemplateList(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.yamlTemplateService.GetYamlTemplateList(ctx, &req)
+		return h.yamlTemplateService.GetYamlTemplateList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -85,7 +85,7 @@ func (h *K8sYamlTemplateHandler) CreateYamlTemplate(ctx *gin.Context) {
 	req.UserID = uc.Uid
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.yamlTemplateService.CreateYamlTemplate(ctx, &req)
+		return nil, h.yamlTemplateService.CreateYamlTemplate(ctx.Request.Context(), &req)
 	})
 }
 
@@ -110,7 +110,7 @@ func (h *K8sYamlTemplateHandler) UpdateYamlTemplate(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.yamlTemplateService.UpdateYamlTemplate(ctx, &req)
+		return nil, h.yamlTemplateService.UpdateYamlTemplate(ctx.Request.Context(), &req)
 	})
 }
 
@@ -133,7 +133,7 @@ func (h *K8sYamlTemplateHandler) DeleteYamlTemplate(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.yamlTemplateService.DeleteYamlTemplate(ctx, &req)
+		return nil, h.yamlTemplateService.DeleteYamlTemplate(ctx.Request.Context(), &req)
 	})
 }
 
@@ -149,7 +149,7 @@ func (h *K8sYamlTemplateHandler) CheckYamlTemplate(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.yamlTemplateService.CheckYamlTemplate(ctx, &req)
+		return nil, h.yamlTemplateService.CheckYamlTemplate(ctx.Request.Context(), &req)
 	})
 }
 
@@ -172,6 +172,6 @@ func (h *K8sYamlTemplateHandler) GetYamlTemplateDetail(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.yamlTemplateService.GetYamlTemplateDetail(ctx, &req)
+		return h.yamlTemplateService.GetYamlTemplateDetail(ctx.Request.Context(), &req)
 	})
 }

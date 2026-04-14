@@ -46,13 +46,11 @@ func deserializeRequest(data []byte) (*SendRequest, error) {
 	return &request, err
 }
 
-// isValidEmail 检查邮箱地址格式是否有效
 func isValidEmail(email string) bool {
 	if email == "" {
 		return false
 	}
 
-	// 简单的邮箱验证正则
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(email)
@@ -72,7 +70,6 @@ func FormatPriority(priority int8) string {
 	}
 }
 
-// FormatPriorityIcon 获取优先级对应的图标
 func FormatPriorityIcon(priority int8) string {
 	switch priority {
 	case 1:
@@ -86,7 +83,6 @@ func FormatPriorityIcon(priority int8) string {
 	}
 }
 
-// GetEventTypeText 获取事件类型的文本描述
 func GetEventTypeText(eventType string) string {
 	eventMap := map[string]string{
 		"created":   "工单创建",
@@ -109,7 +105,6 @@ func GetEventTypeText(eventType string) string {
 	return eventType
 }
 
-// GetEventTypeIcon 获取事件类型对应的图标
 func GetEventTypeIcon(eventType string) string {
 	eventIcons := map[string]string{
 		"created":   "📝",
@@ -147,20 +142,17 @@ func GetEventTypeIcon(eventType string) string {
 	return "📋" // 默认图标
 }
 
-// RenderTemplate 渲染模板内容
 func RenderTemplate(content string, request *SendRequest) (string, error) {
 	if content == "" {
 		return content, nil
 	}
 
-	// 构建模板变量映射
 	variables := buildTemplateVariables(request)
 
 	// 使用字符串替换方式，支持多种格式的模板变量
 	return replaceTemplateVariables(content, variables), nil
 }
 
-// buildTemplateVariables 构建模板变量映射
 func buildTemplateVariables(request *SendRequest) map[string]string {
 	variables := make(map[string]string)
 
@@ -250,7 +242,6 @@ func replaceTemplateVariables(template string, variables map[string]string) stri
 	return result
 }
 
-// safeString 安全处理字符串
 func safeString(s string) string {
 	if s == "" {
 		return ""

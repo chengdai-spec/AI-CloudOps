@@ -60,16 +60,14 @@ func (h *CloudAccountHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetCloudAccountList 获取云账户列表
 func (h *CloudAccountHandler) GetCloudAccountList(ctx *gin.Context) {
 	var req model.GetCloudAccountListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetCloudAccountList(ctx, &req)
+		return h.service.GetCloudAccountList(ctx.Request.Context(), &req)
 	})
 }
 
-// GetCloudAccountDetail 获取云账户详情
 func (h *CloudAccountHandler) GetCloudAccountDetail(ctx *gin.Context) {
 	var req model.GetCloudAccountDetailReq
 
@@ -82,22 +80,20 @@ func (h *CloudAccountHandler) GetCloudAccountDetail(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetCloudAccountDetail(ctx, &req)
+		return h.service.GetCloudAccountDetail(ctx.Request.Context(), &req)
 	})
 }
 
-// CreateCloudAccount 创建云账户
 func (h *CloudAccountHandler) CreateCloudAccount(ctx *gin.Context) {
 	var req model.CreateCloudAccountReq
 
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.CreateCloudAccount(ctx, &req, user.Uid, user.Username)
+		return nil, h.service.CreateCloudAccount(ctx.Request.Context(), &req, user.Uid, user.Username)
 	})
 }
 
-// UpdateCloudAccount 更新云账户
 func (h *CloudAccountHandler) UpdateCloudAccount(ctx *gin.Context) {
 	var req model.UpdateCloudAccountReq
 
@@ -110,11 +106,10 @@ func (h *CloudAccountHandler) UpdateCloudAccount(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateCloudAccount(ctx, &req)
+		return nil, h.service.UpdateCloudAccount(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteCloudAccount 删除云账户
 func (h *CloudAccountHandler) DeleteCloudAccount(ctx *gin.Context) {
 	var req model.DeleteCloudAccountReq
 
@@ -127,11 +122,10 @@ func (h *CloudAccountHandler) DeleteCloudAccount(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteCloudAccount(ctx, &req)
+		return nil, h.service.DeleteCloudAccount(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateCloudAccountStatus 更新云账户状态
 func (h *CloudAccountHandler) UpdateCloudAccountStatus(ctx *gin.Context) {
 	var req model.UpdateCloudAccountStatusReq
 
@@ -144,11 +138,10 @@ func (h *CloudAccountHandler) UpdateCloudAccountStatus(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateCloudAccountStatus(ctx, &req)
+		return nil, h.service.UpdateCloudAccountStatus(ctx.Request.Context(), &req)
 	})
 }
 
-// VerifyCloudAccount 验证云账户凭证
 func (h *CloudAccountHandler) VerifyCloudAccount(ctx *gin.Context) {
 	var req model.VerifyCloudAccountReq
 
@@ -161,25 +154,23 @@ func (h *CloudAccountHandler) VerifyCloudAccount(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.VerifyCloudAccount(ctx, &req)
+		return nil, h.service.VerifyCloudAccount(ctx.Request.Context(), &req)
 	})
 }
 
-// BatchDeleteCloudAccount 批量删除云账户
 func (h *CloudAccountHandler) BatchDeleteCloudAccount(ctx *gin.Context) {
 	var req model.BatchDeleteCloudAccountReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.BatchDeleteCloudAccount(ctx, &req)
+		return nil, h.service.BatchDeleteCloudAccount(ctx.Request.Context(), &req)
 	})
 }
 
-// BatchUpdateCloudAccountStatus 批量更新云账户状态
 func (h *CloudAccountHandler) BatchUpdateCloudAccountStatus(ctx *gin.Context) {
 	var req model.BatchUpdateCloudAccountStatusReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.BatchUpdateCloudAccountStatus(ctx, &req)
+		return nil, h.service.BatchUpdateCloudAccountStatus(ctx.Request.Context(), &req)
 	})
 }
 
@@ -190,7 +181,7 @@ func (h *CloudAccountHandler) ImportCloudAccount(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.ImportCloudAccount(ctx, &req, user.Uid, user.Username)
+		return h.service.ImportCloudAccount(ctx.Request.Context(), &req, user.Uid, user.Username)
 	})
 }
 
@@ -199,6 +190,6 @@ func (h *CloudAccountHandler) ExportCloudAccount(ctx *gin.Context) {
 	var req model.ExportCloudAccountReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.ExportCloudAccount(ctx, &req)
+		return h.service.ExportCloudAccount(ctx.Request.Context(), &req)
 	})
 }

@@ -46,25 +46,21 @@ func ConvertToPVEntity(pv *corev1.PersistentVolume, clusterID int) *model.K8sPV 
 		accessModes = append(accessModes, string(mode))
 	}
 
-	// 获取存储类
 	storageClass := ""
 	if pv.Spec.StorageClassName != "" {
 		storageClass = pv.Spec.StorageClassName
 	}
 
-	// 获取容量
 	capacity := ""
 	if storage, ok := pv.Spec.Capacity[corev1.ResourceStorage]; ok {
 		capacity = storage.String()
 	}
 
-	// 获取回收策略
 	reclaimPolicy := string(corev1.PersistentVolumeReclaimDelete)
 	if pv.Spec.PersistentVolumeReclaimPolicy != "" {
 		reclaimPolicy = string(pv.Spec.PersistentVolumeReclaimPolicy)
 	}
 
-	// 获取卷模式
 	volumeMode := string(corev1.PersistentVolumeFilesystem)
 	if pv.Spec.VolumeMode != nil {
 		volumeMode = string(*pv.Spec.VolumeMode)
@@ -184,7 +180,6 @@ func ValidatePV(pv *corev1.PersistentVolume) error {
 		return fmt.Errorf("PV 容量不能为空")
 	}
 
-	// 检查必须指定卷类型
 	if !hasVolumeSource(&pv.Spec.PersistentVolumeSource) {
 		return fmt.Errorf("必须指定一个卷类型（如 HostPath, NFS, CephFS 等）")
 	}
@@ -192,7 +187,6 @@ func ValidatePV(pv *corev1.PersistentVolume) error {
 	return nil
 }
 
-// hasVolumeSource 检查是否指定了卷源
 func hasVolumeSource(source *corev1.PersistentVolumeSource) bool {
 	if source == nil {
 		return false
@@ -328,7 +322,6 @@ func ConvertCreatePVReqToPV(req *model.CreatePVReq) *corev1.PersistentVolume {
 		},
 	}
 
-	// 设置容量
 	if req.Capacity != "" {
 		pv.Spec.Capacity = corev1.ResourceList{
 			corev1.ResourceStorage: resource.MustParse(req.Capacity),
@@ -349,7 +342,6 @@ func ConvertCreatePVReqToPVWithValidation(req *model.CreatePVReq) (*corev1.Persi
 		return nil, fmt.Errorf("转换PV失败")
 	}
 
-	// 设置并验证卷源
 	if len(req.VolumeSource) > 0 {
 		if err := convertVolumeSource(&pv.Spec.PersistentVolumeSource, req.VolumeSource); err != nil {
 			return nil, fmt.Errorf("卷源配置无效: %w", err)
@@ -467,7 +459,6 @@ func ConvertUpdatePVReqToPV(req *model.UpdatePVReq, existingPV *corev1.Persisten
 		pv.ObjectMeta.Annotations = req.Annotations
 	}
 
-	// 更新容量（如果提供）
 	if req.Capacity != "" {
 		if pv.Spec.Capacity == nil {
 			pv.Spec.Capacity = corev1.ResourceList{}
@@ -475,7 +466,6 @@ func ConvertUpdatePVReqToPV(req *model.UpdatePVReq, existingPV *corev1.Persisten
 		pv.Spec.Capacity[corev1.ResourceStorage] = resource.MustParse(req.Capacity)
 	}
 
-	// 更新访问模式（如果提供）
 	if len(req.AccessModes) > 0 {
 		var accessModes []corev1.PersistentVolumeAccessMode
 		for _, mode := range req.AccessModes {
@@ -484,12 +474,10 @@ func ConvertUpdatePVReqToPV(req *model.UpdatePVReq, existingPV *corev1.Persisten
 		pv.Spec.AccessModes = accessModes
 	}
 
-	// 更新回收策略（如果提供）
 	if req.ReclaimPolicy != "" {
 		pv.Spec.PersistentVolumeReclaimPolicy = corev1.PersistentVolumeReclaimPolicy(req.ReclaimPolicy)
 	}
 
-	// 更新存储类（如果提供）
 	if req.StorageClass != "" {
 		pv.Spec.StorageClassName = req.StorageClass
 	}

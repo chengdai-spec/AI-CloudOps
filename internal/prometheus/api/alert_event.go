@@ -53,12 +53,11 @@ func (h *AlertEventHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetMonitorAlertEventList 获取告警事件列表
 func (h *AlertEventHandler) GetMonitorAlertEventList(ctx *gin.Context) {
 	var req model.GetMonitorAlertEventListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetMonitorAlertEventList(ctx, &req)
+		return h.svc.GetMonitorAlertEventList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -77,7 +76,7 @@ func (h *AlertEventHandler) EventAlertSilence(ctx *gin.Context) {
 	req.UserID = uc.Uid
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.EventAlertSilence(ctx, &req)
+		return nil, h.svc.EventAlertSilence(ctx.Request.Context(), &req)
 	})
 }
 
@@ -96,7 +95,7 @@ func (h *AlertEventHandler) EventAlertClaim(ctx *gin.Context) {
 	req.UserID = uc.Uid
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.EventAlertClaim(ctx, &req)
+		return nil, h.svc.EventAlertClaim(ctx.Request.Context(), &req)
 	})
 }
 
@@ -115,6 +114,6 @@ func (h *AlertEventHandler) EventAlertUnSilence(ctx *gin.Context) {
 	req.UserID = uc.Uid
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.EventAlertUnSilence(ctx, &req)
+		return nil, h.svc.EventAlertUnSilence(ctx.Request.Context(), &req)
 	})
 }

@@ -69,7 +69,6 @@ func (d *alertManagerRuleDAO) GetMonitorAlertRuleByPoolID(ctx context.Context, p
 	var alertRules []*model.MonitorAlertRule
 	var count int64
 
-	// 先获取总数
 	if err := d.db.WithContext(ctx).
 		Model(&model.MonitorAlertRule{}).
 		Where("enable = ?", true).
@@ -79,7 +78,6 @@ func (d *alertManagerRuleDAO) GetMonitorAlertRuleByPoolID(ctx context.Context, p
 		return nil, 0, err
 	}
 
-	// 获取数据列表
 	if err := d.db.WithContext(ctx).
 		Where("enable = ?", true).
 		Where("pool_id = ?", poolID).
@@ -111,13 +109,11 @@ func (d *alertManagerRuleDAO) GetMonitorAlertRuleList(ctx context.Context, req *
 		query = query.Where("severity = ?", req.Severity)
 	}
 
-	// 先获取总数
 	if err := query.Count(&count).Error; err != nil {
 		d.l.Error("获取 MonitorAlertRule 总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 获取数据列表
 	if err := query.Offset((req.Page - 1) * req.Size).Limit(req.Size).Find(&alertRules).Error; err != nil {
 		d.l.Error("获取所有 MonitorAlertRule 失败", zap.Error(err))
 		return nil, 0, err

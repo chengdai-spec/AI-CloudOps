@@ -127,7 +127,6 @@ func ConvertToK8sIngress(ingress *networkingv1.Ingress, clusterID int) *model.K8
 		loadBalancer.Ingress = lbIngresses
 	}
 
-	// IngressClassName 字段处理
 	var ingressClassNamePtr *string
 	if ingress.Spec.IngressClassName != nil {
 		ingressClassNamePtr = ingress.Spec.IngressClassName
@@ -157,7 +156,6 @@ func IngressStatus(item *networkingv1.Ingress) string {
 	if item == nil {
 		return StatusUnknown
 	}
-	// 如果正在删除
 	if item.DeletionTimestamp != nil {
 		return StatusTerminating
 	}
@@ -333,7 +331,6 @@ func BuildIngressFromSpec(req *model.CreateIngressReq) (*networkingv1.Ingress, e
 	return ingress, nil
 }
 
-// convertIngressStatusToEnum 转换状态字符串为枚举值
 func convertIngressStatusToEnum(status string) model.K8sIngressStatus {
 	switch status {
 	case StatusRunning, StatusReady:

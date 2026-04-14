@@ -100,7 +100,6 @@ func (s *scrapeJobService) CreateMonitorScrapeJob(ctx context.Context, req *mode
 		Tags:                     req.Tags,
 	}
 
-	// 检查抓取作业是否已存在
 	exists, err := s.dao.CheckMonitorScrapeJobExists(ctx, monitorScrapeJob.Name)
 	if err != nil {
 		s.l.Error("创建抓取作业失败：检查抓取作业是否存在时出错", zap.Error(err))
@@ -111,7 +110,6 @@ func (s *scrapeJobService) CreateMonitorScrapeJob(ctx context.Context, req *mode
 		return errors.New("抓取作业已存在")
 	}
 
-	// 检查采集池是否存在
 	poolExists, err := s.dao.CheckMonitorInstanceExists(ctx, monitorScrapeJob.PoolID)
 	if err != nil {
 		s.l.Error("创建抓取作业失败：检查采集池是否存在时出错", zap.Error(err))
@@ -122,7 +120,6 @@ func (s *scrapeJobService) CreateMonitorScrapeJob(ctx context.Context, req *mode
 		return errors.New("采集池不存在")
 	}
 
-	// 创建抓取作业
 	if err := s.dao.CreateMonitorScrapeJob(ctx, monitorScrapeJob); err != nil {
 		s.l.Error("创建抓取作业失败", zap.Error(err))
 		return err
@@ -167,7 +164,6 @@ func (s *scrapeJobService) UpdateMonitorScrapeJob(ctx context.Context, req *mode
 		return errors.New("无效的抓取作业ID")
 	}
 
-	// 先获取原有的抓取作业信息
 	oldJob, err := s.dao.GetMonitorScrapeJobById(ctx, monitorScrapeJob.ID)
 	if err != nil {
 		s.l.Error("更新抓取作业失败：获取原有抓取作业信息出错", zap.Error(err))
@@ -186,7 +182,6 @@ func (s *scrapeJobService) UpdateMonitorScrapeJob(ctx context.Context, req *mode
 		}
 	}
 
-	// 更新抓取作业
 	if err := s.dao.UpdateMonitorScrapeJob(ctx, monitorScrapeJob); err != nil {
 		s.l.Error("更新抓取作业失败", zap.Error(err))
 		return err
@@ -203,14 +198,12 @@ func (s *scrapeJobService) UpdateMonitorScrapeJob(ctx context.Context, req *mode
 
 // DeleteMonitorScrapeJob 删除监控采集 Job
 func (s *scrapeJobService) DeleteMonitorScrapeJob(ctx context.Context, id int) error {
-	// 检查抓取作业是否存在
 	_, err := s.dao.GetMonitorScrapeJobById(ctx, id)
 	if err != nil {
 		s.l.Error("删除抓取作业失败：检查抓取作业是否存在时出错", zap.Error(err))
 		return err
 	}
 
-	// 删除抓取作业
 	if err := s.dao.DeleteMonitorScrapeJob(ctx, id); err != nil {
 		s.l.Error("删除抓取作业失败", zap.Error(err))
 		return err

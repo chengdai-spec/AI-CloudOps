@@ -53,7 +53,6 @@ const (
 	ProviderGCP                              // Google Cloud
 )
 
-// CloudResourceType 云资源类型
 type CloudResourceType int8
 
 const (
@@ -65,7 +64,6 @@ const (
 	ResourceTypeOther                              // 其他资源
 )
 
-// CloudResourceStatus 云资源状态
 type CloudResourceStatus int8
 
 const (
@@ -101,7 +99,6 @@ const (
 	SyncModeIncremental SyncMode = "incremental" // 增量同步
 )
 
-// SyncStatus 同步状态
 type SyncStatus string
 
 const (
@@ -110,7 +107,6 @@ const (
 	SyncStatusPartial SyncStatus = "partial" // 部分成功
 )
 
-// TreeCloudResource 云资源管理
 type TreeCloudResource struct {
 	Model
 	Name                 string              `json:"name" gorm:"type:varchar(100);not null;index;comment:资源名称"`
@@ -156,7 +152,6 @@ func (t *TreeCloudResource) TableName() string {
 	return "cl_tree_cloud_resource"
 }
 
-// GetTreeCloudResourceListReq 获取云资源列表请求
 type GetTreeCloudResourceListReq struct {
 	ListReq
 	CloudAccountID int                 `json:"cloud_account_id" form:"cloud_account_id" binding:"omitempty,gt=0"`
@@ -168,7 +163,6 @@ type GetTreeCloudResourceListReq struct {
 	Keyword        string              `json:"keyword" form:"keyword" binding:"omitempty,max=100"` // 搜索关键词(名称、IP等)
 }
 
-// GetTreeCloudResourceDetailReq 获取云资源详情请求
 type GetTreeCloudResourceDetailReq struct {
 	ID int `json:"id" form:"id" binding:"required,gt=0"`
 }
@@ -195,14 +189,12 @@ type DeleteTreeCloudResourceReq struct {
 	OperatorName string `json:"operator_name"` // 操作人姓名
 }
 
-// BatchDeleteTreeCloudResourceReq 批量删除云资源请求
 type BatchDeleteTreeCloudResourceReq struct {
 	IDs          []int  `json:"ids" binding:"required,min=1,max=100,dive,gt=0"`
 	OperatorID   int    `json:"operator_id"`   // 操作人ID
 	OperatorName string `json:"operator_name"` // 操作人姓名
 }
 
-// SyncTreeCloudResourceReq 从云厂商同步资源请求
 type SyncTreeCloudResourceReq struct {
 	CloudAccountID        int                 `json:"cloud_account_id" binding:"required,gt=0"`
 	CloudAccountRegionIDs []int               `json:"cloud_account_region_ids" binding:"omitempty,max=100,dive,gt=0"` // 指定同步的账号区域ID列表，为空则同步账号的所有区域
@@ -215,7 +207,6 @@ type SyncTreeCloudResourceReq struct {
 	OperatorName          string              `json:"operator_name"`                                        // 操作人姓名
 }
 
-// VerifyCloudCredentialsReq 验证云厂商凭证请求
 type VerifyCloudCredentialsReq struct {
 	Provider  CloudProvider `json:"provider" binding:"required,oneof=1 2 3 4 5 6"`
 	Region    string        `json:"region" binding:"required,min=1,max=50"`
@@ -223,7 +214,6 @@ type VerifyCloudCredentialsReq struct {
 	SecretKey string        `json:"secret_key" binding:"required,min=10,max=500"`
 }
 
-// GetTreeNodeCloudResourcesReq 获取树节点下的云资源请求
 type GetTreeNodeCloudResourcesReq struct {
 	NodeID         int                 `json:"node_id" form:"node_id" binding:"required,gt=0"`
 	CloudAccountID int                 `json:"cloud_account_id" form:"cloud_account_id" binding:"omitempty,gt=0"`
@@ -233,13 +223,11 @@ type GetTreeNodeCloudResourcesReq struct {
 	PageSize       int                 `json:"page_size" form:"page_size" binding:"omitempty,gte=1,lte=100"`
 }
 
-// BindTreeCloudResourceReq 绑定云资源到树节点请求
 type BindTreeCloudResourceReq struct {
 	ID          int   `json:"id" binding:"required,gt=0"`
 	TreeNodeIDs []int `json:"tree_node_ids" binding:"required,min=1,max=100,dive,gt=0"`
 }
 
-// UnBindTreeCloudResourceReq 解绑云资源与树节点请求
 type UnBindTreeCloudResourceReq struct {
 	ID          int   `json:"id" binding:"required,gt=0"`
 	TreeNodeIDs []int `json:"tree_node_ids" binding:"required,min=1,max=100,dive,gt=0"`
@@ -263,13 +251,11 @@ type ConnectTreeCloudResourceTerminalReq struct {
 	UserID int `json:"user_id" binding:"omitempty,gt=0"`
 }
 
-// UpdateCloudResourceStatusReq 更新云资源状态请求
 type UpdateCloudResourceStatusReq struct {
 	ID     int                 `json:"id" binding:"required,gt=0"`
 	Status CloudResourceStatus `json:"status" binding:"required,oneof=1 2 3 4 5 6"`
 }
 
-// BatchUpdateCloudResourceStatusReq 批量更新云资源状态请求
 type BatchUpdateCloudResourceStatusReq struct {
 	IDs          []int               `json:"ids" binding:"required,min=1,max=100,dive,gt=0"`
 	Status       CloudResourceStatus `json:"status" binding:"required,oneof=1 2 3 4 5 6"`
@@ -277,7 +263,6 @@ type BatchUpdateCloudResourceStatusReq struct {
 	OperatorName string              `json:"operator_name"` // 操作人姓名
 }
 
-// CloudResourceSyncHistory 云资源同步历史
 type CloudResourceSyncHistory struct {
 	Model
 	CloudAccountID  int           `json:"cloud_account_id" gorm:"not null;index;comment:云账户ID"`
@@ -302,7 +287,6 @@ func (c *CloudResourceSyncHistory) TableName() string {
 	return "cl_tree_cloud_resource_sync_history"
 }
 
-// GetCloudResourceSyncHistoryReq 获取同步历史请求
 type GetCloudResourceSyncHistoryReq struct {
 	ListReq
 	CloudAccountID int        `json:"cloud_account_id" form:"cloud_account_id" binding:"omitempty,gt=0"`
@@ -310,7 +294,6 @@ type GetCloudResourceSyncHistoryReq struct {
 	SyncMode       SyncMode   `json:"sync_mode" form:"sync_mode" binding:"omitempty,oneof=full incremental"`
 }
 
-// CloudResourceChangeLog 云资源变更日志
 type CloudResourceChangeLog struct {
 	Model
 	ResourceID     int                `json:"resource_id" gorm:"not null;index;comment:云资源ID"`
@@ -331,7 +314,6 @@ func (c *CloudResourceChangeLog) TableName() string {
 	return "cl_tree_cloud_resource_change_log"
 }
 
-// GetCloudResourceChangeLogReq 获取资源变更日志请求
 type GetCloudResourceChangeLogReq struct {
 	ListReq
 	ResourceID     int    `json:"resource_id" form:"resource_id" binding:"omitempty,gt=0"`
@@ -340,7 +322,6 @@ type GetCloudResourceChangeLogReq struct {
 	ChangeSource   string `json:"change_source" form:"change_source" binding:"omitempty,oneof=sync manual"`
 }
 
-// ExportCloudResourceReq 导出云资源请求
 type ExportCloudResourceReq struct {
 	CloudAccountID int                 `json:"cloud_account_id" form:"cloud_account_id" binding:"omitempty,gt=0"`
 	ResourceType   CloudResourceType   `json:"resource_type" form:"resource_type" binding:"omitempty,oneof=1 2 3 4 5 6"`
@@ -350,7 +331,6 @@ type ExportCloudResourceReq struct {
 	IDs            []int               `json:"ids" binding:"omitempty,max=1000,dive,gt=0"` // 指定导出的资源ID
 }
 
-// SyncCloudResourceResp 云资源同步响应
 type SyncCloudResourceResp struct {
 	TotalCount      int       `json:"total_count"`      // 总数
 	NewCount        int       `json:"new_count"`        // 新增数量

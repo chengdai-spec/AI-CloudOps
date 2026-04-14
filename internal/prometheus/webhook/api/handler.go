@@ -107,12 +107,10 @@ func (w *WebHookHandler) MonitorAlertReceive(ctx *gin.Context) {
 	base.SuccessWithMessage(ctx, "告警接收成功,正在处理中")
 }
 
-// MonitorAlertSilence 处理静默告警的请求
 func (w *WebHookHandler) MonitorAlertSilence(ctx *gin.Context) {
 	fingerprint := ctx.DefaultQuery("fingerprint", "")
 	hour := ctx.DefaultQuery("hour", "")
 
-	// 参数校验
 	if fingerprint == "" {
 		base.ErrorWithMessage(ctx, "缺少必要的fingerprint参数")
 		return
@@ -124,7 +122,6 @@ func (w *WebHookHandler) MonitorAlertSilence(ctx *gin.Context) {
 		return
 	}
 
-	// 获取告警事件
 	event, err := w.dao.GetMonitorAlertEventByFingerprintId(ctx, fingerprint)
 	if err != nil {
 		w.l.Error("获取告警事件失败", zap.Error(err))
@@ -148,7 +145,6 @@ func (w *WebHookHandler) MonitorAlertSilence(ctx *gin.Context) {
 	}
 	event.LabelsMap = labelsM
 
-	// 构建匹配器
 	matchers := make(labels.Matchers, 0, len(labelsM))
 	for k, v := range labelsM {
 		matchers = append(matchers, &labels.Matcher{
@@ -158,7 +154,6 @@ func (w *WebHookHandler) MonitorAlertSilence(ctx *gin.Context) {
 		})
 	}
 
-	// 创建静默请求
 	silence := types.Silence{
 		Matchers:  matchers,
 		StartsAt:  time.Now(),
@@ -213,7 +208,6 @@ func (w *WebHookHandler) MonitorAlertSilence(ctx *gin.Context) {
 	base.SuccessWithMessage(ctx, "静默设置成功")
 }
 
-// MonitorAlertUnSilence 处理取消静默告警的请求
 func (w *WebHookHandler) MonitorAlertUnSilence(ctx *gin.Context) {
 	fingerprint := ctx.Query("fingerprint")
 	if fingerprint == "" {
@@ -221,7 +215,6 @@ func (w *WebHookHandler) MonitorAlertUnSilence(ctx *gin.Context) {
 		return
 	}
 
-	// 获取告警事件
 	event, err := w.dao.GetMonitorAlertEventByFingerprintId(ctx, fingerprint)
 	if err != nil {
 		w.l.Error("获取告警事件失败", zap.Error(err))
@@ -257,7 +250,6 @@ func (w *WebHookHandler) MonitorAlertUnSilence(ctx *gin.Context) {
 		return
 	}
 
-	// 更新告警事件状态
 	event.Status = model.MonitorAlertEventStatusFiring
 	event.SilenceID = ""
 	if err := w.dao.UpdateMonitorAlertEvent(ctx, event); err != nil {

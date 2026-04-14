@@ -44,9 +44,7 @@ import (
 type WebhookRobot interface {
 	// RefreshPrivateRobotToken 刷新私有机器人令牌
 	RefreshPrivateRobotToken(ctx context.Context)
-	// GetPrivateRobotToken 获取当前的私有机器人令牌
 	GetPrivateRobotToken() string
-	// GetTenantAccessToken 获取租户访问令牌
 	GetTenantAccessToken(ctx context.Context) (string, error)
 }
 
@@ -80,7 +78,6 @@ func (w *webhookRobot) RefreshPrivateRobotToken(ctx context.Context) {
 		return
 	}
 
-	// 更新私有机器人令牌
 	w.privateTokenMux.Lock()
 	w.privateRobotToken = token
 	w.privateTokenMux.Unlock()
@@ -88,9 +85,7 @@ func (w *webhookRobot) RefreshPrivateRobotToken(ctx context.Context) {
 	w.logger.Info("成功刷新私有机器人令牌")
 }
 
-// GetTenantAccessToken 获取租户访问令牌
 func (w *webhookRobot) GetTenantAccessToken(ctx context.Context) (string, error) {
-	// 读锁检查是否有有效的令牌
 	w.tenantTokenMux.RLock()
 	if w.tenantToken != "" && time.Now().Before(w.tenantExpireAt.Add(-60*time.Second)) {
 		token := w.tenantToken
@@ -99,7 +94,6 @@ func (w *webhookRobot) GetTenantAccessToken(ctx context.Context) (string, error)
 	}
 	w.tenantTokenMux.RUnlock()
 
-	// 写锁获取新的令牌
 	w.tenantTokenMux.Lock()
 	defer w.tenantTokenMux.Unlock()
 
@@ -108,7 +102,6 @@ func (w *webhookRobot) GetTenantAccessToken(ctx context.Context) (string, error)
 		return w.tenantToken, nil
 	}
 
-	// 获取新的令牌
 	token, expire, err := w.getTokenFromAPI(ctx)
 	if err != nil {
 		w.logger.Error("获取租户访问令牌失败", zap.Error(err))
@@ -123,7 +116,6 @@ func (w *webhookRobot) GetTenantAccessToken(ctx context.Context) (string, error)
 	return w.tenantToken, nil
 }
 
-// GetPrivateRobotToken 获取当前的私有机器人令牌
 func (w *webhookRobot) GetPrivateRobotToken() string {
 	w.privateTokenMux.RLock()
 	defer w.privateTokenMux.RUnlock()
@@ -142,7 +134,6 @@ func (w *webhookRobot) postWithJson(ctx context.Context, url string, jsonBytes [
 		return nil, err
 	}
 
-	// 设置请求头
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
@@ -152,7 +143,6 @@ func (w *webhookRobot) postWithJson(ctx context.Context, url string, jsonBytes [
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	// 发送请求
 	resp, err := w.httpClient.Do(req)
 	if err != nil {
 		w.logger.Error("发送HTTP请求失败",
@@ -163,7 +153,6 @@ func (w *webhookRobot) postWithJson(ctx context.Context, url string, jsonBytes [
 	}
 	defer resp.Body.Close()
 
-	// 读取响应体
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		w.logger.Error("读取响应体失败",
@@ -193,7 +182,6 @@ func (w *webhookRobot) getTokenFromAPI(ctx context.Context) (string, int, error)
 		AppSecret: viper.GetString("webhook.im_feishu.private_robot_app_secret"),
 	}
 
-	// 序列化请求数据
 	jsonBytes, err := json.Marshal(requestData)
 	if err != nil {
 		w.logger.Error("获取令牌时序列化请求数据失败",
@@ -214,7 +202,6 @@ func (w *webhookRobot) getTokenFromAPI(ctx context.Context) (string, int, error)
 		return "", 0, fmt.Errorf("failed to send HTTP request: %w", err)
 	}
 
-	// 解析响应数据
 	var responseData request.RobotTenantAccessTokenRes
 	err = json.Unmarshal(bodyBytes, &responseData)
 	if err != nil {

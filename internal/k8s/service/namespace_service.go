@@ -124,12 +124,10 @@ func (s *namespaceService) DeleteNamespace(ctx context.Context, req *model.K8sNa
 
 	deleteOptions := metav1.DeleteOptions{}
 
-	// 设置优雅删除时间
 	if req.GracePeriodSeconds != nil {
 		deleteOptions.GracePeriodSeconds = req.GracePeriodSeconds
 	}
 
-	// 设置强制删除选项
 	if req.Force == 1 {
 		gracePeriod := int64(0)
 		deleteOptions.GracePeriodSeconds = &gracePeriod

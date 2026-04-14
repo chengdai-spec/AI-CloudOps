@@ -66,7 +66,6 @@ func NewCloudAccountDAO(db *gorm.DB, logger *zap.Logger) CloudAccountDAO {
 	}
 }
 
-// Create 创建云账户
 func (d *cloudAccountDAO) Create(ctx context.Context, account *model.CloudAccount) error {
 	if err := d.db.WithContext(ctx).Create(account).Error; err != nil {
 		d.logger.Error("创建云账户失败", zap.Error(err))
@@ -76,7 +75,6 @@ func (d *cloudAccountDAO) Create(ctx context.Context, account *model.CloudAccoun
 	return nil
 }
 
-// Update 更新云账户
 func (d *cloudAccountDAO) Update(ctx context.Context, account *model.CloudAccount) error {
 	if err := d.db.WithContext(ctx).Model(account).Updates(account).Error; err != nil {
 		d.logger.Error("更新云账户失败", zap.Error(err))
@@ -86,7 +84,6 @@ func (d *cloudAccountDAO) Update(ctx context.Context, account *model.CloudAccoun
 	return nil
 }
 
-// Delete 删除云账户
 func (d *cloudAccountDAO) Delete(ctx context.Context, id int) error {
 	if err := d.db.WithContext(ctx).Delete(&model.CloudAccount{}, id).Error; err != nil {
 		d.logger.Error("删除云账户失败", zap.Error(err), zap.Int("id", id))
@@ -113,14 +110,12 @@ func (d *cloudAccountDAO) GetByID(ctx context.Context, id int) (*model.CloudAcco
 	return &account, nil
 }
 
-// GetList 获取云账户列表
 func (d *cloudAccountDAO) GetList(ctx context.Context, req *model.GetCloudAccountListReq) ([]*model.CloudAccount, int64, error) {
 	var accounts []*model.CloudAccount
 	var total int64
 
 	query := d.db.WithContext(ctx).Model(&model.CloudAccount{})
 
-	// 添加查询条件
 	if req.Provider != 0 {
 		query = query.Where("provider = ?", req.Provider)
 	}
@@ -138,7 +133,6 @@ func (d *cloudAccountDAO) GetList(ctx context.Context, req *model.GetCloudAccoun
 		)
 	}
 
-	// 计算总数
 	err := query.Count(&total).Error
 	if err != nil {
 		d.logger.Error("获取云账户总数失败",
@@ -148,7 +142,6 @@ func (d *cloudAccountDAO) GetList(ctx context.Context, req *model.GetCloudAccoun
 		return nil, 0, err
 	}
 
-	// 构建排序
 	orderBy := "created_at"
 	order := "DESC"
 
@@ -178,7 +171,6 @@ func (d *cloudAccountDAO) GetList(ctx context.Context, req *model.GetCloudAccoun
 	return accounts, total, nil
 }
 
-// UpdateStatus 更新云账户状态
 func (d *cloudAccountDAO) UpdateStatus(ctx context.Context, id int, status model.CloudAccountStatus) error {
 	if err := d.db.WithContext(ctx).
 		Model(&model.CloudAccount{}).
@@ -206,7 +198,6 @@ func (d *cloudAccountDAO) GetByProviderAndRegion(ctx context.Context, provider m
 			Distinct("cl_tree_cloud_account.*") // 避免重复
 	}
 
-	// 预加载区域信息
 	query = query.Preload("Regions")
 
 	err := query.Find(&accounts).Error
@@ -221,14 +212,12 @@ func (d *cloudAccountDAO) GetByProviderAndRegion(ctx context.Context, provider m
 	return accounts, nil
 }
 
-// CreateWithTransaction 使用事务创建云账户
 func (d *cloudAccountDAO) CreateWithTransaction(ctx context.Context, fn func(tx interface{}) error) error {
 	return d.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return fn(tx)
 	})
 }
 
-// CreateInTransaction 在事务中创建云账户
 func (d *cloudAccountDAO) CreateInTransaction(ctx context.Context, account *model.CloudAccount, tx interface{}) error {
 	gormTx, ok := tx.(*gorm.DB)
 	if !ok {
@@ -243,7 +232,6 @@ func (d *cloudAccountDAO) CreateInTransaction(ctx context.Context, account *mode
 	return nil
 }
 
-// CreateRegionInTransaction 在事务中创建区域关联
 func (d *cloudAccountDAO) CreateRegionInTransaction(ctx context.Context, region *model.CloudAccountRegion, tx interface{}) error {
 	gormTx, ok := tx.(*gorm.DB)
 	if !ok {
@@ -277,7 +265,6 @@ func (d *cloudAccountDAO) DeleteRegionsByAccountIDInTransaction(ctx context.Cont
 	return nil
 }
 
-// UpdateWithFields 更新云账户（指定字段）
 func (d *cloudAccountDAO) UpdateWithFields(ctx context.Context, account *model.CloudAccount, fields []string) error {
 	if len(fields) == 0 {
 		return errors.New("更新字段列表不能为空")
@@ -297,7 +284,6 @@ func (d *cloudAccountDAO) UpdateWithFields(ctx context.Context, account *model.C
 	return nil
 }
 
-// BatchDelete 批量删除云账户
 func (d *cloudAccountDAO) BatchDelete(ctx context.Context, ids []int) error {
 	if len(ids) == 0 {
 		return errors.New("批量删除ID列表不能为空")
@@ -311,7 +297,6 @@ func (d *cloudAccountDAO) BatchDelete(ctx context.Context, ids []int) error {
 	return nil
 }
 
-// BatchUpdateStatus 批量更新云账户状态
 func (d *cloudAccountDAO) BatchUpdateStatus(ctx context.Context, ids []int, status model.CloudAccountStatus) error {
 	if len(ids) == 0 {
 		return errors.New("批量更新ID列表不能为空")

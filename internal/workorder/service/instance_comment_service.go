@@ -65,9 +65,7 @@ func NewInstanceCommentService(
 	}
 }
 
-// CreateInstanceComment 创建评论
 func (s *instanceCommentService) CreateInstanceComment(ctx context.Context, req *model.CreateWorkorderInstanceCommentReq) error {
-	// 验证工单是否存在
 	_, err := s.instanceDao.GetInstanceByID(ctx, req.InstanceID)
 	if err != nil {
 		s.logger.Error("工单不存在", zap.Error(err), zap.Int("instanceID", req.InstanceID))
@@ -87,7 +85,6 @@ func (s *instanceCommentService) CreateInstanceComment(ctx context.Context, req 
 		}
 	}
 
-	// 创建评论对象
 	comment := &model.WorkorderInstanceComment{
 		InstanceID:   req.InstanceID,
 		OperatorID:   req.OperatorID,
@@ -99,7 +96,6 @@ func (s *instanceCommentService) CreateInstanceComment(ctx context.Context, req 
 		IsSystem:     req.IsSystem,
 	}
 
-	// 设置默认值
 	if comment.Type == "" {
 		comment.Type = model.CommentTypeNormal
 	}
@@ -126,7 +122,6 @@ func (s *instanceCommentService) CreateInstanceComment(ctx context.Context, req 
 
 // 只允许创建者修改自己的评论
 func (s *instanceCommentService) UpdateInstanceComment(ctx context.Context, req *model.UpdateWorkorderInstanceCommentReq, userID int) error {
-	// 获取现有评论
 	existingComment, err := s.dao.GetInstanceCommentByID(ctx, req.ID)
 	if err != nil {
 		s.logger.Error("获取评论失败", zap.Error(err), zap.Int("id", req.ID))
@@ -138,7 +133,6 @@ func (s *instanceCommentService) UpdateInstanceComment(ctx context.Context, req 
 		return fmt.Errorf("只能修改自己的评论")
 	}
 
-	// 构建更新对象
 	comment := &model.WorkorderInstanceComment{
 		Model:    model.Model{ID: req.ID},
 		Content:  strings.TrimSpace(req.Content),
@@ -154,9 +148,7 @@ func (s *instanceCommentService) UpdateInstanceComment(ctx context.Context, req 
 	return nil
 }
 
-// DeleteInstanceComment 删除评论
 func (s *instanceCommentService) DeleteInstanceComment(ctx context.Context, id int, userID int) error {
-	// 获取评论信息
 	comment, err := s.dao.GetInstanceCommentByID(ctx, id)
 	if err != nil {
 		s.logger.Error("获取评论失败", zap.Error(err), zap.Int("id", id))
@@ -176,7 +168,6 @@ func (s *instanceCommentService) DeleteInstanceComment(ctx context.Context, id i
 	return nil
 }
 
-// GetInstanceComment 获取工单评论
 func (s *instanceCommentService) GetInstanceComment(ctx context.Context, id int) (*model.WorkorderInstanceComment, error) {
 	comment, err := s.dao.GetInstanceCommentByID(ctx, id)
 	if err != nil {
@@ -187,7 +178,6 @@ func (s *instanceCommentService) GetInstanceComment(ctx context.Context, id int)
 	return comment, nil
 }
 
-// ListInstanceComments 获取评论列表
 func (s *instanceCommentService) ListInstanceComments(ctx context.Context, req *model.ListWorkorderInstanceCommentReq) (*model.ListResp[*model.WorkorderInstanceComment], error) {
 	comments, total, err := s.dao.ListInstanceComments(ctx, req)
 	if err != nil {
@@ -201,9 +191,7 @@ func (s *instanceCommentService) ListInstanceComments(ctx context.Context, req *
 	}, nil
 }
 
-// GetInstanceCommentsTree 获取评论树
 func (s *instanceCommentService) GetInstanceCommentsTree(ctx context.Context, instanceID int) ([]*model.WorkorderInstanceComment, error) {
-	// 验证工单是否存在
 	_, err := s.instanceDao.GetInstanceByID(ctx, instanceID)
 	if err != nil {
 		s.logger.Error("工单不存在", zap.Error(err), zap.Int("instanceID", instanceID))

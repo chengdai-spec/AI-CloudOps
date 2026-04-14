@@ -55,8 +55,6 @@ func (h *InstanceCommentHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateInstanceComment 创建工单评论
-// CreateInstanceComment 创建工单评论
 func (h *InstanceCommentHandler) CreateInstanceComment(ctx *gin.Context) {
 	var req model.CreateWorkorderInstanceCommentReq
 	user := ctx.MustGet("user").(jwt.UserClaims)
@@ -65,12 +63,10 @@ func (h *InstanceCommentHandler) CreateInstanceComment(ctx *gin.Context) {
 	req.OperatorName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.commentService.CreateInstanceComment(ctx, &req)
+		return nil, h.commentService.CreateInstanceComment(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateInstanceComment 更新工单评论
-// UpdateInstanceComment 更新工单评论
 func (h *InstanceCommentHandler) UpdateInstanceComment(ctx *gin.Context) {
 	var req model.UpdateWorkorderInstanceCommentReq
 
@@ -83,12 +79,10 @@ func (h *InstanceCommentHandler) UpdateInstanceComment(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.commentService.UpdateInstanceComment(ctx, &req, user.Uid)
+		return nil, h.commentService.UpdateInstanceComment(ctx.Request.Context(), &req, user.Uid)
 	})
 }
 
-// DeleteInstanceComment 删除工单评论
-// DeleteInstanceComment 删除工单评论
 func (h *InstanceCommentHandler) DeleteInstanceComment(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -98,12 +92,10 @@ func (h *InstanceCommentHandler) DeleteInstanceComment(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, nil, func() (any, error) {
-		return nil, h.commentService.DeleteInstanceComment(ctx, id, user.Uid)
+		return nil, h.commentService.DeleteInstanceComment(ctx.Request.Context(), id, user.Uid)
 	})
 }
 
-// GetInstanceComment 获取工单评论详情
-// GetInstanceComment 获取工单评论详情
 func (h *InstanceCommentHandler) GetInstanceComment(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -111,22 +103,18 @@ func (h *InstanceCommentHandler) GetInstanceComment(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, nil, func() (any, error) {
-		return h.commentService.GetInstanceComment(ctx, id)
+		return h.commentService.GetInstanceComment(ctx.Request.Context(), id)
 	})
 }
 
-// ListInstanceComments 获取工单评论列表
-// ListInstanceComments 获取工单评论列表
 func (h *InstanceCommentHandler) ListInstanceComments(ctx *gin.Context) {
 	var req model.ListWorkorderInstanceCommentReq
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return h.commentService.ListInstanceComments(ctx, &req)
+		return h.commentService.ListInstanceComments(ctx.Request.Context(), &req)
 	})
 }
 
-// GetInstanceCommentsTree 获取工单评论树结构
-// GetInstanceCommentsTree 获取工单评论树结构
 func (h *InstanceCommentHandler) GetInstanceCommentsTree(ctx *gin.Context) {
 	var req model.GetInstanceCommentsTreeReq
 
@@ -138,6 +126,6 @@ func (h *InstanceCommentHandler) GetInstanceCommentsTree(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return h.commentService.GetInstanceCommentsTree(ctx, req.ID)
+		return h.commentService.GetInstanceCommentsTree(ctx.Request.Context(), req.ID)
 	})
 }

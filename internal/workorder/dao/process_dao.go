@@ -39,12 +39,10 @@ func NewProcessDAO(db *gorm.DB, logger *zap.Logger) WorkorderProcessDAO {
 	}
 }
 
-// CreateProcess 创建流程
 func (d *processDAO) CreateProcess(ctx context.Context, process *model.WorkorderProcess) error {
 	if process.Name == "" {
 		return fmt.Errorf("流程名称不能为空")
 	}
-	// 检查名称唯一性
 	exists, err := d.CheckProcessNameExists(ctx, process.Name)
 	if err != nil {
 		return err
@@ -59,7 +57,6 @@ func (d *processDAO) CreateProcess(ctx context.Context, process *model.Workorder
 	return nil
 }
 
-// UpdateProcess 更新流程
 func (d *processDAO) UpdateProcess(ctx context.Context, process *model.WorkorderProcess) error {
 	if process.ID <= 0 {
 		return ErrProcessInvalidID
@@ -101,7 +98,6 @@ func (d *processDAO) UpdateProcess(ctx context.Context, process *model.Workorder
 	return nil
 }
 
-// DeleteProcess 删除流程
 func (d *processDAO) DeleteProcess(ctx context.Context, id int) error {
 	if id <= 0 {
 		return ErrProcessInvalidID
@@ -147,7 +143,6 @@ func (d *processDAO) DeleteProcess(ctx context.Context, id int) error {
 	return nil
 }
 
-// GetProcessByID 获取流程详情
 func (d *processDAO) GetProcessByID(ctx context.Context, id int) (*model.WorkorderProcess, error) {
 	if id <= 0 {
 		return nil, ErrProcessInvalidID
@@ -169,7 +164,6 @@ func (d *processDAO) GetProcessByID(ctx context.Context, id int) (*model.Workord
 	return &process, nil
 }
 
-// ListProcess 获取流程列表
 func (d *processDAO) ListProcess(ctx context.Context, req *model.ListWorkorderProcessReq) ([]*model.WorkorderProcess, int64, error) {
 	var processes []*model.WorkorderProcess
 	var total int64
@@ -199,7 +193,6 @@ func (d *processDAO) ListProcess(ctx context.Context, req *model.ListWorkorderPr
 		db = db.Where("is_default = ?", *req.IsDefault)
 	}
 
-	// 计算总数
 	err := db.Count(&total).Error
 	if err != nil {
 		d.logger.Error("获取流程列表总数失败", zap.Error(err))
@@ -221,7 +214,6 @@ func (d *processDAO) ListProcess(ctx context.Context, req *model.ListWorkorderPr
 	return processes, total, nil
 }
 
-// CheckProcessNameExists 检查流程名称是否存在
 func (d *processDAO) CheckProcessNameExists(ctx context.Context, name string, excludeID ...int) (bool, error) {
 	if name == "" {
 		return false, fmt.Errorf("流程名称不能为空")
@@ -243,7 +235,6 @@ func (d *processDAO) CheckProcessNameExists(ctx context.Context, name string, ex
 	return count > 0, nil
 }
 
-// ValidateProcessDefinition 验证流程定义
 func (d *processDAO) ValidateProcessDefinition(ctx context.Context, definition *model.ProcessDefinition) error {
 	if len(definition.Steps) == 0 {
 		return fmt.Errorf("流程定义必须包含至少一个步骤")
@@ -295,7 +286,6 @@ func (d *processDAO) ValidateProcessDefinition(ctx context.Context, definition *
 		return fmt.Errorf("流程必须包含至少一个结束步骤")
 	}
 
-	// 校验连线
 	for i, conn := range definition.Connections {
 		if conn.From == "" {
 			return fmt.Errorf("第%d条连接的来源步骤ID不能为空", i+1)

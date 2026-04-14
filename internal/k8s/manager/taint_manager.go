@@ -279,7 +279,6 @@ func (tm *taintManager) removeTaints(existingTaints, taintsToRemove []corev1.Tai
 }
 
 func (tm *taintManager) updateTaints(existingTaints, newTaints []corev1.Taint) []corev1.Taint {
-	// 创建新污点的键映射
 	newTaintMap := make(map[string]corev1.Taint)
 	for _, taint := range newTaints {
 		newTaintMap[taint.Key] = taint

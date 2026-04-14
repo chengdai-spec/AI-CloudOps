@@ -61,7 +61,6 @@ func NewWorkorderFormDesignDAO(db *gorm.DB, logger *zap.Logger) WorkorderFormDes
 	}
 }
 
-// CreateFormDesign 创建表单设计
 func (d *workorderFormDesignDAO) CreateFormDesign(ctx context.Context, formDesign *model.WorkorderFormDesign) error {
 	if err := d.db.WithContext(ctx).Create(formDesign).Error; err != nil {
 		d.logger.Error("创建表单设计失败", zap.Error(err), zap.String("name", formDesign.Name))
@@ -71,7 +70,6 @@ func (d *workorderFormDesignDAO) CreateFormDesign(ctx context.Context, formDesig
 	return nil
 }
 
-// UpdateFormDesign 更新表单设计
 func (d *workorderFormDesignDAO) UpdateFormDesign(ctx context.Context, formDesign *model.WorkorderFormDesign) error {
 	updateData := map[string]any{
 		"name":        formDesign.Name,
@@ -100,7 +98,6 @@ func (d *workorderFormDesignDAO) UpdateFormDesign(ctx context.Context, formDesig
 	return nil
 }
 
-// DeleteFormDesign 删除表单设计（软删除）
 func (d *workorderFormDesignDAO) DeleteFormDesign(ctx context.Context, id int) error {
 	result := d.db.WithContext(ctx).Delete(&model.WorkorderFormDesign{}, id)
 	if result.Error != nil {
@@ -116,7 +113,6 @@ func (d *workorderFormDesignDAO) DeleteFormDesign(ctx context.Context, id int) e
 	return nil
 }
 
-// GetFormDesign 获取表单设计
 func (d *workorderFormDesignDAO) GetFormDesign(ctx context.Context, id int) (*model.WorkorderFormDesign, error) {
 	var formDesign model.WorkorderFormDesign
 
@@ -150,23 +146,19 @@ func (d *workorderFormDesignDAO) GetFormDesignByName(ctx context.Context, name s
 	return &formDesign, nil
 }
 
-// ListFormDesign 获取表单设计列表
 func (d *workorderFormDesignDAO) ListFormDesign(ctx context.Context, req *model.ListWorkorderFormDesignReq) ([]*model.WorkorderFormDesign, int64, error) {
 	var formDesigns []*model.WorkorderFormDesign
 	var total int64
 
 	db := d.db.WithContext(ctx).Model(&model.WorkorderFormDesign{})
 
-	// 构建查询条件
 	db = d.buildListQuery(db, req)
 
-	// 获取总数
 	if err := db.Count(&total).Error; err != nil {
 		d.logger.Error("获取表单设计总数失败", zap.Error(err))
 		return nil, 0, fmt.Errorf("获取表单设计总数失败: %w", err)
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	err := db.Order("created_at DESC").
 		Preload("Category").
@@ -182,7 +174,6 @@ func (d *workorderFormDesignDAO) ListFormDesign(ctx context.Context, req *model.
 	return formDesigns, total, nil
 }
 
-// CheckFormDesignNameExists 检查表单设计名称是否存在
 func (d *workorderFormDesignDAO) CheckFormDesignNameExists(ctx context.Context, name string, excludeID ...int) (bool, error) {
 	if name == "" {
 		return false, fmt.Errorf("表单设计名称不能为空")
@@ -203,7 +194,6 @@ func (d *workorderFormDesignDAO) CheckFormDesignNameExists(ctx context.Context, 
 	return count > 0, nil
 }
 
-// buildListQuery 构建列表查询条件
 func (d *workorderFormDesignDAO) buildListQuery(db *gorm.DB, req *model.ListWorkorderFormDesignReq) *gorm.DB {
 	if req.Search != "" {
 		searchTerm := sanitizeSearchInput(req.Search)

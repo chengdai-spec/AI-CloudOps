@@ -61,7 +61,6 @@ func NewUserDAO(db *gorm.DB, l *zap.Logger) UserDAO {
 	}
 }
 
-// CreateUser 创建用户
 func (d *userDAO) Create(ctx context.Context, user *model.User) error {
 	if user == nil {
 		return errors.New("用户信息不能为空")
@@ -100,7 +99,6 @@ func (d *userDAO) Create(ctx context.Context, user *model.User) error {
 			}
 		}
 
-		// 创建用户
 		if err := tx.Create(user).Error; err != nil {
 			d.l.Error("创建用户失败", zap.Error(err), zap.String("username", user.Username))
 			return err
@@ -112,7 +110,6 @@ func (d *userDAO) Create(ctx context.Context, user *model.User) error {
 	return err
 }
 
-// GetUserByUsername 根据用户名获取用户信息
 func (d *userDAO) GetByUsername(ctx context.Context, username string) (*model.User, error) {
 	if err := userutils.RequireNonEmpty(username, "用户名"); err != nil {
 		return nil, err
@@ -127,7 +124,6 @@ func (d *userDAO) GetByUsername(ctx context.Context, username string) (*model.Us
 	return &user, nil
 }
 
-// GetAllUsers 获取所有用户
 func (d *userDAO) List(ctx context.Context, page, size int, search string, enable *int8, accountType *int8) ([]*model.User, int64, error) {
 	var users []*model.User
 	var count int64
@@ -183,7 +179,6 @@ func (d *userDAO) GetByID(ctx context.Context, id int) (*model.User, error) {
 	return &user, nil
 }
 
-// GetPermCode 获取用户权限码
 func (d *userDAO) GetPermCodes(ctx context.Context, uid int) ([]string, error) {
 	if err := userutils.RequirePositiveID(uid, "用户ID"); err != nil {
 		return nil, err
@@ -233,7 +228,6 @@ func (d *userDAO) ChangePassword(ctx context.Context, uid int, password string) 
 	return nil
 }
 
-// UpdateProfile 更新用户信息
 func (d *userDAO) Update(ctx context.Context, user *model.User) error {
 	if user == nil || user.ID <= 0 {
 		return errors.New("无效的用户信息")
@@ -323,7 +317,6 @@ func (d *userDAO) WriteOff(ctx context.Context, uid int) error {
 	return nil
 }
 
-// DeleteUser 删除用户
 func (d *userDAO) Delete(ctx context.Context, uid int) error {
 	if err := userutils.RequirePositiveID(uid, "用户ID"); err != nil {
 		return err
@@ -336,12 +329,10 @@ func (d *userDAO) Delete(ctx context.Context, uid int) error {
 			// 继续执行，不中断事务
 		}
 
-		// 删除用户角色关联
 		if err := tx.Table("cl_system_user_roles").Where("user_id = ?", uid).Delete(nil).Error; err != nil {
 			d.l.Warn("删除用户角色关联失败", zap.Int("uid", uid), zap.Error(err))
 		}
 
-		// 删除用户
 		result := tx.Where("id = ?", uid).Delete(&model.User{})
 		if result.Error != nil {
 			d.l.Error("删除用户失败", zap.Int("uid", uid), zap.Error(result.Error))
@@ -356,7 +347,6 @@ func (d *userDAO) Delete(ctx context.Context, uid int) error {
 	})
 }
 
-// GetUserByIDs 批量获取用户信息
 func (d *userDAO) GetByIDs(ctx context.Context, ids []int) ([]*model.User, error) {
 	if len(ids) == 0 {
 		return nil, errors.New("用户ID列表不能为空")
@@ -381,13 +371,11 @@ func (d *userDAO) GetByIDs(ctx context.Context, ids []int) ([]*model.User, error
 func (d *userDAO) GetStatistics(ctx context.Context) (*model.UserStatistics, error) {
 	var statistics model.UserStatistics
 
-	// 获取管理员总数
 	if err := d.db.WithContext(ctx).Model(&model.User{}).Count(&statistics.AdminCount).Error; err != nil {
 		d.l.Error("获取管理员总数失败", zap.Error(err))
 		return nil, err
 	}
 
-	// 获取活跃用户数量
 	if err := d.db.WithContext(ctx).Model(&model.User{}).Where("enable = ?", 1).Count(&statistics.ActiveUserCount).Error; err != nil {
 		d.l.Error("获取活跃用户数量失败", zap.Error(err))
 		return nil, err

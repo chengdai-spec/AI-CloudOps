@@ -37,7 +37,6 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// EncryptSecretKey 使用指定密钥加密数据
 func EncryptSecretKey(secretKey string, encryptionKey []byte) (string, error) {
 	if secretKey == "" {
 		return "", fmt.Errorf("密钥不能为空")
@@ -73,7 +72,6 @@ func EncryptSecretKey(secretKey string, encryptionKey []byte) (string, error) {
 	return encoded, nil
 }
 
-// DecryptSecretKey 使用指定密钥解密数据
 func DecryptSecretKey(encryptedSecretKey string, encryptionKey []byte) (string, error) {
 	if encryptedSecretKey == "" {
 		return "", fmt.Errorf("加密密钥不能为空")
@@ -100,7 +98,6 @@ func DecryptSecretKey(encryptedSecretKey string, encryptionKey []byte) (string, 
 		return "", fmt.Errorf("创建GCM模式失败: %w", err)
 	}
 
-	// 检查密文长度
 	nonceSize := gcm.NonceSize()
 	if len(ciphertext) < nonceSize {
 		return "", fmt.Errorf("密文长度不足")
@@ -194,7 +191,6 @@ func GenerateKeyFromPassword(password string, salt []byte) ([]byte, error) {
 	return key, nil
 }
 
-// ValidateEncryptedData 验证加密数据格式
 func ValidateEncryptedData(encryptedData string) error {
 	if encryptedData == "" {
 		return fmt.Errorf("加密数据不能为空")

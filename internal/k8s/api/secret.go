@@ -70,7 +70,7 @@ func (h *K8sSecretHandler) GetSecretList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.secretService.GetSecretList(ctx, &req)
+		return h.secretService.GetSecretList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -100,7 +100,7 @@ func (h *K8sSecretHandler) GetSecret(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.secretService.GetSecret(ctx, &req)
+		return h.secretService.GetSecret(ctx.Request.Context(), &req)
 	})
 }
 
@@ -116,7 +116,7 @@ func (h *K8sSecretHandler) CreateSecret(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.secretService.CreateSecret(ctx, &req)
+		return nil, h.secretService.CreateSecret(ctx.Request.Context(), &req)
 	})
 }
 
@@ -146,7 +146,7 @@ func (h *K8sSecretHandler) UpdateSecret(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.secretService.UpdateSecret(ctx, &req)
+		return nil, h.secretService.UpdateSecret(ctx.Request.Context(), &req)
 	})
 }
 
@@ -176,7 +176,7 @@ func (h *K8sSecretHandler) DeleteSecret(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.secretService.DeleteSecret(ctx, &req)
+		return nil, h.secretService.DeleteSecret(ctx.Request.Context(), &req)
 	})
 }
 
@@ -206,7 +206,7 @@ func (h *K8sSecretHandler) GetSecretYAML(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.secretService.GetSecretYAML(ctx, &req)
+		return h.secretService.GetSecretYAML(ctx.Request.Context(), &req)
 	})
 }
 
@@ -222,7 +222,7 @@ func (h *K8sSecretHandler) CreateSecretByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.secretService.CreateSecretByYaml(ctx, &req)
+		return nil, h.secretService.CreateSecretByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -252,6 +252,6 @@ func (h *K8sSecretHandler) UpdateSecretByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.secretService.UpdateSecretByYaml(ctx, &req)
+		return nil, h.secretService.UpdateSecretByYaml(ctx.Request.Context(), &req)
 	})
 }

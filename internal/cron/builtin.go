@@ -36,7 +36,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// BuiltinTaskDefinition 内置任务定义
 type BuiltinTaskDefinition struct {
 	Name        string
 	Description string
@@ -45,7 +44,6 @@ type BuiltinTaskDefinition struct {
 	Enabled     bool   // 默认是否启用
 }
 
-// GetBuiltinTasks 获取所有内置任务定义
 func GetBuiltinTasks() []BuiltinTaskDefinition {
 	return []BuiltinTaskDefinition{
 		{
@@ -72,13 +70,11 @@ func GetBuiltinTasks() []BuiltinTaskDefinition {
 	}
 }
 
-// BuiltinTaskManager 内置任务管理器
 type BuiltinTaskManager struct {
 	logger  *zap.Logger
 	cronDAO dao.CronJobDAO
 }
 
-// NewBuiltinTaskManager 创建内置任务管理器
 func NewBuiltinTaskManager(logger *zap.Logger, cronDAO dao.CronJobDAO) *BuiltinTaskManager {
 	return &BuiltinTaskManager{
 		logger:  logger,
@@ -86,14 +82,12 @@ func NewBuiltinTaskManager(logger *zap.Logger, cronDAO dao.CronJobDAO) *BuiltinT
 	}
 }
 
-// InitializeBuiltinTasks 初始化内置任务到数据库
 func (btm *BuiltinTaskManager) InitializeBuiltinTasks(ctx context.Context) error {
 	btm.logger.Info("开始初始化内置任务")
 
 	builtinTasks := GetBuiltinTasks()
 
 	for _, taskDef := range builtinTasks {
-		// 检查任务是否已存在
 		existingJob, err := btm.cronDAO.GetCronJobByName(ctx, taskDef.Name)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			btm.logger.Error("检查内置任务是否存在失败",
@@ -140,7 +134,6 @@ func (btm *BuiltinTaskManager) InitializeBuiltinTasks(ctx context.Context) error
 			continue
 		}
 
-		// 创建内置任务
 		job := &model.CronJob{
 			Name:        taskDef.Name,
 			Description: taskDef.Description,
@@ -174,7 +167,6 @@ func (btm *BuiltinTaskManager) InitializeBuiltinTasks(ctx context.Context) error
 	return nil
 }
 
-// GetEnabledBuiltinTasks 获取启用的内置任务
 func (btm *BuiltinTaskManager) GetEnabledBuiltinTasks(ctx context.Context) ([]*model.CronJob, error) {
 	// 获取所有启用的内置系统任务
 	enabledStatus := model.CronJobStatusEnabled
@@ -189,7 +181,6 @@ func (btm *BuiltinTaskManager) GetEnabledBuiltinTasks(ctx context.Context) ([]*m
 		return nil, err
 	}
 
-	// 过滤出内置任务
 	var builtinJobs []*model.CronJob
 	for _, job := range jobs {
 		if job.IsBuiltIn == 1 {
@@ -224,7 +215,6 @@ func (btm *BuiltinTaskManager) ForceInitializeBuiltinTasks(ctx context.Context) 
 			}
 		}
 
-		// 创建新的内置任务
 		job := &model.CronJob{
 			Name:        taskDef.Name,
 			Description: taskDef.Description,

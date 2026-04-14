@@ -59,7 +59,6 @@ func NewCloudAccountRegionDAO(db *gorm.DB, logger *zap.Logger) CloudAccountRegio
 	}
 }
 
-// Create 创建云账号区域关联
 func (d *cloudAccountRegionDAO) Create(ctx context.Context, region *model.CloudAccountRegion) error {
 	if err := d.db.WithContext(ctx).Create(region).Error; err != nil {
 		d.logger.Error("创建云账号区域关联失败", zap.Error(err))
@@ -69,7 +68,6 @@ func (d *cloudAccountRegionDAO) Create(ctx context.Context, region *model.CloudA
 	return nil
 }
 
-// BatchCreate 批量创建云账号区域关联
 func (d *cloudAccountRegionDAO) BatchCreate(ctx context.Context, regions []*model.CloudAccountRegion) error {
 	if err := d.db.WithContext(ctx).Create(regions).Error; err != nil {
 		d.logger.Error("批量创建云账号区域关联失败", zap.Error(err))
@@ -79,7 +77,6 @@ func (d *cloudAccountRegionDAO) BatchCreate(ctx context.Context, regions []*mode
 	return nil
 }
 
-// Update 更新云账号区域关联
 func (d *cloudAccountRegionDAO) Update(ctx context.Context, region *model.CloudAccountRegion) error {
 	if err := d.db.WithContext(ctx).Model(region).Updates(region).Error; err != nil {
 		d.logger.Error("更新云账号区域关联失败", zap.Error(err))
@@ -89,7 +86,6 @@ func (d *cloudAccountRegionDAO) Update(ctx context.Context, region *model.CloudA
 	return nil
 }
 
-// Delete 删除云账号区域关联
 func (d *cloudAccountRegionDAO) Delete(ctx context.Context, id int) error {
 	if err := d.db.WithContext(ctx).Delete(&model.CloudAccountRegion{}, id).Error; err != nil {
 		d.logger.Error("删除云账号区域关联失败", zap.Error(err), zap.Int("id", id))
@@ -112,14 +108,12 @@ func (d *cloudAccountRegionDAO) GetByID(ctx context.Context, id int) (*model.Clo
 	return &region, nil
 }
 
-// GetList 获取云账号区域关联列表
 func (d *cloudAccountRegionDAO) GetList(ctx context.Context, req *model.GetCloudAccountRegionListReq) ([]*model.CloudAccountRegion, int64, error) {
 	var regions []*model.CloudAccountRegion
 	var total int64
 
 	query := d.db.WithContext(ctx).Model(&model.CloudAccountRegion{})
 
-	// 添加查询条件
 	if req.CloudAccountID != 0 {
 		query = query.Where("cloud_account_id = ?", req.CloudAccountID)
 	}
@@ -136,14 +130,12 @@ func (d *cloudAccountRegionDAO) GetList(ctx context.Context, req *model.GetCloud
 		query = query.Where("region LIKE ? OR region_name LIKE ?", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
 
-	// 计算总数
 	err := query.Count(&total).Error
 	if err != nil {
 		d.logger.Error("获取云账号区域关联总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	err = query.
 		Preload("CloudAccount").
@@ -193,7 +185,6 @@ func (d *cloudAccountRegionDAO) GetByCloudAccountAndRegion(ctx context.Context, 
 	return &regionItem, nil
 }
 
-// UpdateStatus 更新云账号区域状态
 func (d *cloudAccountRegionDAO) UpdateStatus(ctx context.Context, id int, status model.CloudAccountRegionStatus) error {
 	if err := d.db.WithContext(ctx).
 		Model(&model.CloudAccountRegion{}).
@@ -219,7 +210,6 @@ func (d *cloudAccountRegionDAO) ClearDefaultRegion(ctx context.Context, cloudAcc
 	return nil
 }
 
-// GetResourceCountByRegion 获取指定区域下的资源数量
 func (d *cloudAccountRegionDAO) GetResourceCountByRegion(ctx context.Context, regionID int) (int64, error) {
 	var count int64
 

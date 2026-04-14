@@ -412,7 +412,6 @@ func (s *pvService) convertPVToEntity(pv *corev1.PersistentVolume, clusterID int
 		return nil
 	}
 
-	// 获取容量
 	capacity := ""
 	if pv.Spec.Capacity != nil {
 		if storage, ok := pv.Spec.Capacity[corev1.ResourceStorage]; ok {
@@ -420,27 +419,22 @@ func (s *pvService) convertPVToEntity(pv *corev1.PersistentVolume, clusterID int
 		}
 	}
 
-	// 获取访问模式
 	accessModes := make([]string, 0, len(pv.Spec.AccessModes))
 	for _, mode := range pv.Spec.AccessModes {
 		accessModes = append(accessModes, string(mode))
 	}
 
-	// 获取回收策略
 	reclaimPolicy := string(pv.Spec.PersistentVolumeReclaimPolicy)
 
-	// 获取存储类
 	storageClass := pv.Spec.StorageClassName
 
 	status := s.convertPVStatus(pv.Status.Phase)
 
-	// 获取卷模式
 	volumeMode := string(corev1.PersistentVolumeFilesystem)
 	if pv.Spec.VolumeMode != nil {
 		volumeMode = string(*pv.Spec.VolumeMode)
 	}
 
-	// 获取绑定信息
 	claimRef := make(map[string]string)
 	if pv.Spec.ClaimRef != nil {
 		claimRef["namespace"] = pv.Spec.ClaimRef.Namespace
@@ -466,7 +460,6 @@ func (s *pvService) convertPVToEntity(pv *corev1.PersistentVolume, clusterID int
 	// 计算年龄
 	age := utils.GetPVAge(*pv)
 
-	// 获取资源版本
 	resourceVersion := pv.ResourceVersion
 
 	return &model.K8sPV{

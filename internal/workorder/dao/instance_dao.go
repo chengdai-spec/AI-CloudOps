@@ -69,9 +69,7 @@ func NewWorkorderInstanceDAO(db *gorm.DB, logger *zap.Logger) WorkorderInstanceD
 	}
 }
 
-// CreateInstance 创建工单实例
 func (d *workorderInstanceDAO) CreateInstance(ctx context.Context, instance *model.WorkorderInstance) error {
-	// 检查唯一性
 	var count int64
 
 	if err := d.db.WithContext(ctx).Model(&model.WorkorderInstance{}).Where("serial_number = ?", instance.SerialNumber).Count(&count).Error; err != nil {
@@ -90,14 +88,12 @@ func (d *workorderInstanceDAO) CreateInstance(ctx context.Context, instance *mod
 	return nil
 }
 
-// UpdateInstance 更新工单实例
 func (d *workorderInstanceDAO) UpdateInstance(ctx context.Context, instance *model.WorkorderInstance) error {
 	if instance.ID <= 0 {
 		d.logger.Error("更新工单实例失败: ID无效", zap.Any("instance", instance))
 		return ErrInstanceInvalidID
 	}
 
-	// 只更新非零字段
 	result := d.db.WithContext(ctx).
 		Model(&model.WorkorderInstance{}).
 		Where("id = ?", instance.ID).
@@ -115,7 +111,6 @@ func (d *workorderInstanceDAO) UpdateInstance(ctx context.Context, instance *mod
 	return nil
 }
 
-// DeleteInstance 删除工单实例
 func (d *workorderInstanceDAO) DeleteInstance(ctx context.Context, id int) error {
 	if id <= 0 {
 		d.logger.Error("删除工单实例失败: ID无效", zap.Int("id", id))
@@ -148,7 +143,6 @@ func (d *workorderInstanceDAO) DeleteInstance(ctx context.Context, id int) error
 	return nil
 }
 
-// GetInstanceByID 获取工单实例详情
 func (d *workorderInstanceDAO) GetInstanceByID(ctx context.Context, id int) (*model.WorkorderInstance, error) {
 	if id <= 0 {
 		d.logger.Error("获取工单实例失败: ID无效", zap.Int("id", id))
@@ -184,7 +178,6 @@ func (d *workorderInstanceDAO) GetInstanceByID(ctx context.Context, id int) (*mo
 	return &instance, nil
 }
 
-// GetInstanceByTitle 根据工单标题获取工单实例
 func (d *workorderInstanceDAO) GetInstanceByTitle(ctx context.Context, title string) (*model.WorkorderInstance, error) {
 	var instance model.WorkorderInstance
 
@@ -204,7 +197,6 @@ func (d *workorderInstanceDAO) GetInstanceByTitle(ctx context.Context, title str
 	return &instance, nil
 }
 
-// ListInstance 获取工单实例列表
 func (d *workorderInstanceDAO) ListInstance(ctx context.Context, req *model.ListWorkorderInstanceReq) ([]*model.WorkorderInstance, int64, error) {
 	var instances []*model.WorkorderInstance
 	var total int64
@@ -214,7 +206,6 @@ func (d *workorderInstanceDAO) ListInstance(ctx context.Context, req *model.List
 		return nil, 0, fmt.Errorf("请求参数为空")
 	}
 
-	// 验证分页参数
 	req.Page, req.Size = ValidatePagination(req.Page, req.Size)
 
 	db := d.db.WithContext(ctx).Model(&model.WorkorderInstance{})
@@ -344,7 +335,6 @@ func (d *workorderInstanceDAO) GenerateSerialNumber(ctx context.Context) (string
 	return serialNumber, nil
 }
 
-// UpdateInstanceStatus 更新工单状态
 func (d *workorderInstanceDAO) UpdateInstanceStatus(ctx context.Context, id int, status int8) error {
 	if id <= 0 {
 		return ErrInstanceInvalidID
@@ -369,7 +359,6 @@ func (d *workorderInstanceDAO) UpdateInstanceStatus(ctx context.Context, id int,
 	return nil
 }
 
-// UpdateInstanceAssignee 更新工单处理人
 func (d *workorderInstanceDAO) UpdateInstanceAssignee(ctx context.Context, id int, assigneeID *int) error {
 	if id <= 0 {
 		return ErrInstanceInvalidID

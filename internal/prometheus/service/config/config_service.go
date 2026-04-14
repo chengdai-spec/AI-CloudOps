@@ -53,7 +53,6 @@ func NewMonitorConfigService(l *zap.Logger, configDao configDao.MonitorConfigDAO
 	}
 }
 
-// GetMonitorConfigList 获取配置列表
 func (s *monitorConfigService) GetMonitorConfigList(ctx context.Context, req *model.GetMonitorConfigListReq) (model.ListResp[*model.MonitorConfig], error) {
 	list, total, err := s.configDao.GetMonitorConfigList(ctx, req)
 	if err != nil {

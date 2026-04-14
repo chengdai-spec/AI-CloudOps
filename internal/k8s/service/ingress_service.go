@@ -135,7 +135,6 @@ func (s *ingressService) GetIngressList(ctx context.Context, req *model.GetIngre
 	// 应用过滤条件
 	var filteredIngresses []*model.K8sIngress
 	for _, k8sIngress := range k8sIngresses {
-		// 状态过滤
 		if req.Status != "" {
 			var statusStr string
 			switch k8sIngress.Status {
@@ -280,7 +279,6 @@ func (s *ingressService) UpdateIngress(ctx context.Context, req *model.UpdateIng
 
 	updatedIngress := existingIngress.DeepCopy()
 
-	// 更新标签
 	if len(req.Labels) > 0 {
 		if updatedIngress.Labels == nil {
 			updatedIngress.Labels = make(map[string]string)
@@ -290,7 +288,6 @@ func (s *ingressService) UpdateIngress(ctx context.Context, req *model.UpdateIng
 		}
 	}
 
-	// 更新注解
 	if len(req.Annotations) > 0 {
 		if updatedIngress.Annotations == nil {
 			updatedIngress.Annotations = make(map[string]string)

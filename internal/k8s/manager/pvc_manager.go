@@ -385,7 +385,6 @@ func (m *pvcManager) ExpandPVC(ctx context.Context, clusterID int, namespace, na
 		return fmt.Errorf("%s", errMsg)
 	}
 
-	// 获取当前容量
 	currentQuantity := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
 
 	// 验证新容量是否大于当前容量

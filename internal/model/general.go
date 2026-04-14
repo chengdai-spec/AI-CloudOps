@@ -43,14 +43,12 @@ type Model struct {
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at" gorm:"index;comment:删除时间"`
 }
 
-// ListReq 通用列表请求
 type ListReq struct {
 	Page   int    `json:"page" form:"page" binding:"omitempty,min=1"`
 	Size   int    `json:"size" form:"size" binding:"omitempty,min=10,max=100"`
 	Search string `json:"search" form:"search" binding:"omitempty"`
 }
 
-// ListResp 列表响应
 type ListResp[T any] struct {
 	Items []T   `json:"items"` // 数据列表
 	Total int64 `json:"total"` // 总数
@@ -96,7 +94,6 @@ func (s *StringList) Scan(val interface{}) error {
 		return nil
 	}
 
-	// 处理逗号分割
 	if strings.Contains(cleanStr, ",") {
 		parts := strings.Split(cleanStr, ",")
 		result := make([]string, 0, len(parts))
@@ -109,7 +106,6 @@ func (s *StringList) Scan(val interface{}) error {
 		return nil
 	}
 
-	// 处理竖线分割
 	if strings.Contains(cleanStr, "|") {
 		parts := strings.Split(cleanStr, "|")
 		result := make([]string, 0, len(parts))
@@ -322,7 +318,6 @@ func (kvl *KeyValueList) AddTag(key, value string) {
 	*kvl = append(*kvl, KeyValue{Key: key, Value: value})
 }
 
-// RemoveTag 删除指定键的标签
 func (kvl *KeyValueList) RemoveTag(key string) {
 	if kvl == nil {
 		return
@@ -336,7 +331,6 @@ func (kvl *KeyValueList) RemoveTag(key string) {
 	}
 }
 
-// GetTag 获取指定键的标签值
 func (kvl KeyValueList) GetTag(key string) (string, bool) {
 	for _, kv := range kvl {
 		if kv.Key == key {
@@ -363,7 +357,6 @@ func (kvl KeyValueList) FilterByKey(prefix string) KeyValueList {
 	return result
 }
 
-// Keys 获取所有标签键
 func (kvl KeyValueList) Keys() []string {
 	keys := make([]string, 0, len(kvl))
 	for _, kv := range kvl {
@@ -372,7 +365,6 @@ func (kvl KeyValueList) Keys() []string {
 	return keys
 }
 
-// IsEmpty 判断标签列表是否为空
 func (kvl KeyValueList) IsEmpty() bool {
 	return len(kvl) == 0
 }

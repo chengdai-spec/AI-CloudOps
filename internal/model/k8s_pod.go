@@ -94,13 +94,11 @@ type PodContainerPort struct {
 	Protocol      string `json:"protocol"`       // 协议类型
 }
 
-// PodResourceRequirements 资源要求
 type PodResourceRequirements struct {
 	Requests PodResourceList `json:"requests"` // 资源请求
 	Limits   PodResourceList `json:"limits"`   // 资源限制
 }
 
-// PodResourceList 资源列表
 type PodResourceList struct {
 	CPU    string `json:"cpu"`    // CPU数量
 	Memory string `json:"memory"` // 内存数量
@@ -114,7 +112,6 @@ type PodVolumeMount struct {
 	SubPath   string `json:"sub_path"`   // 子路径
 }
 
-// PodProbe 探测配置
 type PodProbe struct {
 	HTTPGet             *PodHTTPGetAction   `json:"http_get,omitempty"`    // HTTP GET探测
 	TCPSocket           *PodTCPSocketAction `json:"tcp_socket,omitempty"`  // TCP Socket探测
@@ -143,25 +140,21 @@ type PodExecAction struct {
 	Command []string `json:"command"` // 执行的命令
 }
 
-// PodContainerState 容器状态
 type PodContainerState struct {
 	Waiting    *PodContainerStateWaiting    `json:"waiting"`    // 等待状态
 	Running    *PodContainerStateRunning    `json:"running"`    // 运行状态
 	Terminated *PodContainerStateTerminated `json:"terminated"` // 终止状态
 }
 
-// PodContainerStateWaiting 容器等待状态
 type PodContainerStateWaiting struct {
 	Reason  string `json:"reason"`  // 等待原因
 	Message string `json:"message"` // 等待消息
 }
 
-// PodContainerStateRunning 容器运行状态
 type PodContainerStateRunning struct {
 	StartedAt time.Time `json:"started_at"` // 开始时间
 }
 
-// PodContainerStateTerminated 容器终止状态
 type PodContainerStateTerminated struct {
 	ExitCode    int32     `json:"exit_code"`    // 退出码
 	Signal      int32     `json:"signal"`       // 信号
@@ -318,7 +311,6 @@ type PodPortForwardReq struct {
 	Ports     []PodPortForwardPort `json:"ports" binding:"required"`                       // 端口转发配置
 }
 
-// PodPortForwardPort 端口转发端口配置
 type PodPortForwardPort struct {
 	LocalPort  int `json:"local_port" binding:"required"`  // 本地端口
 	RemotePort int `json:"remote_port" binding:"required"` // 远程端口

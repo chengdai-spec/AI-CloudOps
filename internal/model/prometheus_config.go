@@ -25,7 +25,6 @@
 
 package model
 
-// 配置类型常量
 const (
 	ConfigTypePrometheus   int8 = 1 // Prometheus 主配置
 	ConfigTypeAlertManager int8 = 2 // AlertManager 主配置
@@ -34,7 +33,6 @@ const (
 	ConfigTypeWebhookFile  int8 = 5 // webhook file
 )
 
-// 配置状态常量
 const (
 	ConfigStatusActive   int8 = 1 // 激活状态
 	ConfigStatusInactive int8 = 2 // 非激活状态
@@ -57,25 +55,21 @@ func (m *MonitorConfig) TableName() string {
 	return "cl_monitor_configs"
 }
 
-// GetMonitorConfigListReq 获取监控配置列表请求
 type GetMonitorConfigListReq struct {
 	ListReq
 	ConfigType *int8 `json:"config_type" form:"config_type" binding:"omitempty,oneof=1 2 3 4 5"`
 	Status     *int8 `json:"status" form:"status" binding:"omitempty,oneof=1 2"`
 }
 
-// GetMonitorConfigReq 获取单个监控配置请求
 type GetMonitorConfigReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }
 
-// GetMonitorConfigByInstanceReq 通过实例获取监控配置请求
 type GetMonitorConfigByInstanceReq struct {
 	InstanceIP string `json:"instance_ip" form:"instance_ip" binding:"required"`
 	ConfigType int8   `json:"config_type" form:"config_type" binding:"required,oneof=1 2 3 4 5"`
 }
 
-// CreateMonitorConfigReq 创建监控配置请求
 type CreateMonitorConfigReq struct {
 	Name          string `json:"name" binding:"required,min=1,max=100"`
 	PoolID        int    `json:"pool_id" binding:"required"`
@@ -85,7 +79,6 @@ type CreateMonitorConfigReq struct {
 	Status        int8   `json:"status" binding:"omitempty,oneof=1 2"`
 }
 
-// UpdateMonitorConfigReq 更新监控配置请求
 type UpdateMonitorConfigReq struct {
 	ID            int    `json:"id" binding:"required"`
 	Name          string `json:"name" binding:"required,min=1,max=100"`
@@ -96,7 +89,6 @@ type UpdateMonitorConfigReq struct {
 	Status        int8   `json:"status" binding:"omitempty,oneof=1 2"`
 }
 
-// DeleteMonitorConfigReq 删除监控配置请求
 type DeleteMonitorConfigReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }

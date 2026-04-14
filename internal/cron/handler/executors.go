@@ -45,14 +45,12 @@ type CommandExecutor struct {
 	logger *zap.Logger
 }
 
-// NewCommandExecutor 创建命令执行器
 func NewCommandExecutor(logger *zap.Logger) *CommandExecutor {
 	return &CommandExecutor{
 		logger: logger,
 	}
 }
 
-// CommandTask 命令任务配置
 type CommandTask struct {
 	Command     string             `json:"command"`
 	Args        model.StringList   `json:"args"`
@@ -61,9 +59,7 @@ type CommandTask struct {
 	Timeout     int                `json:"timeout"`
 }
 
-// Execute 执行命令，返回输出字符串
 func (h *CommandExecutor) Execute(ctx context.Context, task *CommandTask) (string, error) {
-	// 设置超时
 	timeout := time.Duration(task.Timeout) * time.Second
 	if timeout <= 0 {
 		timeout = 5 * time.Minute // 默认5分钟
@@ -72,7 +68,6 @@ func (h *CommandExecutor) Execute(ctx context.Context, task *CommandTask) (strin
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// 构建命令
 	var cmd *exec.Cmd
 	if len(task.Args) > 0 {
 		args := make([]string, len(task.Args))
@@ -84,12 +79,10 @@ func (h *CommandExecutor) Execute(ctx context.Context, task *CommandTask) (strin
 		cmd = exec.CommandContext(ctx, task.Command)
 	}
 
-	// 设置工作目录
 	if task.WorkDir != "" {
 		cmd.Dir = task.WorkDir
 	}
 
-	// 设置环境变量
 	if len(task.Environment) > 0 {
 		env := os.Environ()
 		for _, kv := range task.Environment {
@@ -157,7 +150,6 @@ type HTTPTask struct {
 
 // Execute 执行HTTP请求，返回响应字符串
 func (h *HTTPExecutor) Execute(ctx context.Context, task *HTTPTask) (string, error) {
-	// 设置超时
 	timeout := time.Duration(task.Timeout) * time.Second
 	if timeout <= 0 {
 		timeout = 30 * time.Second // 默认30秒
@@ -166,7 +158,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, task *HTTPTask) (string, err
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// 创建请求
 	var bodyReader io.Reader
 	if task.Body != "" {
 		bodyReader = strings.NewReader(task.Body)
@@ -177,7 +168,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, task *HTTPTask) (string, err
 		return "", fmt.Errorf("创建HTTP请求失败: %w", err)
 	}
 
-	// 设置请求头
 	for _, header := range task.Headers {
 		req.Header.Set(header.Key, header.Value)
 	}
@@ -186,7 +176,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, task *HTTPTask) (string, err
 		zap.String("method", task.Method),
 		zap.String("url", task.URL))
 
-	// 发送请求
 	resp, err := h.client.Do(req)
 	if err != nil {
 		h.logger.Error("HTTP请求失败", zap.Error(err))
@@ -194,7 +183,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, task *HTTPTask) (string, err
 	}
 	defer resp.Body.Close()
 
-	// 读取响应
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("读取响应失败: %w", err)
@@ -206,7 +194,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, task *HTTPTask) (string, err
 		zap.String("url", task.URL),
 		zap.Int("statusCode", resp.StatusCode))
 
-	// 检查状态码
 	if resp.StatusCode >= 400 {
 		return response, fmt.Errorf("HTTP请求失败，状态码: %d", resp.StatusCode)
 	}
@@ -219,23 +206,19 @@ type ScriptExecutor struct {
 	logger *zap.Logger
 }
 
-// NewScriptExecutor 创建脚本执行器
 func NewScriptExecutor(logger *zap.Logger) *ScriptExecutor {
 	return &ScriptExecutor{
 		logger: logger,
 	}
 }
 
-// ScriptTask 脚本任务配置
 type ScriptTask struct {
 	Type    string `json:"type"`
 	Content string `json:"content"`
 	Timeout int    `json:"timeout"`
 }
 
-// Execute 执行脚本，返回输出字符串
 func (h *ScriptExecutor) Execute(ctx context.Context, task *ScriptTask) (string, error) {
-	// 设置超时
 	timeout := time.Duration(task.Timeout) * time.Second
 	if timeout <= 0 {
 		timeout = 5 * time.Minute // 默认5分钟

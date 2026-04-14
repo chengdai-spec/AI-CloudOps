@@ -173,7 +173,6 @@ func (d *alertManagerPoolDAO) GetMonitorAlertManagerPoolList(ctx context.Context
 		req.Size = 10
 	}
 
-	// 计算分页参数
 	offset := (req.Page - 1) * req.Size
 	limit := req.Size
 
@@ -186,13 +185,11 @@ func (d *alertManagerPoolDAO) GetMonitorAlertManagerPoolList(ctx context.Context
 	var pools []*model.MonitorAlertManagerPool
 	var count int64
 
-	// 先获取总数
 	if err := query.Count(&count).Error; err != nil {
 		d.l.Error("获取 MonitorAlertManagerPool 总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 再获取分页数据
 	if err := query.Order("created_at DESC").Offset(offset).Limit(limit).Find(&pools).Error; err != nil {
 		d.l.Error("获取 MonitorAlertManagerPool 列表失败", zap.Error(err))
 		return nil, 0, err

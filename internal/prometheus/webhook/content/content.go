@@ -73,24 +73,20 @@ func NewWebhookContent(l *zap.Logger, dao dao.WebhookDao, robot robot.WebhookRob
 
 // GenerateFeishuCardContentOneAlert 生成单个告警的 Feishu 卡片内容并发送到群聊和私聊
 func (wc *webhookContent) GenerateFeishuCardContentOneAlert(ctx context.Context, alert template.Alert, event *model.MonitorAlertEvent, rule *model.MonitorAlertRule, sendGroup *model.MonitorSendGroup) error {
-	// 构建告警标题
 	alertHeader := fmt.Sprintf("[触发次数:%v]告警标题:%s ；当前值 %s",
 		event.EventTimes,
 		alert.Labels["alertname"],
 		alert.Annotations["description_value"],
 	)
 
-	// 获取告警严重性
 	severity := constant.AlertSeverity(alert.Labels["severity"])
 
-	// 根据严重性获取标题颜色
 	alertHeaderColor, ok := constant.SeverityTitleColorMap[severity]
 	if !ok {
 		// 如果未定义的严重性，使用默认颜色
 		alertHeaderColor = "red"
 	}
 
-	// 构建告警详细信息
 	msgSeverity := fmt.Sprintf(`**🌡️告警级别：**\n%s`, severity)
 	alertStatus := constant.AlertStatus(alert.Status)
 	msgStatus := fmt.Sprintf(`**📝当前状态：**\n<font color='%s'>%s</font>`, constant.StatusColorMap[alertStatus], constant.StatusChineseMap[alertStatus])
@@ -112,7 +108,6 @@ func (wc *webhookContent) GenerateFeishuCardContentOneAlert(ctx context.Context,
 	// 私聊用户ID列表
 	privateUserIds := map[string]string{}
 
-	// 获取值班组信息
 	msgOnduty := "值班组和值班人信息(出现这个说明值班信息获取有问题)"
 	yuanshiRen := ""
 	onDutyGroup, err := wc.dao.GetOnDutyGroupById(ctx, sendGroup.OnDutyGroupID)
@@ -120,7 +115,6 @@ func (wc *webhookContent) GenerateFeishuCardContentOneAlert(ctx context.Context,
 		return fmt.Errorf("获取值班组失败: %w", err)
 	}
 
-	// 构建值班组详情页链接
 	onDutyGroupUrl := fmt.Sprintf(constant.SendGroupURLTemplate,
 		viper.GetString("webhook.front_domain"),
 		"monitor/onduty/detail",
@@ -146,7 +140,6 @@ func (wc *webhookContent) GenerateFeishuCardContentOneAlert(ctx context.Context,
 		privateUserIds[onDutyGroup.TodayDutyUser.FeiShuUserId] = ""
 	}
 
-	// 告警升级状态
 	msgUpgrade := `**🎛️ 升级状态：**\n未升级`
 
 	// 判断是否需要升级告警
@@ -168,7 +161,6 @@ func (wc *webhookContent) GenerateFeishuCardContentOneAlert(ctx context.Context,
 				upgradeUserNames.String(),
 			)
 
-			// 更新值班组中的接收人
 			msgOnduty = fmt.Sprintf(`**👨‍💻 值班组 [%s](%s)：**\n   告警升级接收人: %s`,
 				onDutyGroup.Name,
 				onDutyGroupUrl,
@@ -192,7 +184,6 @@ func (wc *webhookContent) GenerateFeishuCardContentOneAlert(ctx context.Context,
 		)
 	}
 
-	// 处理告警标签和注释
 	labelMap := utils.CloneMap(alert.Labels)
 	delete(labelMap, "alertname")
 	delete(labelMap, "severity")
@@ -205,7 +196,6 @@ func (wc *webhookContent) GenerateFeishuCardContentOneAlert(ctx context.Context,
 	msgLabel := fmt.Sprintf(`**🛶标签信息：**\n%s`, utils.FormatMap(labelMap))
 	msgAnno := fmt.Sprintf(`**🚂注释信息：**\n%s`, utils.FormatMap(anno))
 
-	// 构建发送组信息
 	sendGroupUrl := fmt.Sprintf(constant.SendGroupURLTemplate,
 		viper.GetString("webhook.front_domain"),
 		"monitor/sendgroup/detail",
@@ -341,7 +331,6 @@ type FeishuPrivateCardMsg struct {
 // SentFeishuPrivate 发送消息到 Feishu 私聊
 func (wc *webhookContent) SentFeishuPrivate(ctx context.Context, cardContent string, privateUserIds map[string]string) error {
 	for userId := range privateUserIds {
-		// 构建私聊消息结构体
 		feishuPrivateCardMsg := FeishuPrivateCardMsg{
 			ReceiveId:     userId,
 			ReceiveIdType: "user_id",
@@ -362,7 +351,6 @@ func (wc *webhookContent) SentFeishuPrivate(ctx context.Context, cardContent str
 		// 构建 Feishu 私聊 API URL
 		url := "https://open.feishu.cn/open-apis/im/v1/messages"
 
-		// 构建请求头
 		headers := map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", wc.robot.GetPrivateRobotToken()),
 			"Content-Type":  "application/json; charset=utf-8",

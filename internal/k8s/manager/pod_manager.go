@@ -42,7 +42,6 @@ import (
 	"github.com/GoSimplicity/AI-CloudOps/pkg/base"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/retry"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/terminal"
-	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
@@ -66,7 +65,7 @@ type PodManager interface {
 	GetPodLogs(ctx context.Context, clusterID int, namespace, name string, logOptions *corev1.PodLogOptions) (io.ReadCloser, error)
 	BatchDeletePods(ctx context.Context, clusterID int, namespace string, podNames []string, deleteOptions metav1.DeleteOptions) error
 	PodTerminalSession(ctx context.Context, clusterID int, namespace, pod, container, shell string, conn *websocket.Conn) error
-	UploadFileToPod(ctx *gin.Context, clusterID int, namespace, pod, container, filePath string) error
+	UploadFileToPod(ctx context.Context, clusterID int, namespace, pod, container, filePath string, form *multipart.Form) error
 	PortForward(ctx context.Context, ports []string, dialer httpstream.Dialer) error
 	PodPortForward(ctx context.Context, clusterID int, namespace, podName string, ports []model.PodPortForwardPort) error
 	DownloadPodFile(ctx context.Context, clusterID int, namespace, pod, container, filePath string) (*k8sutils.PodFileStreamPipe, error)
@@ -294,7 +293,13 @@ func (m *podManager) PodTerminalSession(
 	return nil
 }
 
-func (m *podManager) UploadFileToPod(ctx *gin.Context, clusterID int, namespace, pod, container, filePath string) error {
+func (m *podManager) UploadFileToPod(ctx context.Context, clusterID int, namespace, pod, container, filePath string, form *multipart.Form) error {
+	if ctx == nil {
+		return fmt.Errorf("上下文不能为空")
+	}
+	if form == nil {
+		return fmt.Errorf("上传表单不能为空")
+	}
 	if namespace == "" {
 		return fmt.Errorf("命名空间不能为空")
 	}
@@ -316,7 +321,7 @@ func (m *podManager) UploadFileToPod(ctx *gin.Context, clusterID int, namespace,
 		return fmt.Errorf("获取集群配置失败: %w", err)
 	}
 
-	podObj, err := kubeClient.CoreV1().Pods(namespace).Get(ctx.Request.Context(), pod, metav1.GetOptions{})
+	podObj, err := kubeClient.CoreV1().Pods(namespace).Get(ctx, pod, metav1.GetOptions{})
 	if err != nil {
 		m.logger.Error("获取Pod信息失败",
 			zap.Error(err),
@@ -346,7 +351,7 @@ func (m *podManager) UploadFileToPod(ctx *gin.Context, clusterID int, namespace,
 	}
 
 	// 解析上传的文件
-	files, err := parseMultipartFiles(ctx)
+	files, err := parseMultipartFiles(form)
 	if err != nil {
 		m.logger.Error("解析上传文件失败", zap.Error(err))
 		return fmt.Errorf("解析上传文件失败: %w", err)
@@ -367,10 +372,16 @@ func (m *podManager) UploadFileToPod(ctx *gin.Context, clusterID int, namespace,
 	var tarErr error
 
 	go func() {
-		defer writer.Close()
-		if tarErr = writeFilesToTar(files, writer); tarErr != nil {
+		defer func() {
+			if closeErr := writer.Close(); closeErr != nil {
+				m.logger.Error("关闭上传管道失败", zap.Error(closeErr))
+			}
+		}()
+		if tarErr = writeFilesToTar(files, writer, m.logger); tarErr != nil {
 			m.logger.Error("打包文件成 tar 失败", zap.Error(tarErr))
-			_ = writer.CloseWithError(tarErr)
+			if closeErr := writer.CloseWithError(tarErr); closeErr != nil {
+				m.logger.Error("关闭上传管道失败", zap.Error(closeErr))
+			}
 		}
 	}()
 
@@ -394,7 +405,7 @@ func (m *podManager) UploadFileToPod(ctx *gin.Context, clusterID int, namespace,
 	}
 
 	var stdout, stderr strings.Builder
-	err = exec.StreamWithContext(ctx.Request.Context(), remotecommand.StreamOptions{
+	err = exec.StreamWithContext(ctx, remotecommand.StreamOptions{
 		Stdin:  nil,
 		Stdout: &stdout,
 		Stderr: &stderr,
@@ -427,7 +438,7 @@ func (m *podManager) UploadFileToPod(ctx *gin.Context, clusterID int, namespace,
 	}
 
 	var uploadStderr strings.Builder
-	err = exec.StreamWithContext(ctx.Request.Context(), remotecommand.StreamOptions{
+	err = exec.StreamWithContext(ctx, remotecommand.StreamOptions{
 		Stdin:             reader,
 		Stdout:            nil,
 		Stderr:            &uploadStderr,
@@ -706,46 +717,55 @@ type fileWithHeader struct {
 	header *multipart.FileHeader
 }
 
-func parseMultipartFiles(ctx *gin.Context) ([]fileWithHeader, error) {
-	if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil { // 32MB max
-		return nil, fmt.Errorf("解析多部分表单失败: %w", err)
-	}
-
-	if ctx.Request.MultipartForm == nil || len(ctx.Request.MultipartForm.File) == 0 {
+func parseMultipartFiles(form *multipart.Form) ([]fileWithHeader, error) {
+	if form == nil || len(form.File) == 0 {
 		return nil, fmt.Errorf("没有找到上传的文件")
 	}
 
 	files := make([]fileWithHeader, 0)
-	for name := range ctx.Request.MultipartForm.File {
-		file, header, err := ctx.Request.FormFile(name)
-		if err != nil {
-			return nil, fmt.Errorf("解析文件 %s 失败: %w", name, err)
-		}
+	for name, headers := range form.File {
+		for _, header := range headers {
+			if header == nil {
+				continue
+			}
 
-		if header.Size > 100<<20 { // 100MB per file limit
-			file.Close()
-			return nil, fmt.Errorf("文件 %s 太大，最大允许100MB", header.Filename)
-		}
+			file, err := header.Open()
+			if err != nil {
+				return nil, fmt.Errorf("解析文件 %s 失败: %w", name, err)
+			}
 
-		if header.Filename == "" {
-			file.Close()
-			return nil, fmt.Errorf("文件名不能为空")
-		}
+			if header.Size > 100<<20 { // 100MB per file limit
+				if closeErr := file.Close(); closeErr != nil {
+					return nil, fmt.Errorf("关闭文件失败: %w", closeErr)
+				}
+				return nil, fmt.Errorf("文件 %s 太大，最大允许100MB", header.Filename)
+			}
 
-		files = append(files, fileWithHeader{file: file, header: header})
+			if header.Filename == "" {
+				if closeErr := file.Close(); closeErr != nil {
+					return nil, fmt.Errorf("关闭文件失败: %w", closeErr)
+				}
+				return nil, fmt.Errorf("文件名不能为空")
+			}
+
+			files = append(files, fileWithHeader{file: file, header: header})
+		}
 	}
 	return files, nil
 }
 
-func writeFilesToTar(files []fileWithHeader, w io.Writer) error {
+func writeFilesToTar(files []fileWithHeader, w io.Writer, logger *zap.Logger) error {
 	if len(files) == 0 {
 		return fmt.Errorf("没有文件需要打包")
+	}
+	if logger == nil {
+		logger = zap.NewNop()
 	}
 
 	tarWriter := tar.NewWriter(w)
 	defer func() {
 		if err := tarWriter.Close(); err != nil {
-			// 日志记录tarWriter关闭错误，但不返回错误
+			logger.Error("关闭tar写入器失败", zap.Error(err))
 		}
 	}()
 
@@ -754,7 +774,7 @@ func writeFilesToTar(files []fileWithHeader, w io.Writer) error {
 		err := func(fileInfo fileWithHeader, index int) error {
 			defer func() {
 				if err := fileInfo.file.Close(); err != nil {
-					// 记录文件关闭错误，但继续处理
+					logger.Error("关闭上传文件失败", zap.Error(err))
 				}
 			}()
 

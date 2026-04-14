@@ -45,7 +45,6 @@ func (WorkorderCategory) TableName() string {
 	return "cl_workorder_category"
 }
 
-// CreateWorkorderCategoryReq 创建工单分类请求
 type CreateWorkorderCategoryReq struct {
 	Name         string `json:"name" binding:"required,min=1,max=100"`
 	Status       int8   `json:"status" binding:"required,oneof=1 2"`
@@ -54,7 +53,6 @@ type CreateWorkorderCategoryReq struct {
 	OperatorName string `json:"operator_name" binding:"required,min=1,max=100"`
 }
 
-// UpdateWorkorderCategoryReq 更新工单分类请求
 type UpdateWorkorderCategoryReq struct {
 	ID          int    `json:"id" binding:"required,min=1"`
 	Name        string `json:"name" binding:"required,min=1,max=100"`
@@ -62,17 +60,14 @@ type UpdateWorkorderCategoryReq struct {
 	Status      int8   `json:"status" binding:"required,oneof=1 2"`
 }
 
-// DeleteWorkorderCategoryReq 删除工单分类请求
 type DeleteWorkorderCategoryReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// DetailWorkorderCategoryReq 获取工单分类详情请求
 type DetailWorkorderCategoryReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// ListWorkorderCategoryReq 工单分类列表请求
 type ListWorkorderCategoryReq struct {
 	ListReq
 	Status *int8 `json:"status" form:"status" binding:"omitempty,oneof=1 2"`

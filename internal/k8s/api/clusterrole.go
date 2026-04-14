@@ -68,7 +68,7 @@ func (h *K8sClusterRoleHandler) GetClusterRoleList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.clusterRoleService.GetClusterRoleList(ctx, &req)
+		return h.clusterRoleService.GetClusterRoleList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -91,7 +91,7 @@ func (h *K8sClusterRoleHandler) GetClusterRoleDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.clusterRoleService.GetClusterRoleDetails(ctx, &req)
+		return h.clusterRoleService.GetClusterRoleDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -114,7 +114,7 @@ func (h *K8sClusterRoleHandler) GetClusterRoleYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.clusterRoleService.GetClusterRoleYaml(ctx, &req)
+		return h.clusterRoleService.GetClusterRoleYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -130,7 +130,7 @@ func (h *K8sClusterRoleHandler) CreateClusterRole(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleService.CreateClusterRole(ctx, &req)
+		return nil, h.clusterRoleService.CreateClusterRole(ctx.Request.Context(), &req)
 	})
 }
 
@@ -146,7 +146,7 @@ func (h *K8sClusterRoleHandler) CreateClusterRoleByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleService.CreateClusterRoleByYaml(ctx, &req)
+		return nil, h.clusterRoleService.CreateClusterRoleByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -169,7 +169,7 @@ func (h *K8sClusterRoleHandler) UpdateClusterRole(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleService.UpdateClusterRole(ctx, &req)
+		return nil, h.clusterRoleService.UpdateClusterRole(ctx.Request.Context(), &req)
 	})
 }
 
@@ -192,7 +192,7 @@ func (h *K8sClusterRoleHandler) UpdateClusterRoleByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleService.UpdateClusterRoleYaml(ctx, &req)
+		return nil, h.clusterRoleService.UpdateClusterRoleYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -215,6 +215,6 @@ func (h *K8sClusterRoleHandler) DeleteClusterRole(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleService.DeleteClusterRole(ctx, &req)
+		return nil, h.clusterRoleService.DeleteClusterRole(ctx.Request.Context(), &req)
 	})
 }

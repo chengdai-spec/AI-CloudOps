@@ -47,25 +47,21 @@ import (
 )
 
 const (
-	// WebSocket 超时配置
 	writeWait         = 10 * time.Second    // WebSocket写入超时
 	endOfTransmission = "\u0004"            // 传输结束标志
 	pongWait          = 30 * time.Second    // Pong消息等待时间
 	pingPeriod        = (pongWait * 9) / 10 // Ping发送间隔（必须小于pongWait）
 
-	// 终端配置
 	defaultTerminalRows = 25 // 默认终端行数
 	defaultTerminalCols = 80 // 默认终端列数
 	maxShellLength      = 50 // Shell名称最大长度
 )
 
-// TerminalHandler 定义终端处理接口
 type TerminalHandler interface {
 	// HandleSession 处理WebSocket终端会话
 	HandleSession(ctx context.Context, shell, namespace, podName, containerName string, conn *websocket.Conn)
 }
 
-// TerminalSessionHandler 终端会话处理器接口
 // 组合了io.Reader、io.Writer和终端大小队列接口
 type TerminalSessionHandler interface {
 	io.Reader
@@ -100,7 +96,6 @@ type Message struct {
 	ColSize uint16 `json:"col_size"` // 终端列数（resize操作使用）
 }
 
-// ContainerInfo 容器信息结构体
 // 包含容器类型、操作系统等信息，用于优化shell选择
 type ContainerInfo struct {
 	OS             string   // 操作系统类型: alpine, ubuntu, centos, debian等
@@ -114,12 +109,10 @@ type ContainerInfo struct {
 
 // Write 实现io.Writer接口，向WebSocket客户端发送数据
 func (t *Session) Write(p []byte) (int, error) {
-	// 检查连接是否已关闭
 	if atomic.LoadInt32(&t.closed) == 1 {
 		return 0, fmt.Errorf("连接已关闭")
 	}
 
-	// 空数据直接返回
 	if len(p) == 0 {
 		return 0, nil
 	}
@@ -138,12 +131,10 @@ func (t *Session) Write(p []byte) (int, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
-	// 再次检查连接状态
 	if atomic.LoadInt32(&t.closed) == 1 {
 		return 0, fmt.Errorf("连接已关闭")
 	}
 
-	// 设置写入超时
 	if err := t.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 		t.logger.Error("设置WebSocket写入超时失败", zap.Error(err))
 		return 0, fmt.Errorf("设置写入超时失败: %w", err)
@@ -158,7 +149,6 @@ func (t *Session) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// Close 关闭会话，清理资源
 func (t *Session) Close() error {
 	// 使用原子操作标记连接已关闭，避免重复关闭
 	if !atomic.CompareAndSwapInt32(&t.closed, 0, 1) {
@@ -207,7 +197,6 @@ func (t *Session) Close() error {
 
 // Read 实现io.Reader接口，从WebSocket客户端读取数据
 func (t *Session) Read(p []byte) (int, error) {
-	// 检查连接是否已关闭
 	if atomic.LoadInt32(&t.closed) == 1 {
 		return copy(p, endOfTransmission), io.EOF
 	}
@@ -216,7 +205,6 @@ func (t *Session) Read(p []byte) (int, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
-	// 再次检查连接状态
 	if atomic.LoadInt32(&t.closed) == 1 {
 		return copy(p, endOfTransmission), io.EOF
 	}
@@ -224,7 +212,6 @@ func (t *Session) Read(p []byte) (int, error) {
 	// 尝试读取原始消息
 	_, rawMessage, err := t.conn.ReadMessage()
 	if err != nil {
-		// 检查是否是正常的关闭错误
 		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
 			t.logger.Debug("WebSocket连接正常关闭", zap.Error(err))
 			return copy(p, endOfTransmission), io.EOF
@@ -233,7 +220,6 @@ func (t *Session) Read(p []byte) (int, error) {
 		return copy(p, endOfTransmission), fmt.Errorf("读取WebSocket消息失败: %w", err)
 	}
 
-	// 空消息处理
 	if len(rawMessage) == 0 {
 		t.logger.Debug("接收到空消息，忽略")
 		return 0, nil
@@ -249,16 +235,13 @@ func (t *Session) Read(p []byte) (int, error) {
 		return n, nil
 	}
 
-	// 根据消息类型处理
 	switch msg.Op {
 	case "stdin":
-		// 处理标准输入数据
 		n := copy(p, msg.Data)
 		t.logger.Debug("接收到标准输入数据", zap.Int("长度", n))
 		return n, nil
 
 	case "resize":
-		// 处理终端大小调整
 		size := remotecommand.TerminalSize{Width: msg.ColSize, Height: msg.RowSize}
 		t.logger.Debug("接收到终端大小调整",
 			zap.Uint16("宽度", msg.ColSize),
@@ -288,7 +271,6 @@ func (t *Session) Read(p []byte) (int, error) {
 // Next 实现remotecommand.TerminalSizeQueue接口
 // 返回下一个终端大小变化，如果通道关闭则返回nil
 func (t *Session) Next() *remotecommand.TerminalSize {
-	// 检查连接是否已关闭
 	if atomic.LoadInt32(&t.closed) == 1 {
 		t.logger.Debug("连接已关闭，返回nil终端大小")
 		return nil
@@ -302,13 +284,11 @@ func (t *Session) Next() *remotecommand.TerminalSize {
 			return nil
 		}
 
-		// 验证大小的有效性
 		if size.Height == 0 && size.Width == 0 {
 			t.logger.Debug("接收到无效的终端大小（0x0）")
 			return nil
 		}
 
-		// 设置合理的最小值
 		if size.Height < 1 {
 			size.Height = defaultTerminalRows
 		}
@@ -326,18 +306,15 @@ func (t *Session) Next() *remotecommand.TerminalSize {
 	}
 }
 
-// terminaler 终端处理器实现
 type terminaler struct {
 	client kubernetes.Interface // Kubernetes客户端
 	config *rest.Config         // Kubernetes配置
 	logger *zap.Logger          // 日志记录器
 }
 
-// NewTerminalHandler 创建新的终端处理器
-// 参数:
-//   - client: Kubernetes客户端接口
-//   - config: Kubernetes REST配置
-//   - logger: 日志记录器
+// - client: Kubernetes客户端接口
+// - config: Kubernetes REST配置
+// - logger: 日志记录器
 func NewTerminalHandler(client kubernetes.Interface, config *rest.Config, logger *zap.Logger) TerminalHandler {
 	if logger == nil {
 		// 如果没有提供日志记录器，使用默认的nop logger
@@ -354,11 +331,9 @@ func NewTerminalHandler(client kubernetes.Interface, config *rest.Config, logger
 // HandleSession 处理WebSocket终端会话
 // 负责建立和维护WebSocket连接，包括ping/pong心跳检测
 func (t *terminaler) HandleSession(ctx context.Context, shell, namespace, podName, containerName string, conn *websocket.Conn) {
-	// 创建可取消的上下文
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// 记录会话开始
 	t.logger.Info("开始处理终端会话",
 		zap.String("命名空间", namespace),
 		zap.String("Pod名称", podName),
@@ -379,14 +354,12 @@ func (t *terminaler) HandleSession(ctx context.Context, shell, namespace, podNam
 	// 设置Pong处理器
 	t.setupPongHandler(session)
 
-	// 处理终端会话
 	t.handleTerminalSession(ctx, shell, namespace, podName, containerName, session)
 }
 
 // startHeartbeat 启动WebSocket心跳机制
 func (t *terminaler) startHeartbeat(ctx context.Context, session *Session, cancel context.CancelFunc) {
 	wait.UntilWithContext(ctx, func(ctx context.Context) {
-		// 检查连接是否已关闭
 		if atomic.LoadInt32(&session.closed) == 1 {
 			t.logger.Debug("连接已关闭，停止心跳")
 			cancel() // 取消上下文
@@ -397,7 +370,6 @@ func (t *terminaler) startHeartbeat(ctx context.Context, session *Session, cance
 		session.mu.RLock()
 		defer session.mu.RUnlock()
 
-		// 再次检查连接状态
 		if atomic.LoadInt32(&session.closed) == 1 {
 			t.logger.Debug("连接已关闭，停止心跳")
 			cancel() // 取消上下文
@@ -406,7 +378,6 @@ func (t *terminaler) startHeartbeat(ctx context.Context, session *Session, cance
 
 		// 发送Ping消息
 		if err := session.conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(writeWait)); err != nil {
-			// 检查是否是预期的关闭错误
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
 				t.logger.Debug("连接已正常关闭，停止心跳", zap.Error(err))
 			} else {
@@ -421,12 +392,10 @@ func (t *terminaler) startHeartbeat(ctx context.Context, session *Session, cance
 
 // setupPongHandler 设置Pong消息处理器
 func (t *terminaler) setupPongHandler(session *Session) {
-	// 设置初始读取超时
 	session.conn.SetReadDeadline(time.Now().Add(pongWait)) // nolint
 
 	// 设置Pong消息处理器
 	session.conn.SetPongHandler(func(string) error {
-		// 检查连接是否已关闭
 		if atomic.LoadInt32(&session.closed) == 1 {
 			t.logger.Debug("连接已关闭，忽略Pong消息")
 			return nil
@@ -437,18 +406,15 @@ func (t *terminaler) setupPongHandler(session *Session) {
 		session.mu.RLock()
 		defer session.mu.RUnlock()
 
-		// 再次检查连接状态
 		if atomic.LoadInt32(&session.closed) == 1 {
 			return nil
 		}
 
-		// 更新读取超时
 		session.conn.SetReadDeadline(time.Now().Add(pongWait)) // nolint
 		return nil
 	})
 }
 
-// handleTerminalSession 处理终端会话的核心逻辑
 func (t *terminaler) handleTerminalSession(ctx context.Context, shell, namespace, podName, containerName string, session *Session) {
 	// 确保会话清理
 	defer func() {
@@ -575,7 +541,6 @@ func (t *terminaler) executeTerminalCommandWithFallback(ctx context.Context, nam
 			return nil
 		}
 
-		// 记录失败原因
 		lastErr = err
 		t.logger.Warn("Shell执行失败，尝试下一个",
 			zap.String("shell", shell),
@@ -605,12 +570,10 @@ func (t *terminaler) formatUserFriendlyError(err error, triedShells []string) st
 		return t.formatShellNotFoundError(triedShells)
 	}
 
-	// 检查权限错误
 	if strings.Contains(errorStr, "permission denied") || strings.Contains(errorStr, "exit code 126") {
 		return t.formatPermissionError(triedShells)
 	}
 
-	// 检查连接错误
 	if strings.Contains(errorStr, "connection refused") || strings.Contains(errorStr, "dial tcp") {
 		return t.formatConnectionError()
 	}
@@ -620,17 +583,14 @@ func (t *terminaler) formatUserFriendlyError(err error, triedShells []string) st
 		return t.formatPodNotFoundError()
 	}
 
-	// 检查上下文超时
 	if strings.Contains(errorStr, "context deadline exceeded") || strings.Contains(errorStr, "timeout") {
 		return t.formatTimeoutError()
 	}
 
-	// 检查资源不足
 	if strings.Contains(errorStr, "out of memory") || strings.Contains(errorStr, "resource") {
 		return t.formatResourceError()
 	}
 
-	// 检查容器状态错误
 	if strings.Contains(errorStr, "container not running") || strings.Contains(errorStr, "ContainerNotRunning") {
 		return t.formatContainerStateError()
 	}
@@ -820,7 +780,6 @@ func (t *terminaler) formatTimeoutError() string {
 如果问题持续存在，可能需要调整网络超时设置。`
 }
 
-// formatResourceError 格式化资源错误
 func (t *terminaler) formatResourceError() string {
 	return `容器资源不足。
 
@@ -851,7 +810,6 @@ func (t *terminaler) formatResourceError() string {
 请联系管理员调整资源配置或扩容集群。`
 }
 
-// formatContainerStateError 格式化容器状态错误
 func (t *terminaler) formatContainerStateError() string {
 	return `容器未运行或状态异常。
 
@@ -927,7 +885,6 @@ func (t *terminaler) formatGenericError(errorStr string, triedShells []string) s
 
 // executeTerminalCommand 执行终端命令，建立与Pod容器的连接
 func (t *terminaler) executeTerminalCommand(ctx context.Context, namespace, podName, containerName string, cmd []string, handler TerminalSessionHandler) error {
-	// 验证参数
 	if namespace == "" {
 		return fmt.Errorf("命名空间不能为空")
 	}
@@ -1073,7 +1030,6 @@ func (t *terminaler) writeErrorMessage(session *Session, message string) error {
 		return fmt.Errorf("会话为空")
 	}
 
-	// 检查连接是否已关闭
 	if atomic.LoadInt32(&session.closed) == 1 {
 		t.logger.Debug("连接已关闭，跳过错误消息发送")
 		return fmt.Errorf("连接已关闭")
@@ -1096,7 +1052,6 @@ func (t *terminaler) writeErrorMessage(session *Session, message string) error {
 	session.mu.RLock()
 	defer session.mu.RUnlock()
 
-	// 再次检查连接状态
 	if atomic.LoadInt32(&session.closed) == 1 {
 		t.logger.Debug("连接已关闭，跳过错误消息发送")
 		return fmt.Errorf("连接已关闭")
@@ -1111,7 +1066,6 @@ func (t *terminaler) writeErrorMessage(session *Session, message string) error {
 
 	// 发送错误消息到WebSocket（可能失败，但不应该阻塞整个流程）
 	if err := session.conn.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
-		// 检查是否是预期的关闭错误
 		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
 			t.logger.Debug("连接已正常关闭，无法发送错误消息", zap.Error(err))
 		} else {
@@ -1219,7 +1173,6 @@ func (t *terminaler) testCommandExists(ctx context.Context, namespace, podName, 
 
 // executeQuickTest 执行快速测试命令
 func (t *terminaler) executeQuickTest(ctx context.Context, namespace, podName, containerName string, cmd []string) bool {
-	// 创建更短的超时上下文
 	testCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
@@ -1277,9 +1230,7 @@ func (t *terminaler) executeQuickTest(ctx context.Context, namespace, podName, c
 	return false
 }
 
-// executeQuickTestWithoutArgs 执行不带参数的快速测试
 func (t *terminaler) executeQuickTestWithoutArgs(ctx context.Context, namespace, podName, containerName, cmd string) bool {
-	// 创建更短的超时上下文
 	testCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
@@ -1334,7 +1285,6 @@ func (t *terminaler) executeQuickTestWithoutArgs(ctx context.Context, namespace,
 
 // executeQuickTestExpectingError 执行期望有错误的快速测试
 func (t *terminaler) executeQuickTestExpectingError(ctx context.Context, namespace, podName, containerName string, cmd []string) bool {
-	// 创建更短的超时上下文
 	testCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
@@ -1462,7 +1412,6 @@ func (t *terminaler) buildMinimalContainerFallbackList(ctx context.Context, name
 
 // testMinimalCommand 测试极简容器中的命令（不依赖其他命令）
 func (t *terminaler) testMinimalCommand(ctx context.Context, namespace, podName, containerName, cmd string) bool {
-	// 创建很短的超时
 	testCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
@@ -1505,17 +1454,14 @@ func (t *terminaler) testMinimalCommand(ctx context.Context, namespace, podName,
 	return true
 }
 
-// getContainerEntrypoint 尝试获取容器的入口点信息
 func (t *terminaler) getContainerEntrypoint(ctx context.Context, namespace, podName, containerName string) string {
 	// 这里可以通过Kubernetes API获取Pod的容器信息
-	// 简化实现，返回空字符串
 	return ""
 }
 
 // findExecutablesInPath 在指定路径查找可执行文件
 func (t *terminaler) findExecutablesInPath(ctx context.Context, namespace, podName, containerName, path string) []string {
 	// 由于不能依赖ls等命令，这个功能在极简容器中难以实现
-	// 返回空列表
 	return []string{}
 }
 
@@ -1573,7 +1519,6 @@ func (t *terminaler) buildOptimizedShellList(preferredShell string, availableCom
 	return optimizedList
 }
 
-// formatNoCommandsAvailableError 格式化无可用命令错误信息
 func (t *terminaler) formatNoCommandsAvailableError() string {
 	return `容器中没有检测到任何可用的基本命令。
 
@@ -1602,7 +1547,6 @@ func contains(slice []string, item string) bool {
 	return false
 }
 
-// detectContainerInfo 检测容器信息和特征
 // 通过执行基本的系统检测命令来识别容器类型
 func (t *terminaler) detectContainerInfo(ctx context.Context, namespace, podName, containerName string) ContainerInfo {
 	info := ContainerInfo{
@@ -1615,7 +1559,6 @@ func (t *terminaler) detectContainerInfo(ctx context.Context, namespace, podName
 		ShellFeatures:  []string{},
 	}
 
-	// 创建短超时上下文用于检测
 	detectCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
@@ -1758,7 +1701,6 @@ func (t *terminaler) detectSpecialFeatures(ctx context.Context, namespace, podNa
 
 // executeSimpleTest 执行简单的测试命令
 func (t *terminaler) executeSimpleTest(ctx context.Context, namespace, podName, containerName string, cmd []string) bool {
-	// 创建更短的超时
 	testCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 

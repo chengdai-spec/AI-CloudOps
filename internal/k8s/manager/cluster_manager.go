@@ -76,7 +76,6 @@ func (cm *clusterManager) CreateCluster(ctx context.Context, cluster *model.K8sC
 		return fmt.Errorf("初始化客户端失败: %w", err)
 	}
 
-	// 添加集群资源限制
 	if err := utils.AddClusterResourceLimit(ctx, client, cluster); err != nil {
 		cm.logger.Warn("添加集群资源限制失败", zap.Int("clusterID", cluster.ID), zap.Error(err))
 	}
@@ -109,7 +108,6 @@ func (cm *clusterManager) UpdateCluster(ctx context.Context, cluster *model.K8sC
 		return fmt.Errorf("初始化客户端失败: %w", err)
 	}
 
-	// 添加集群资源限制
 	if err := utils.AddClusterResourceLimit(ctx, client, cluster); err != nil {
 		cm.logger.Warn("添加集群资源限制失败", zap.Int("clusterID", cluster.ID), zap.Error(err))
 	}
@@ -179,7 +177,6 @@ func (cm *clusterManager) InitializeAllClusters(ctx context.Context) error {
 			zap.Int("count", len(clusters)),
 			zap.Int64("total", total))
 
-		// 初始化当前批次的集群
 		successCount := 0
 		for _, cluster := range clusters {
 			if cluster.KubeConfigContent == "" {

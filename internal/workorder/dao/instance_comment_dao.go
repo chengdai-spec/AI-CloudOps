@@ -62,7 +62,6 @@ func NewWorkorderInstanceCommentDAO(db *gorm.DB, logger *zap.Logger) WorkorderIn
 	}
 }
 
-// CreateInstanceComment 创建工单评论
 func (d *workorderInstanceCommentDAO) CreateInstanceComment(ctx context.Context, comment *model.WorkorderInstanceComment) error {
 	if comment == nil {
 		return ErrCommentNilPointer
@@ -81,7 +80,6 @@ func (d *workorderInstanceCommentDAO) CreateInstanceComment(ctx context.Context,
 	return nil
 }
 
-// GetInstanceComments 获取工单评论
 func (d *workorderInstanceCommentDAO) GetInstanceComments(ctx context.Context, instanceID int) ([]*model.WorkorderInstanceComment, error) {
 	if instanceID <= 0 {
 		return nil, ErrInstanceInvalidID
@@ -101,7 +99,6 @@ func (d *workorderInstanceCommentDAO) GetInstanceComments(ctx context.Context, i
 	return comments, nil
 }
 
-// UpdateInstanceComment 更新工单评论
 func (d *workorderInstanceCommentDAO) UpdateInstanceComment(ctx context.Context, comment *model.WorkorderInstanceComment) error {
 	if comment == nil || comment.ID <= 0 {
 		return fmt.Errorf("评论ID无效")
@@ -128,7 +125,6 @@ func (d *workorderInstanceCommentDAO) UpdateInstanceComment(ctx context.Context,
 	return nil
 }
 
-// DeleteInstanceComment 删除工单评论
 func (d *workorderInstanceCommentDAO) DeleteInstanceComment(ctx context.Context, id int) error {
 	if id <= 0 {
 		return fmt.Errorf("评论ID无效")
@@ -169,7 +165,6 @@ func (d *workorderInstanceCommentDAO) GetInstanceCommentByID(ctx context.Context
 	return &comment, nil
 }
 
-// ListInstanceComments 分页获取工单评论列表
 func (d *workorderInstanceCommentDAO) ListInstanceComments(ctx context.Context, req *model.ListWorkorderInstanceCommentReq) ([]*model.WorkorderInstanceComment, int64, error) {
 	var comments []*model.WorkorderInstanceComment
 	var total int64
@@ -178,7 +173,6 @@ func (d *workorderInstanceCommentDAO) ListInstanceComments(ctx context.Context, 
 
 	db := d.db.WithContext(ctx).Model(&model.WorkorderInstanceComment{})
 
-	// 构建查询条件
 	if req.InstanceID != nil {
 		db = db.Where("instance_id = ?", *req.InstanceID)
 	}
@@ -193,13 +187,11 @@ func (d *workorderInstanceCommentDAO) ListInstanceComments(ctx context.Context, 
 		db = db.Where("content LIKE ?", "%"+searchTerm+"%")
 	}
 
-	// 获取总数
 	if err := db.Count(&total).Error; err != nil {
 		d.logger.Error("获取评论总数失败", zap.Error(err))
 		return nil, 0, fmt.Errorf("获取评论总数失败: %w", err)
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	err := db.Order("created_at DESC").
 		Offset(offset).
@@ -214,18 +206,15 @@ func (d *workorderInstanceCommentDAO) ListInstanceComments(ctx context.Context, 
 	return comments, total, nil
 }
 
-// GetInstanceCommentsTree 获取工单评论树结构
 func (d *workorderInstanceCommentDAO) GetInstanceCommentsTree(ctx context.Context, instanceID int) ([]*model.WorkorderInstanceComment, error) {
 	comments, err := d.GetInstanceComments(ctx, instanceID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 构建评论树结构
 	return d.buildCommentTree(comments), nil
 }
 
-// validateComment 验证评论数据
 func (d *workorderInstanceCommentDAO) validateComment(comment *model.WorkorderInstanceComment) error {
 	if comment.InstanceID <= 0 {
 		return fmt.Errorf("工单ID无效")
@@ -239,7 +228,6 @@ func (d *workorderInstanceCommentDAO) validateComment(comment *model.WorkorderIn
 	return nil
 }
 
-// buildCommentTree 构建评论树结构
 func (d *workorderInstanceCommentDAO) buildCommentTree(comments []*model.WorkorderInstanceComment) []*model.WorkorderInstanceComment {
 	if len(comments) == 0 {
 		return comments
@@ -249,13 +237,11 @@ func (d *workorderInstanceCommentDAO) buildCommentTree(comments []*model.Workord
 	commentMap := make(map[int]*model.WorkorderInstanceComment)
 	var rootComments []*model.WorkorderInstanceComment
 
-	// 初始化映射表和根评论列表
 	for _, comment := range comments {
 		commentMap[comment.ID] = comment
 		comment.Children = make([]model.WorkorderInstanceComment, 0)
 	}
 
-	// 构建树形结构
 	for _, comment := range comments {
 		if comment.ParentID == nil || *comment.ParentID == 0 {
 			// 根评论

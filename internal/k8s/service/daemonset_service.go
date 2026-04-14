@@ -293,7 +293,6 @@ func (s *daemonSetService) GetDaemonSetList(ctx context.Context, req *model.GetD
 	// 应用过滤条件
 	var filteredDaemonSets []*model.K8sDaemonSet
 	for _, k8sDaemonSet := range k8sDaemonSets {
-		// 状态过滤
 		if req.Status != "" {
 			var statusStr string
 			switch k8sDaemonSet.Status {
@@ -322,7 +321,6 @@ func (s *daemonSetService) GetDaemonSetList(ctx context.Context, req *model.GetD
 		return ds.CreatedAt
 	})
 
-	// 分页处理
 	pagedItems, total := utils.Paginate(filteredDaemonSets, req.Page, req.Size)
 
 	return model.ListResp[*model.K8sDaemonSet]{
@@ -572,7 +570,6 @@ func (s *daemonSetService) UpdateDaemonSet(ctx context.Context, req *model.Updat
 		updatedDaemonSet.Labels = yamlDaemonSet.Labels
 		updatedDaemonSet.Annotations = yamlDaemonSet.Annotations
 	} else {
-		// 更新基本字段
 		if len(req.Images) > 0 {
 			for i, image := range req.Images {
 				if i < len(updatedDaemonSet.Spec.Template.Spec.Containers) {

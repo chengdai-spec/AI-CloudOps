@@ -28,6 +28,8 @@
 package di
 
 import (
+	"github.com/GoSimplicity/AI-CloudOps/internal/app"
+	"github.com/GoSimplicity/AI-CloudOps/internal/config"
 	cron "github.com/GoSimplicity/AI-CloudOps/internal/cron"
 	cronApi "github.com/GoSimplicity/AI-CloudOps/internal/cron/api"
 	cronDao "github.com/GoSimplicity/AI-CloudOps/internal/cron/dao"
@@ -63,21 +65,9 @@ import (
 	"github.com/GoSimplicity/AI-CloudOps/pkg/sse"
 	pkgSSH "github.com/GoSimplicity/AI-CloudOps/pkg/ssh"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/terminal"
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	_ "github.com/google/wire"
-	"github.com/hibiken/asynq"
 )
-
-type Cmd struct {
-	Server       *gin.Engine
-	Bootstrap    startup.ApplicationBootstrap
-	CronManager  cron.CronManager
-	AsynqServer  *asynq.Server
-	AsynqClient  *asynq.Client
-	Scheduler    *asynq.Scheduler
-	CronHandlers *cronHandler.CronHandlers
-}
 
 var HandlerSet = wire.NewSet(
 	authHandler.NewRoleHandler,
@@ -230,6 +220,8 @@ var SSHSet = wire.NewSet(
 )
 
 var UtilSet = wire.NewSet(
+	InitJWTConfig,
+	InitWebSocketUpgrader,
 	ijwt.NewJWTHandler,
 	sse.NewHandler,
 )
@@ -274,9 +266,9 @@ var Injector = wire.NewSet(
 	InitGinServer,
 	InitLogger,
 	InitRedis,
+	ProvideRedisCmdable,
 	InitDB,
 	CronSet,
-	wire.Struct(new(Cmd), "*"),
 )
 
 var CacheSet = wire.NewSet(
@@ -303,7 +295,7 @@ var NotificationSet = wire.NewSet(
 	InitNotificationManager,
 )
 
-func ProvideCmd() *Cmd {
+func ProvideApp(cfg *config.Config) (*app.App, error) {
 	wire.Build(
 		Injector,
 		HandlerSet,
@@ -317,6 +309,7 @@ func ProvideCmd() *Cmd {
 		ClientSet,
 		AsynqSet,
 		NotificationSet,
+		app.NewApp,
 	)
-	return &Cmd{}
+	return &app.App{}, nil
 }

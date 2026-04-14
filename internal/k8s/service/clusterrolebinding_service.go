@@ -97,7 +97,6 @@ func (s *clusterRoleBindingService) GetClusterRoleBindingList(ctx context.Contex
 		return t
 	})
 
-	// 分页处理
 	pagedItems, total := k8sutils.Paginate(filteredClusterRoleBindings, req.Page, req.Size)
 
 	s.logger.Debug("GetClusterRoleBindingList: 获取ClusterRoleBinding列表成功",

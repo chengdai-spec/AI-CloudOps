@@ -26,34 +26,50 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
+	"github.com/GoSimplicity/AI-CloudOps/internal/config"
 	"github.com/GoSimplicity/AI-CloudOps/internal/prometheus/webhook/di"
-	viperdi "github.com/GoSimplicity/AI-CloudOps/pkg/di"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 func main() {
-	Init()
-}
-
-func Init() {
-	// 初始化配置
-	viperdi.InitWebHookViper()
-	sp := viper.GetString("webhook.port")
-	cmd := di.InitWebServer()
-	cmd.Server.GET("/headers", printHeaders)
-
-	cmd.Start()
-	// 启动 Web 服务器
-	if err := cmd.Server.Run(":" + sp); err != nil {
-		zap.L().Fatal("Failed to start web server", zap.Error(err))
+	if err := run(); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "启动失败: %v\n", err)
+		os.Exit(1)
 	}
 }
 
-// printHeaders 打印请求头信息
+func run() error {
+	cfg, err := config.LoadWebhook()
+	if err != nil {
+		if config.IsNonFatal(err) {
+			_, _ = fmt.Fprintf(os.Stderr, "配置加载告警，将继续使用环境变量/默认值: %v\n", err)
+		} else {
+			return err
+		}
+	}
+
+	logger, err := zap.NewProduction()
+	if err != nil {
+		return fmt.Errorf("初始化日志失败: %w", err)
+	}
+	defer func() { _ = logger.Sync() }()
+
+	cmd := di.InitWebServer()
+	cmd.Server.GET("/headers", printHeaders)
+	cmd.Start()
+
+	logger.Info("Webhook服务开始监听", zap.String("port", cfg.Port))
+	if err := cmd.Server.Run(":" + cfg.Port); err != nil {
+		return fmt.Errorf("启动Webhook服务失败: %w", err)
+	}
+	return nil
+}
+
 func printHeaders(c *gin.Context) {
 	headers := c.Request.Header
 	for key, values := range headers {

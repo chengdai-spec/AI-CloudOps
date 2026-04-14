@@ -25,7 +25,6 @@
 
 package model
 
-// 流程状态常量
 const (
 	ProcessStatusDraft     int8 = 1 // 草稿
 	ProcessStatusPublished int8 = 2 // 已发布
@@ -100,7 +99,6 @@ type ProcessDefinition struct {
 	Connections []ProcessConnection `json:"connections" binding:"required"` // 连接列表
 }
 
-// CreateWorkorderProcessReq 创建工单流程请求
 type CreateWorkorderProcessReq struct {
 	Name         string            `json:"name" binding:"required,min=1,max=200"`
 	Description  string            `json:"description" binding:"omitempty,max=1000"`
@@ -114,7 +112,6 @@ type CreateWorkorderProcessReq struct {
 	IsDefault    int8              `json:"is_default" binding:"required,oneof=1 2"`
 }
 
-// UpdateWorkorderProcessReq 更新工单流程请求
 type UpdateWorkorderProcessReq struct {
 	ID           int               `json:"id" binding:"required,min=1"`
 	Name         string            `json:"name" binding:"omitempty,min=1,max=200"`
@@ -127,17 +124,14 @@ type UpdateWorkorderProcessReq struct {
 	IsDefault    int8              `json:"is_default" binding:"omitempty,oneof=1 2"`
 }
 
-// DeleteWorkorderProcessReq 删除工单流程请求
 type DeleteWorkorderProcessReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// DetailWorkorderProcessReq 获取工单流程详情请求
 type DetailWorkorderProcessReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// ListWorkorderProcessReq 工单流程列表请求
 type ListWorkorderProcessReq struct {
 	ListReq
 	CategoryID   *int  `json:"category_id" form:"category_id" binding:"omitempty,min=1"`

@@ -59,7 +59,7 @@ func (h *K8sClusterHandler) GetClusterList(ctx *gin.Context) {
 	var req model.ListClustersReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.clusterService.ListClusters(ctx, &req)
+		return h.clusterService.ListClusters(ctx.Request.Context(), &req)
 	})
 }
 
@@ -75,7 +75,7 @@ func (h *K8sClusterHandler) GetCluster(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.clusterService.GetClusterByID(ctx, &req)
+		return h.clusterService.GetClusterByID(ctx.Request.Context(), &req)
 	})
 }
 
@@ -88,7 +88,7 @@ func (h *K8sClusterHandler) CreateCluster(ctx *gin.Context) {
 	req.CreateUserName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterService.CreateCluster(ctx, &req)
+		return nil, h.clusterService.CreateCluster(ctx.Request.Context(), &req)
 	})
 }
 
@@ -104,7 +104,7 @@ func (h *K8sClusterHandler) UpdateCluster(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterService.UpdateCluster(ctx, &req)
+		return nil, h.clusterService.UpdateCluster(ctx.Request.Context(), &req)
 	})
 }
 
@@ -120,11 +120,10 @@ func (h *K8sClusterHandler) DeleteCluster(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterService.DeleteCluster(ctx, &req)
+		return nil, h.clusterService.DeleteCluster(ctx.Request.Context(), &req)
 	})
 }
 
-// RefreshCluster 刷新集群状态
 func (h *K8sClusterHandler) RefreshCluster(ctx *gin.Context) {
 	var req model.RefreshClusterReq
 
@@ -137,6 +136,6 @@ func (h *K8sClusterHandler) RefreshCluster(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterService.RefreshClusterStatus(ctx, &req)
+		return nil, h.clusterService.RefreshClusterStatus(ctx.Request.Context(), &req)
 	})
 }

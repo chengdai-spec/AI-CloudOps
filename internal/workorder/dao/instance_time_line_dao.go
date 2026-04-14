@@ -54,7 +54,6 @@ func NewInstanceTimeLineDAO(db *gorm.DB, logger *zap.Logger) WorkorderInstanceTi
 	}
 }
 
-// Create 创建时间线记录
 func (d *instanceTimeLineDAO) Create(ctx context.Context, timeline *model.WorkorderInstanceTimeline) error {
 	if timeline == nil {
 		return fmt.Errorf("时间线记录不能为空")
@@ -110,7 +109,6 @@ func (d *instanceTimeLineDAO) GetByInstanceID(ctx context.Context, instanceID in
 	return timelines, nil
 }
 
-// List 获取时间线记录列表
 func (d *instanceTimeLineDAO) List(ctx context.Context, req *model.ListWorkorderInstanceTimelineReq) ([]*model.WorkorderInstanceTimeline, int64, error) {
 	var timelines []*model.WorkorderInstanceTimeline
 	var total int64
@@ -119,7 +117,6 @@ func (d *instanceTimeLineDAO) List(ctx context.Context, req *model.ListWorkorder
 
 	db := d.db.WithContext(ctx).Model(&model.WorkorderInstanceTimeline{})
 
-	// 构建查询条件
 	if req.InstanceID != nil {
 		db = db.Where("instance_id = ?", *req.InstanceID)
 	}
@@ -137,13 +134,11 @@ func (d *instanceTimeLineDAO) List(ctx context.Context, req *model.ListWorkorder
 		db = db.Where("comment LIKE ? OR operator_name LIKE ?", "%"+searchTerm+"%", "%"+searchTerm+"%")
 	}
 
-	// 获取总数
 	if err := db.Count(&total).Error; err != nil {
 		d.logger.Error("获取时间线记录总数失败", zap.Error(err))
 		return nil, 0, fmt.Errorf("获取时间线记录总数失败: %w", err)
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	err := db.Order("created_at DESC").
 		Offset(offset).
@@ -158,7 +153,6 @@ func (d *instanceTimeLineDAO) List(ctx context.Context, req *model.ListWorkorder
 	return timelines, total, nil
 }
 
-// UpdateInstanceTimeLine 更新时间线记录
 func (d *instanceTimeLineDAO) UpdateInstanceTimeLine(ctx context.Context, timeline *model.WorkorderInstanceTimeline) error {
 	if timeline == nil || timeline.ID <= 0 {
 		return fmt.Errorf("时间线记录ID无效")
@@ -183,7 +177,6 @@ func (d *instanceTimeLineDAO) UpdateInstanceTimeLine(ctx context.Context, timeli
 	return nil
 }
 
-// DeleteInstanceTimeLine 删除时间线记录
 func (d *instanceTimeLineDAO) DeleteInstanceTimeLine(ctx context.Context, id int) error {
 	if id <= 0 {
 		return fmt.Errorf("时间线记录ID无效")
@@ -202,7 +195,6 @@ func (d *instanceTimeLineDAO) DeleteInstanceTimeLine(ctx context.Context, id int
 	return nil
 }
 
-// GetInstanceTimeLine 获取时间线记录详情
 func (d *instanceTimeLineDAO) GetInstanceTimeLine(ctx context.Context, id int) (*model.WorkorderInstanceTimeline, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("时间线记录ID无效")
@@ -224,7 +216,6 @@ func (d *instanceTimeLineDAO) GetInstanceTimeLine(ctx context.Context, id int) (
 	return &timeline, nil
 }
 
-// ListInstanceTimeLine 获取时间线记录列表
 func (d *instanceTimeLineDAO) ListInstanceTimeLine(ctx context.Context, req *model.ListWorkorderInstanceTimelineReq) ([]*model.WorkorderInstanceTimeline, int64, error) {
 	var timelines []*model.WorkorderInstanceTimeline
 	var total int64
@@ -233,7 +224,6 @@ func (d *instanceTimeLineDAO) ListInstanceTimeLine(ctx context.Context, req *mod
 
 	db := d.db.WithContext(ctx).Model(&model.WorkorderInstanceTimeline{})
 
-	// 构建查询条件
 	if req.InstanceID != nil {
 		db = db.Where("instance_id = ?", *req.InstanceID)
 	}
@@ -251,13 +241,11 @@ func (d *instanceTimeLineDAO) ListInstanceTimeLine(ctx context.Context, req *mod
 		db = db.Where("comment LIKE ? OR operator_name LIKE ?", "%"+searchTerm+"%", "%"+searchTerm+"%")
 	}
 
-	// 获取总数
 	if err := db.Count(&total).Error; err != nil {
 		d.logger.Error("获取时间线记录总数失败", zap.Error(err))
 		return nil, 0, fmt.Errorf("获取时间线记录总数失败: %w", err)
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	err := db.Order("created_at DESC").
 		Offset(offset).

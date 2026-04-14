@@ -106,7 +106,6 @@ func (m *namespaceManager) ListNamespaces(ctx context.Context, clusterID int, st
 	// 在 manager 层应用过滤条件
 	filteredNamespaces := namespaces.Items
 
-	// 根据状态过滤
 	if status != "" {
 		filteredNamespaces = utils.FilterNamespacesByStatus(filteredNamespaces, status)
 	}
@@ -116,14 +115,12 @@ func (m *namespaceManager) ListNamespaces(ctx context.Context, clusterID int, st
 		filteredNamespaces = utils.FilterNamespacesByLabels(filteredNamespaces, utils.ConvertKeyValueListToLabels(labels))
 	}
 
-	// 返回过滤后的结果
 	result := &corev1.NamespaceList{
 		TypeMeta: namespaces.TypeMeta,
 		ListMeta: namespaces.ListMeta,
 		Items:    filteredNamespaces,
 	}
 
-	// 返回过滤后的总数
 	total := int64(len(filteredNamespaces))
 
 	return result, total, nil

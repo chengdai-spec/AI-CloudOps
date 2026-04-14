@@ -25,7 +25,6 @@
 
 package model
 
-// MonitorAlertEventStatus 告警事件状态
 type MonitorAlertEventStatus int8
 
 const (
@@ -57,7 +56,6 @@ func (m *MonitorAlertEvent) TableName() string {
 	return "cl_monitor_alert_events"
 }
 
-// GetMonitorAlertEventListReq 获取告警事件列表请求
 type GetMonitorAlertEventListReq struct {
 	ListReq
 	Status    MonitorAlertEventStatus `json:"status" form:"status" binding:"omitempty,oneof=1 2 3 4"`
@@ -65,7 +63,6 @@ type GetMonitorAlertEventListReq struct {
 	EndTime   string                  `json:"end_time" form:"end_time" binding:"omitempty"`
 }
 
-// EventAlertSilenceReq 告警静默请求
 type EventAlertSilenceReq struct {
 	ID      int    `json:"id" binding:"required"`
 	UserID  int    `json:"user_id" binding:"required"`
@@ -73,13 +70,11 @@ type EventAlertSilenceReq struct {
 	Time    string `json:"time" binding:"required"`
 }
 
-// EventAlertClaimReq 告警认领请求
 type EventAlertClaimReq struct {
 	ID     int `json:"id" binding:"required"`
 	UserID int `json:"user_id" binding:"required"`
 }
 
-// EventAlertUnSilenceReq 告警取消静默请求
 type EventAlertUnSilenceReq struct {
 	ID     int `json:"id" binding:"required"`
 	UserID int `json:"user_id" binding:"required"`

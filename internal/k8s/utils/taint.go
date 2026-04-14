@@ -81,7 +81,6 @@ func RemoveTaintByKey(taints []corev1.Taint, key string) []corev1.Taint {
 	return result
 }
 
-// TaintExists 检查污点是否存在
 func TaintExists(taints []corev1.Taint, targetTaint corev1.Taint) bool {
 	for _, taint := range taints {
 		if taint.Key == targetTaint.Key &&

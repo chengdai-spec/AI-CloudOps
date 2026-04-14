@@ -68,7 +68,7 @@ func (h *K8sIngressHandler) GetIngressList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.ingressService.GetIngressList(ctx, &req)
+		return h.ingressService.GetIngressList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -98,7 +98,7 @@ func (h *K8sIngressHandler) GetIngressDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.ingressService.GetIngressDetails(ctx, &req)
+		return h.ingressService.GetIngressDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -128,7 +128,7 @@ func (h *K8sIngressHandler) GetIngressYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.ingressService.GetIngressYaml(ctx, &req)
+		return h.ingressService.GetIngressYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -144,7 +144,7 @@ func (h *K8sIngressHandler) CreateIngress(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.ingressService.CreateIngress(ctx, &req)
+		return nil, h.ingressService.CreateIngress(ctx.Request.Context(), &req)
 	})
 }
 
@@ -160,7 +160,7 @@ func (h *K8sIngressHandler) CreateIngressByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.ingressService.CreateIngressByYaml(ctx, &req)
+		return nil, h.ingressService.CreateIngressByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -190,7 +190,7 @@ func (h *K8sIngressHandler) UpdateIngress(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.ingressService.UpdateIngress(ctx, &req)
+		return nil, h.ingressService.UpdateIngress(ctx.Request.Context(), &req)
 	})
 }
 
@@ -220,7 +220,7 @@ func (h *K8sIngressHandler) UpdateIngressByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.ingressService.UpdateIngressByYaml(ctx, &req)
+		return nil, h.ingressService.UpdateIngressByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -250,6 +250,6 @@ func (h *K8sIngressHandler) DeleteIngress(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.ingressService.DeleteIngress(ctx, &req)
+		return nil, h.ingressService.DeleteIngress(ctx.Request.Context(), &req)
 	})
 }

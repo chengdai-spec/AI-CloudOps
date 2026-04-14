@@ -568,7 +568,6 @@ func (m *daemonSetManager) RollbackDaemonSet(ctx context.Context, clusterID int,
 	currentDaemonSet.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().Format(time.RFC3339)
 	currentDaemonSet.Annotations["rollback.daemonset.kubernetes.io/revision"] = fmt.Sprintf("%d", revision)
 
-	// 执行更新
 	_, err = kubeClient.AppsV1().DaemonSets(namespace).Update(ctx, currentDaemonSet, metav1.UpdateOptions{})
 	if err != nil {
 		m.logger.Error("回滚 DaemonSet 失败",

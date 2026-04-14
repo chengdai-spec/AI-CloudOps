@@ -38,7 +38,6 @@ import (
 )
 
 const (
-	// 默认配置常量
 	DefaultWriteWait       = 10 * time.Second
 	DefaultPongWait        = 60 * time.Second
 	DefaultPingPeriod      = (DefaultPongWait * 9) / 10
@@ -70,17 +69,12 @@ type Connection interface {
 	ReadJSON(v interface{}) error
 	// Close 关闭连接
 	Close() error
-	// SetWriteDeadline 设置写超时
 	SetWriteDeadline(t time.Time) error
-	// SetReadDeadline 设置读超时
 	SetReadDeadline(t time.Time) error
 	// SetPongHandler 设置Pong处理器
 	SetPongHandler(h func(appData string) error)
-	// SetCloseHandler 设置关闭处理器
 	SetCloseHandler(h func(code int, text string) error)
-	// LocalAddr 获取本地地址
 	LocalAddr() string
-	// RemoteAddr 获取远程地址
 	RemoteAddr() string
 }
 
@@ -127,7 +121,6 @@ func NewManager(config *Config, logger *zap.Logger) Manager {
 		logger = zap.NewNop()
 	}
 
-	// 应用默认配置
 	cfg := getDefaultConfig()
 	if config != nil {
 		if config.ReadBufferSize > 0 {
@@ -151,7 +144,6 @@ func NewManager(config *Config, logger *zap.Logger) Manager {
 		cfg.CheckOrigin = config.CheckOrigin
 	}
 
-	// 创建升级器
 	upgrader := &websocket.Upgrader{
 		ReadBufferSize:  cfg.ReadBufferSize,
 		WriteBufferSize: cfg.WriteBufferSize,
@@ -175,7 +167,6 @@ func (m *manager) Upgrade(ctx *gin.Context, responseHeader http.Header) (Connect
 		return nil, fmt.Errorf("WebSocket升级失败: %w", err)
 	}
 
-	// 配置连接参数
 	conn.SetReadLimit(m.config.MaxMessageSize)
 
 	wsConn := &connection{
@@ -198,7 +189,6 @@ func (m *manager) UpgradeHTTP(w http.ResponseWriter, r *http.Request, responseHe
 		return nil, fmt.Errorf("WebSocket升级失败: %w", err)
 	}
 
-	// 配置连接参数
 	conn.SetReadLimit(m.config.MaxMessageSize)
 
 	wsConn := &connection{
@@ -226,7 +216,6 @@ func (m *manager) StartHeartbeat(ctx context.Context, conn Connection) error {
 		return nil
 	})
 
-	// 设置初始读超时
 	conn.SetReadDeadline(time.Now().Add(m.config.PongWait))
 
 	// 启动Ping发送协程
@@ -265,13 +254,11 @@ func (m *manager) HandleConnection(ctx context.Context, conn Connection, handler
 		return fmt.Errorf("处理器不能为空")
 	}
 
-	// 创建可取消上下文
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	var wg sync.WaitGroup
 
-	// 配置关闭处理器
 	conn.SetCloseHandler(func(code int, text string) error {
 		m.logger.Info("WebSocket连接已关闭", zap.Int("代码", code), zap.String("原因", text))
 		handler.OnClose(conn, code, text)
@@ -279,7 +266,6 @@ func (m *manager) HandleConnection(ctx context.Context, conn Connection, handler
 		return nil
 	})
 
-	// 调用连接建立处理器
 	if err := handler.OnConnect(conn); err != nil {
 		m.logger.Error("连接建立处理失败", zap.Error(err))
 		return fmt.Errorf("连接建立处理失败: %w", err)
@@ -308,7 +294,6 @@ func (m *manager) HandleConnection(ctx context.Context, conn Connection, handler
 	return nil
 }
 
-// handleMessages 处理消息读取
 func (m *manager) handleMessages(ctx context.Context, conn Connection, handler ConnectionHandler, cancel context.CancelFunc) {
 	defer cancel()
 
@@ -329,7 +314,6 @@ func (m *manager) handleMessages(ctx context.Context, conn Connection, handler C
 				return
 			}
 
-			// 处理消息
 			if err := handler.OnMessage(conn, messageType, data); err != nil {
 				m.logger.Error("消息处理失败", zap.Error(err))
 				handler.OnError(conn, err)
@@ -339,17 +323,14 @@ func (m *manager) handleMessages(ctx context.Context, conn Connection, handler C
 	}
 }
 
-// LocalAddr 获取本地地址
 func (c *connection) LocalAddr() string {
 	return c.Conn.LocalAddr().String()
 }
 
-// RemoteAddr 获取远程地址
 func (c *connection) RemoteAddr() string {
 	return c.Conn.RemoteAddr().String()
 }
 
-// getDefaultConfig 获取默认配置
 func getDefaultConfig() *Config {
 	return &Config{
 		ReadBufferSize:  DefaultReadBufferSize,

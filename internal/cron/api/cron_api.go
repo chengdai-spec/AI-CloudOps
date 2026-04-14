@@ -62,7 +62,6 @@ func (api *CronJobHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateCronJob 创建任务
 func (api *CronJobHandler) CreateCronJob(ctx *gin.Context) {
 	var req model.CreateCronJobReq
 
@@ -72,11 +71,10 @@ func (api *CronJobHandler) CreateCronJob(ctx *gin.Context) {
 	req.CreatedByName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, api.cronService.CreateCronJob(ctx, &req)
+		return nil, api.cronService.CreateCronJob(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateCronJob 更新任务
 func (api *CronJobHandler) UpdateCronJob(ctx *gin.Context) {
 	var req model.UpdateCronJobReq
 
@@ -89,11 +87,10 @@ func (api *CronJobHandler) UpdateCronJob(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, api.cronService.UpdateCronJob(ctx, &req)
+		return nil, api.cronService.UpdateCronJob(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteCronJob 删除任务
 func (api *CronJobHandler) DeleteCronJob(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -102,11 +99,10 @@ func (api *CronJobHandler) DeleteCronJob(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return nil, api.cronService.DeleteCronJob(ctx, id)
+		return nil, api.cronService.DeleteCronJob(ctx.Request.Context(), id)
 	})
 }
 
-// GetCronJob 获取任务详情
 func (api *CronJobHandler) GetCronJob(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -115,20 +111,18 @@ func (api *CronJobHandler) GetCronJob(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return api.cronService.GetCronJob(ctx, id)
+		return api.cronService.GetCronJob(ctx.Request.Context(), id)
 	})
 }
 
-// GetCronJobList 获取任务列表
 func (api *CronJobHandler) GetCronJobList(ctx *gin.Context) {
 	var req model.GetCronJobListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return api.cronService.GetCronJobList(ctx, &req)
+		return api.cronService.GetCronJobList(ctx.Request.Context(), &req)
 	})
 }
 
-// EnableCronJob 启用任务
 func (api *CronJobHandler) EnableCronJob(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -137,11 +131,10 @@ func (api *CronJobHandler) EnableCronJob(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return nil, api.cronService.EnableCronJob(ctx, id)
+		return nil, api.cronService.EnableCronJob(ctx.Request.Context(), id)
 	})
 }
 
-// DisableCronJob 禁用任务
 func (api *CronJobHandler) DisableCronJob(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -150,11 +143,10 @@ func (api *CronJobHandler) DisableCronJob(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return nil, api.cronService.DisableCronJob(ctx, id)
+		return nil, api.cronService.DisableCronJob(ctx.Request.Context(), id)
 	})
 }
 
-// TriggerCronJob 手动触发任务
 func (api *CronJobHandler) TriggerCronJob(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -163,15 +155,14 @@ func (api *CronJobHandler) TriggerCronJob(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return nil, api.cronService.TriggerCronJob(ctx, id)
+		return nil, api.cronService.TriggerCronJob(ctx.Request.Context(), id)
 	})
 }
 
-// ValidateSchedule 验证调度表达式
 func (api *CronJobHandler) ValidateSchedule(ctx *gin.Context) {
 	var req model.ValidateScheduleReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return api.cronService.ValidateSchedule(ctx, &req)
+		return api.cronService.ValidateSchedule(ctx.Request.Context(), &req)
 	})
 }

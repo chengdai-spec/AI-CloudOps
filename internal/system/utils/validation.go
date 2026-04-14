@@ -30,7 +30,6 @@ import (
 	"strings"
 )
 
-// RequireNonEmpty 校验字符串是否为空
 func RequireNonEmpty(value, field string) error {
 	if strings.TrimSpace(value) == "" {
 		return fmt.Errorf("%s不能为空", field)

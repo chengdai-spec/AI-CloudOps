@@ -23,9 +23,10 @@
  *
  */
 
-package di
+package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -35,13 +36,29 @@ import (
 	"github.com/spf13/viper"
 )
 
-// InitViper 初始化viper配置，支持环境变量优先级：环境变量 > 配置文件 > 默认值
-func InitViper() error {
-	// 支持通过命令行参数 --config 指定任意配置文件
+// NonFatalError 用于标记“可继续运行”的告警类错误（例如配置文件不存在）。
+type NonFatalError struct {
+	err error
+}
+
+func (e NonFatalError) Error() string {
+	return e.err.Error()
+}
+
+func (e NonFatalError) Unwrap() error {
+	return e.err
+}
+
+func IsNonFatal(err error) bool {
+	var nf NonFatalError
+	return errors.As(err, &nf)
+}
+
+// Load 加载主程序配置，支持优先级：环境变量 > 配置文件 > 默认值。
+func Load() (*Config, *ExternalConfig, error) {
 	configFile := pflag.String("config", "", "配置文件路径")
 	pflag.Parse()
 
-	// 如果未通过命令行指定，则根据环境变量ENV选择默认配置文件
 	if *configFile == "" {
 		env := os.Getenv("ENV")
 		if env == "" {
@@ -55,92 +72,83 @@ func InitViper() error {
 		}
 	}
 
-	// 设置配置文件类型和路径
 	viper.SetConfigFile(*configFile)
-
-	// 设置默认值（最低优先级）
 	setDefaults()
-
-	// 启用环境变量支持
 	viper.AutomaticEnv()
-
-	// 将点号替换为下划线以支持嵌套配置的环境变量
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// 读取配置文件（中等优先级）
-	if err := viper.ReadInConfig(); err != nil {
-		// 如果配置文件不存在，只是打印警告，继续使用环境变量和默认值
-		fmt.Printf("Warning: Failed to read config file %s: %v\n", *configFile, err)
-		fmt.Println("Using environment variables and default values only.")
-	}
+	readErr := viper.ReadInConfig()
 
-	// 绑定环境变量（最高优先级）- 必须在读取配置文件之后
 	bindEnvVars()
 
-	// 加载配置到全局变量
-	if err := viper.Unmarshal(GlobalConfig); err != nil {
-		return fmt.Errorf("failed to unmarshal config: %v", err)
+	cfg := &Config{}
+	if err := viper.Unmarshal(cfg); err != nil {
+		return nil, nil, fmt.Errorf("解析配置失败: %w", err)
 	}
 
-	// 加载外部配置（仅环境变量）
-	loadExternalConfig()
+	ext := &ExternalConfig{}
+	loadExternalConfig(ext)
 
-	return nil
+	if err := cfg.Validate(); err != nil {
+		return cfg, ext, fmt.Errorf("配置校验失败: %w", err)
+	}
+
+	if readErr != nil {
+		return cfg, ext, NonFatalError{err: fmt.Errorf("读取配置文件失败: %w", readErr)}
+	}
+
+	return cfg, ext, nil
 }
 
-func InitWebHookViper() {
+// LoadWebhook 加载 Webhook 子系统配置，支持优先级：环境变量 > 配置文件 > 默认值。
+func LoadWebhook() (*WebhookConfig, error) {
 	configFile := pflag.String("config", "config/webhook.yaml", "配置文件路径")
 	pflag.Parse()
+
 	viper.SetConfigFile(*configFile)
-
-	// 设置webhook默认值（最低优先级）
 	setWebhookDefaults()
-
-	// 启用环境变量支持
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// 读取配置文件（中等优先级）
-	err := viper.ReadInConfig()
-	if err != nil {
-		fmt.Printf("Warning: Failed to read webhook config file: %v\n", err)
-		fmt.Println("Using environment variables and default values only.")
+	readErr := viper.ReadInConfig()
+
+	bindWebhookEnvVars()
+
+	cfg := &WebhookConfig{}
+	if err := viper.UnmarshalKey("webhook", cfg); err != nil {
+		// 兼容旧配置：如果没有 webhook 根节点，则尝试直接 unmarshal
+		if err2 := viper.Unmarshal(cfg); err2 != nil {
+			return nil, fmt.Errorf("解析Webhook配置失败: %w", err)
+		}
 	}
 
-	// 绑定webhook环境变量（最高优先级）
-	bindWebhookEnvVars()
+	if readErr != nil {
+		return cfg, NonFatalError{err: fmt.Errorf("读取Webhook配置文件失败: %w", readErr)}
+	}
+	return cfg, nil
 }
 
-// setDefaults 设置所有配置的默认值
 func setDefaults() {
-	// Server defaults
 	viper.SetDefault("server.port", "8889")
 
-	// Log defaults
 	viper.SetDefault("log.dir", "./logs")
 	viper.SetDefault("log.level", "debug")
 
-	// JWT defaults
 	viper.SetDefault("jwt.key1", "ebe3vxIP7sblVvUHXb7ZaiMPuz4oXo0l")
 	viper.SetDefault("jwt.key2", "ebe3vxIP7sblVvUHXb7ZaiMPuz4oXo0z")
 	viper.SetDefault("jwt.issuer", "K5mBPBYNQeNWEBvCTE5msog3KSGTdhmx")
 	viper.SetDefault("jwt.expiration", 3600)
 
-	// Redis defaults
 	viper.SetDefault("redis.addr", "localhost:6379")
 	viper.SetDefault("redis.password", "")
 
-	// MySQL defaults
 	viper.SetDefault("mysql.addr", "root:root@tcp(localhost:3306)/cloudops?charset=utf8mb4&parseTime=True&loc=Local")
 
-	// Tree defaults
 	viper.SetDefault("tree.check_status_cron", "@every 300s")
 	viper.SetDefault("tree.password_encryption_key", "ebe3vxIP7sblVvUHXb7ZaiMPuz4oXo0l")
 
-	// K8s defaults
 	viper.SetDefault("k8s.refresh_cron", "@every 300s")
 
-	// Prometheus defaults
 	viper.SetDefault("prometheus.refresh_cron", "@every 15s")
 	viper.SetDefault("prometheus.enable_alert", 0)
 	viper.SetDefault("prometheus.enable_record", 0)
@@ -148,10 +156,8 @@ func setDefaults() {
 	viper.SetDefault("prometheus.alert_webhook_file_dir", "/tmp/webhook_files")
 	viper.SetDefault("prometheus.httpSdAPI", "http://localhost:8888/api/not_auth/getTreeNodeBindIps")
 
-	// Mock defaults
 	viper.SetDefault("mock.enabled", true)
 
-	// Notification Email defaults
 	viper.SetDefault("notification.email.enabled", false)
 	viper.SetDefault("notification.email.smtp_host", "smtp.gmail.com")
 	viper.SetDefault("notification.email.smtp_port", 587)
@@ -163,7 +169,6 @@ func setDefaults() {
 	viper.SetDefault("notification.email.timeout", "30s")
 	viper.SetDefault("notification.email.use_tls", true)
 
-	// Notification Feishu defaults
 	viper.SetDefault("notification.feishu.enabled", false)
 	viper.SetDefault("notification.feishu.app_id", "")
 	viper.SetDefault("notification.feishu.app_secret", "")
@@ -175,7 +180,6 @@ func setDefaults() {
 	viper.SetDefault("notification.feishu.timeout", "10s")
 }
 
-// setWebhookDefaults 设置Webhook默认值
 func setWebhookDefaults() {
 	viper.SetDefault("webhook.port", "8888")
 	viper.SetDefault("webhook.fixed_workers", 10)
@@ -191,30 +195,23 @@ func setWebhookDefaults() {
 	viper.SetDefault("webhook.im_feishu.tenant_access_token_api", "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal")
 }
 
-// bindEnvVars 绑定环境变量
 func bindEnvVars() {
-	// 使用反射自动绑定所有配置项到环境变量
 	bindStructEnvVars(reflect.TypeOf(Config{}), "")
 }
 
-// bindWebhookEnvVars 绑定Webhook环境变量
 func bindWebhookEnvVars() {
 	bindStructEnvVars(reflect.TypeOf(WebhookConfig{}), "webhook")
 }
 
-// bindStructEnvVars 递归绑定结构体中的环境变量
 func bindStructEnvVars(t reflect.Type, prefix string) {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 
-		// 获取mapstructure标签作为配置键
 		mapstructureTag := field.Tag.Get("mapstructure")
 		if mapstructureTag == "" {
-			// 如果没有 mapstructure 标签，跳过这个字段
 			continue
 		}
 
-		// 构建完整的配置键
 		var configKey string
 		if prefix == "" {
 			configKey = mapstructureTag
@@ -222,35 +219,34 @@ func bindStructEnvVars(t reflect.Type, prefix string) {
 			configKey = prefix + "." + mapstructureTag
 		}
 
-		// 获取实际类型（处理指针类型）
 		actualType := field.Type
 		if actualType.Kind() == reflect.Ptr {
 			actualType = actualType.Elem()
 		}
 
-		// 如果是嵌套结构体，递归处理
 		if actualType.Kind() == reflect.Struct {
 			bindStructEnvVars(actualType, configKey)
-		} else {
-			// 对于非结构体字段，绑定环境变量
-			// 获取env标签作为环境变量名
-			envTag := field.Tag.Get("env")
-			if envTag != "" {
-				viper.BindEnv(configKey, envTag)
-			} else {
-				// 如果没有env标签，使用配置键生成环境变量名
-				envName := strings.ToUpper(strings.ReplaceAll(configKey, ".", "_"))
-				viper.BindEnv(configKey, envName)
-			}
+			continue
 		}
+
+		envTag := field.Tag.Get("env")
+		if envTag != "" {
+			_ = viper.BindEnv(configKey, envTag)
+			continue
+		}
+
+		envName := strings.ToUpper(strings.ReplaceAll(configKey, ".", "_"))
+		_ = viper.BindEnv(configKey, envName)
 	}
 }
 
-// loadExternalConfig 加载外部配置（仅环境变量）
-func loadExternalConfig() {
-	GlobalExternalConfig.LLM.APIKey = os.Getenv("LLM_API_KEY")
-	GlobalExternalConfig.LLM.BaseURL = os.Getenv("LLM_BASE_URL")
-	GlobalExternalConfig.Aliyun.AccessKeyID = os.Getenv("ALIYUN_ACCESS_KEY_ID")
-	GlobalExternalConfig.Aliyun.AccessKeySecret = os.Getenv("ALIYUN_ACCESS_KEY_SECRET")
-	GlobalExternalConfig.Tavily.APIKey = os.Getenv("TAVILY_API_KEY")
+func loadExternalConfig(ext *ExternalConfig) {
+	if ext == nil {
+		return
+	}
+	ext.LLM.APIKey = os.Getenv("LLM_API_KEY")
+	ext.LLM.BaseURL = os.Getenv("LLM_BASE_URL")
+	ext.Aliyun.AccessKeyID = os.Getenv("ALIYUN_ACCESS_KEY_ID")
+	ext.Aliyun.AccessKeySecret = os.Getenv("ALIYUN_ACCESS_KEY_SECRET")
+	ext.Tavily.APIKey = os.Getenv("TAVILY_API_KEY")
 }

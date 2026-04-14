@@ -87,7 +87,6 @@ func (s *nodeService) GetNodeList(ctx context.Context, req *model.GetNodeListReq
 	nodes := nodeList.Items
 
 	// 应用过滤条件
-	// 状态过滤
 	if len(req.Status) > 0 {
 		nodes = utils.FilterNodesByStatus(nodes, req.Status)
 	}
@@ -105,7 +104,6 @@ func (s *nodeService) GetNodeList(ctx context.Context, req *model.GetNodeListReq
 		return node.CreationTimestamp.Time
 	})
 
-	// 分页处理
 	pagedNodes, totalAfterFilter := utils.BuildNodeListPagination(filteredNodes, req.Page, req.Size)
 	total = totalAfterFilter
 

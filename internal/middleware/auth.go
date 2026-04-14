@@ -34,7 +34,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 跳过权限校验的路径
 var skipAuthPaths = map[string]bool{
 	"/api/user/login":         true,
 	"/api/user/logout":        true,
@@ -69,7 +68,6 @@ func NewAuthMiddleware(roleService service.RoleService) *AuthMiddleware {
 	}
 }
 
-// 检查路径前缀
 func hasPrefix(path string, prefixes []string) bool {
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(path, prefix) {
@@ -79,7 +77,6 @@ func hasPrefix(path string, prefixes []string) bool {
 	return false
 }
 
-// 检查通配符路径匹配
 func matchWildcardPath(apiPath, requestPath string, methodCode int8, apiMethod int8) bool {
 	// 方法不匹配则返回false
 	if apiMethod != methodCode {
@@ -96,7 +93,6 @@ func matchWildcardPath(apiPath, requestPath string, methodCode int8, apiMethod i
 		return true
 	}
 
-	// 不包含通配符直接返回
 	if !strings.Contains(apiPath, "*") {
 		return false
 	}
@@ -126,7 +122,6 @@ func (am *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
 
-		// 检查是否跳过权限校验
 		if skipAuthPaths[path] {
 			c.Next()
 			return
@@ -178,7 +173,6 @@ func (am *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 			return
 		}
 
-		// 获取用户角色
 		roles, err := am.roleService.GetUserRoles(c, user.Uid)
 		if err != nil {
 			base.ErrorWithMessage(c, "获取用户角色失败")
@@ -186,7 +180,6 @@ func (am *AuthMiddleware) CheckAuth() gin.HandlerFunc {
 			return
 		}
 
-		// 检查权限
 		for _, role := range roles.Items {
 			// 跳过禁用角色
 			if role.Status != 1 {

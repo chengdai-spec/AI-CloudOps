@@ -33,7 +33,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// AliyunSyncConfig 阿里云同步配置
 type AliyunSyncConfig struct {
 	AccessKey      string
 	SecretKey      string
@@ -44,7 +43,6 @@ type AliyunSyncConfig struct {
 	SyncMode       model.SyncMode
 }
 
-// SyncAliyunResources 同步阿里云资源
 func SyncAliyunResources(ctx context.Context, config *AliyunSyncConfig, logger *zap.Logger) ([]*model.TreeCloudResource, error) {
 	logger.Info("开始同步阿里云资源",
 		zap.Int("cloudAccountID", config.CloudAccountID),
@@ -52,7 +50,6 @@ func SyncAliyunResources(ctx context.Context, config *AliyunSyncConfig, logger *
 		zap.String("syncMode", string(config.SyncMode)),
 		zap.Int("specifiedInstanceCount", len(config.InstanceIDs)))
 
-	// 创建阿里云客户端
 	client, err := NewAliyunClient(config.AccessKey, config.SecretKey, config.Region, logger)
 	if err != nil {
 		logger.Error("创建阿里云客户端失败", zap.Error(err))
@@ -85,7 +82,6 @@ func SyncAliyunResources(ctx context.Context, config *AliyunSyncConfig, logger *
 	return resources, nil
 }
 
-// SyncTencentResources 同步腾讯云资源
 func SyncTencentResources(ctx context.Context, req *model.SyncTreeCloudResourceReq, logger *zap.Logger) error {
 	logger.Warn("腾讯云资源同步功能暂未实现")
 	return fmt.Errorf("腾讯云资源同步功能暂未实现")
@@ -97,7 +93,6 @@ func SyncAWSResources(ctx context.Context, req *model.SyncTreeCloudResourceReq, 
 	return fmt.Errorf("AWS资源同步功能暂未实现")
 }
 
-// SyncHuaweiResources 同步华为云资源
 func SyncHuaweiResources(ctx context.Context, req *model.SyncTreeCloudResourceReq, logger *zap.Logger) error {
 	logger.Warn("华为云资源同步功能暂未实现")
 	return fmt.Errorf("华为云资源同步功能暂未实现")

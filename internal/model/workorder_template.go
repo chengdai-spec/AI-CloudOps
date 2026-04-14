@@ -25,7 +25,6 @@
 
 package model
 
-// 模板状态常量
 const (
 	TemplateStatusEnabled  int8 = 1 // 启用
 	TemplateStatusDisabled int8 = 2 // 禁用
@@ -60,7 +59,6 @@ func (WorkorderTemplate) TableName() string {
 	return "cl_workorder_template"
 }
 
-// CreateWorkorderTemplateReq 创建工单模板请求
 type CreateWorkorderTemplateReq struct {
 	Name          string     `json:"name" binding:"required,min=1,max=200"`
 	Description   string     `json:"description" binding:"omitempty,max=1000"`
@@ -74,7 +72,6 @@ type CreateWorkorderTemplateReq struct {
 	Tags          StringList `json:"tags" binding:"omitempty"`
 }
 
-// UpdateWorkorderTemplateReq 更新工单模板请求
 type UpdateWorkorderTemplateReq struct {
 	ID            int        `json:"id" binding:"required,min=1"`
 	Name          string     `json:"name" binding:"omitempty,min=1,max=200"`
@@ -87,17 +84,14 @@ type UpdateWorkorderTemplateReq struct {
 	Tags          StringList `json:"tags" binding:"omitempty"`
 }
 
-// DeleteWorkorderTemplateReq 删除工单模板请求
 type DeleteWorkorderTemplateReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// DetailWorkorderTemplateReq 获取工单模板详情请求
 type DetailWorkorderTemplateReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// ListWorkorderTemplateReq 工单模板列表请求
 type ListWorkorderTemplateReq struct {
 	ListReq
 	CategoryID   *int  `json:"category_id" form:"category_id" binding:"omitempty,min=1"`

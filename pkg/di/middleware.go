@@ -37,7 +37,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// InitMiddlewares 初始化中间件
 func InitMiddlewares(ih ijwt.Handler, l *zap.Logger, roleSvc service.RoleService, auditSvc service.AuditService) []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		cors.New(cors.Config{

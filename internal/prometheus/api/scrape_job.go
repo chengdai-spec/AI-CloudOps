@@ -59,7 +59,7 @@ func (h *ScrapeJobHandler) GetMonitorScrapeJobList(ctx *gin.Context) {
 	var req model.GetMonitorScrapeJobListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.scrapeJobService.GetMonitorScrapeJobList(ctx, &req)
+		return h.scrapeJobService.GetMonitorScrapeJobList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -72,7 +72,7 @@ func (h *ScrapeJobHandler) CreateMonitorScrapeJob(ctx *gin.Context) {
 	req.CreateUserName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.scrapeJobService.CreateMonitorScrapeJob(ctx, &req)
+		return nil, h.scrapeJobService.CreateMonitorScrapeJob(ctx.Request.Context(), &req)
 	})
 }
 
@@ -89,7 +89,7 @@ func (h *ScrapeJobHandler) UpdateMonitorScrapeJob(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.scrapeJobService.UpdateMonitorScrapeJob(ctx, &req)
+		return nil, h.scrapeJobService.UpdateMonitorScrapeJob(ctx.Request.Context(), &req)
 	})
 }
 
@@ -106,7 +106,7 @@ func (h *ScrapeJobHandler) DeleteMonitorScrapeJob(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.scrapeJobService.DeleteMonitorScrapeJob(ctx, req.ID)
+		return nil, h.scrapeJobService.DeleteMonitorScrapeJob(ctx.Request.Context(), req.ID)
 	})
 }
 
@@ -123,6 +123,6 @@ func (h *ScrapeJobHandler) GetMonitorScrapeJobDetail(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.scrapeJobService.GetMonitorScrapeJobDetail(ctx, &req)
+		return h.scrapeJobService.GetMonitorScrapeJobDetail(ctx.Request.Context(), &req)
 	})
 }

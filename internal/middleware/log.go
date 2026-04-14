@@ -59,11 +59,8 @@ func (lm *LogMiddleware) Log() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 开始时间
 		start := time.Now()
-		// 请求路径
 		path := c.Request.URL.Path
-		// 请求方法
 		method := c.Request.Method
-		// 读取请求体
 		bodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			lm.l.Error("请求体读取失败", zap.Error(err))
@@ -78,7 +75,6 @@ func (lm *LogMiddleware) Log() gin.HandlerFunc {
 			ReqBody: string(bodyBytes),
 		}
 		c.Next()
-		// 记录响应状态码和响应体
 		al.Status = c.Writer.Status()
 		al.RespBody = c.Writer.Header().Get("Content-Type")
 		al.Duration = time.Since(start)

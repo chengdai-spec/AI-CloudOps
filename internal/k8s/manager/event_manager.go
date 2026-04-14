@@ -302,7 +302,6 @@ func (m *eventManager) GetEventStatistics(ctx context.Context, clusterID int, na
 		return nil, fmt.Errorf("获取Kubernetes客户端失败: %w", err)
 	}
 
-	// 获取所有事件
 	events, err := clientset.CoreV1().Events(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		m.logger.Error("获取事件列表失败", zap.Error(err))
@@ -319,7 +318,6 @@ func (m *eventManager) GetEventStatistics(ctx context.Context, clusterID int, na
 		TopObjects:    []model.CountItem{},
 	}
 
-	// 统计事件
 	reasonCounts := make(map[string]int)
 	sourceCounts := make(map[string]int)
 
@@ -331,12 +329,10 @@ func (m *eventManager) GetEventStatistics(ctx context.Context, clusterID int, na
 			summary.WarningEvents++
 		}
 
-		// 统计原因
 		if event.Reason != "" {
 			reasonCounts[event.Reason]++
 		}
 
-		// 统计来源
 		if event.Source.Component != "" {
 			sourceCounts[event.Source.Component]++
 		}
@@ -351,7 +347,6 @@ func (m *eventManager) GetEventStatistics(ctx context.Context, clusterID int, na
 		})
 	}
 
-	// 填充分布信息
 	summary.Distribution["Normal"] = summary.NormalEvents
 	summary.Distribution["Warning"] = summary.WarningEvents
 
@@ -375,7 +370,6 @@ func (m *eventManager) GetEventSummary(ctx context.Context, clusterID int, names
 		return nil, fmt.Errorf("获取Kubernetes客户端失败: %w", err)
 	}
 
-	// 获取所有事件
 	listOptions := metav1.ListOptions{}
 	events, err := clientset.CoreV1().Events(namespace).List(ctx, listOptions)
 	if err != nil {
@@ -393,7 +387,6 @@ func (m *eventManager) GetEventSummary(ctx context.Context, clusterID int, names
 		TopObjects:    []model.CountItem{},
 	}
 
-	// 统计数据
 	uniqueEvents := make(map[string]bool)
 	reasonCounts := make(map[string]int64)
 	objectCounts := make(map[string]int64)
@@ -407,7 +400,6 @@ func (m *eventManager) GetEventSummary(ctx context.Context, clusterID int, names
 			continue
 		}
 
-		// 统计事件类型
 		switch event.Type {
 		case "Normal":
 			summary.NormalEvents++
@@ -415,16 +407,13 @@ func (m *eventManager) GetEventSummary(ctx context.Context, clusterID int, names
 			summary.WarningEvents++
 		}
 
-		// 统计唯一事件
 		eventKey := fmt.Sprintf("%s/%s/%s", event.Namespace, event.InvolvedObject.Kind, event.InvolvedObject.Name)
 		uniqueEvents[eventKey] = true
 
-		// 统计原因
 		if event.Reason != "" {
 			reasonCounts[event.Reason]++
 		}
 
-		// 统计对象
 		objectKey := fmt.Sprintf("%s/%s", event.InvolvedObject.Kind, event.InvolvedObject.Name)
 		objectCounts[objectKey]++
 	}
@@ -481,7 +470,6 @@ func (m *eventManager) GetEventSummary(ctx context.Context, clusterID int, names
 		})
 	}
 
-	// 分布统计
 	summary.Distribution["Normal"] = summary.NormalEvents
 	summary.Distribution["Warning"] = summary.WarningEvents
 
@@ -495,7 +483,6 @@ func (m *eventManager) GetEventTimeline(ctx context.Context, clusterID int, name
 		return nil, fmt.Errorf("获取Kubernetes客户端失败: %w", err)
 	}
 
-	// 获取事件列表
 	listOptions := metav1.ListOptions{}
 	if objectName != "" && objectKind != "" {
 		listOptions.FieldSelector = fmt.Sprintf("involvedObject.name=%s,involvedObject.kind=%s",
@@ -534,7 +521,6 @@ func (m *eventManager) GetEventTrends(ctx context.Context, clusterID int, namesp
 		return nil, fmt.Errorf("获取Kubernetes客户端失败: %w", err)
 	}
 
-	// 获取事件列表
 	listOptions := metav1.ListOptions{}
 	events, err := clientset.CoreV1().Events(namespace).List(ctx, listOptions)
 	if err != nil {
@@ -568,13 +554,11 @@ func (m *eventManager) GetEventTrends(ctx context.Context, clusterID int, namesp
 		endTime = now
 	}
 
-	// 创建时间桶
 	buckets := make(map[time.Time]int64)
 	for t := startTime.Truncate(intervalDuration); t.Before(endTime); t = t.Add(intervalDuration) {
 		buckets[t] = 0
 	}
 
-	// 统计事件
 	for _, event := range events.Items {
 		eventTime := event.LastTimestamp.Time
 		if eventTime.Before(startTime) || eventTime.After(endTime) {
@@ -615,7 +599,6 @@ func (m *eventManager) GetEventGroupData(ctx context.Context, clusterID int, nam
 		return nil, fmt.Errorf("获取Kubernetes客户端失败: %w", err)
 	}
 
-	// 获取事件列表
 	listOptions := metav1.ListOptions{}
 	events, err := clientset.CoreV1().Events(namespace).List(ctx, listOptions)
 	if err != nil {
@@ -623,7 +606,6 @@ func (m *eventManager) GetEventGroupData(ctx context.Context, clusterID int, nam
 		return nil, fmt.Errorf("获取事件列表失败: %w", err)
 	}
 
-	// 创建分组映射
 	groups := make(map[string][]corev1.Event)
 
 	for _, event := range events.Items {
@@ -712,7 +694,6 @@ func (m *eventManager) CleanupOldEvents(ctx context.Context, clusterID int, name
 		return fmt.Errorf("获取Kubernetes客户端失败: %w", err)
 	}
 
-	// 获取所有事件
 	events, err := clientset.CoreV1().Events(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		m.logger.Error("获取事件列表失败", zap.Error(err))
@@ -723,7 +704,6 @@ func (m *eventManager) CleanupOldEvents(ctx context.Context, clusterID int, name
 	errorCount := 0
 	var errorMessages []string
 
-	// 删除旧事件
 	for _, event := range events.Items {
 		if event.LastTimestamp.Time.Before(beforeTime) {
 			err := clientset.CoreV1().Events(namespace).Delete(ctx, event.Name, metav1.DeleteOptions{})

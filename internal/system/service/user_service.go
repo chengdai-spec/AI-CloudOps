@@ -100,12 +100,10 @@ func (us *userService) Login(ctx context.Context, user *model.UserLoginReq) (*mo
 	return u, nil
 }
 
-// GetProfile 获取用户信息
 func (us *userService) GetProfile(ctx context.Context, uid int) (*model.User, error) {
 	return us.dao.GetByID(ctx, uid)
 }
 
-// GetPermCode 获取用户权限
 func (us *userService) GetPermCode(ctx context.Context, uid int) ([]string, error) {
 	codes, err := us.dao.GetPermCodes(ctx, uid)
 	if err != nil {
@@ -116,7 +114,6 @@ func (us *userService) GetPermCode(ctx context.Context, uid int) ([]string, erro
 	return codes, nil
 }
 
-// GetUserList 获取用户列表
 func (us *userService) GetUserList(ctx context.Context, req *model.GetUserListReq) (model.ListResp[*model.User], error) {
 	page := req.Page
 	if page <= 0 {
@@ -162,7 +159,6 @@ func (us *userService) ChangePassword(ctx context.Context, req *model.ChangePass
 		return errors.New("新密码不能与旧密码相同")
 	}
 
-	// 验证旧密码是否正确
 	user, err := us.dao.GetByID(ctx, req.UserID)
 	if err != nil {
 		us.logger.Error("获取用户失败", zap.Error(err))
@@ -184,30 +180,25 @@ func (us *userService) ChangePassword(ctx context.Context, req *model.ChangePass
 	return us.dao.ChangePassword(ctx, req.UserID, hash)
 }
 
-// UpdateProfile 修改用户信息
 func (us *userService) UpdateProfile(ctx context.Context, req *model.UpdateProfileReq) error {
-	// 验证用户是否存在
 	user, err := us.dao.GetByID(ctx, req.ID)
 	if err != nil {
 		us.logger.Error("获取用户失败", zap.Error(err))
 		return err
 	}
 
-	// 更新用户信息
 	userutils.ApplyProfileUpdates(user, req)
 	return us.dao.Update(ctx, user)
 }
 
 // WriteOff 注销账号
 func (us *userService) WriteOff(ctx context.Context, uid int, password string) error {
-	// 验证用户是否存在
 	user, err := us.dao.GetByID(ctx, uid)
 	if err != nil {
 		us.logger.Error("获取用户失败", zap.Error(err))
 		return err
 	}
 
-	// 验证密码是否正确
 	if err := userutils.ComparePassword(user.Password, password); err != nil {
 		us.logger.Error("密码错误", zap.Error(err))
 		return constants.ErrorPasswordIncorrect
@@ -217,7 +208,6 @@ func (us *userService) WriteOff(ctx context.Context, uid int, password string) e
 }
 
 func (us *userService) DeleteUser(ctx context.Context, uid int) error {
-	// 删除用户角色关联
 	if err := us.roleDao.RevokeRolesFromUser(ctx, uid, nil); err != nil {
 		us.logger.Error("删除用户角色关联失败", zap.Int("uid", uid), zap.Error(err))
 		return err

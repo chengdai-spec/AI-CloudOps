@@ -45,12 +45,10 @@ package api
 // func (k *K8sResourceHandler) RegisterRouters(server *gin.Engine) {
 // 	k8sGroup := server.Group("/api/k8s")
 // 	{
-// 		// 资源概览相关路由
 // 		k8sGroup.GET("/resources/overview/:cluster_id", h.GetResourceOverview)
 // 		k8sGroup.GET("/resources/statistics/:cluster_id", h.GetResourceStatistics)
 // 		k8sGroup.GET("/resources/distribution/:cluster_id", h.GetResourceDistribution)
 
-// 		// 资源分析和趋势路由
 // 		k8sGroup.GET("/resources/trend/:cluster_id", h.GetResourceTrend)
 // 		k8sGroup.GET("/resources/utilization/:cluster_id", h.GetResourceUtilization)
 // 		k8sGroup.GET("/resources/health/:cluster_id", h.GetResourceHealth)
@@ -59,11 +57,9 @@ package api
 // 		k8sGroup.GET("/resources/workloads/:cluster_id", h.GetWorkloadDistribution)
 // 		k8sGroup.GET("/resources/namespaces/:cluster_id", h.GetNamespaceResources)
 
-// 		// 存储和网络资源路由
 // 		k8sGroup.GET("/resources/storage/:cluster_id", h.GetStorageOverview)
 // 		k8sGroup.GET("/resources/network/:cluster_id", h.GetNetworkOverview)
 
-// 		// 多集群资源对比
 // 		k8sGroup.POST("/resources/clusters/compare", h.CompareClusterResources)
 // 		k8sGroup.GET("/resources/clusters/summary", h.GetAllClustersSummary)
 // 	}

@@ -77,7 +77,6 @@ type CreateAuditLogRequest struct {
 	ErrorMsg      string         `json:"error_msg"`
 }
 
-// ListAuditLogsRequest 审计日志列表查询参数
 type ListAuditLogsRequest struct {
 	ListReq
 	OperationType string `json:"operation_type" form:"operation_type"`
@@ -91,7 +90,6 @@ type GetAuditLogDetailRequest struct {
 	ID int `json:"id" binding:"required"`
 }
 
-// SearchAuditLogsRequest 审计日志搜索请求
 type SearchAuditLogsRequest struct {
 	ListAuditLogsRequest
 	Advanced *AdvancedSearchOptions `json:"advanced"`
@@ -107,7 +105,6 @@ type AdvancedSearchOptions struct {
 	EndpointPattern string   `json:"endpoint_pattern"`
 }
 
-// AuditStatistics 审计统计信息
 type AuditStatistics struct {
 	TotalCount         int64                    `json:"total_count"`
 	TodayCount         int64                    `json:"today_count"`
@@ -125,7 +122,6 @@ type TypeDistributionItem struct {
 	Count int64  `json:"count"`
 }
 
-// StatusDistributionItem 状态码分布项
 type StatusDistributionItem struct {
 	Status int   `json:"status"`
 	Count  int64 `json:"count"`
@@ -152,18 +148,15 @@ type DeleteAuditLogRequest struct {
 	ID int `json:"id" binding:"required"`
 }
 
-// BatchDeleteRequest 批量删除请求
 type BatchDeleteRequest struct {
 	IDs []int `json:"ids" binding:"required,min=1,max=100"`
 }
 
-// ArchiveAuditLogsRequest 归档审计日志请求
 type ArchiveAuditLogsRequest struct {
 	StartTime int64 `json:"start_time" binding:"required"`
 	EndTime   int64 `json:"end_time" binding:"required"`
 }
 
-// AuditTypeInfo 审计类型信息
 type AuditTypeInfo struct {
 	Type        string `json:"type"`
 	Description string `json:"description"`

@@ -97,7 +97,6 @@ func (a *alertManagerRecordService) CreateMonitorRecordRule(ctx context.Context,
 		return errors.New("无效的实例池ID")
 	}
 
-	// 检查记录规则是否已存在
 	monitorRecordRule := &model.MonitorRecordRule{
 		Name:           req.Name,
 		PoolID:         req.PoolID,
@@ -129,7 +128,6 @@ func (a *alertManagerRecordService) CreateMonitorRecordRule(ctx context.Context,
 		return errors.New("表达式不能为空")
 	}
 
-	// 创建记录规则
 	if err := a.dao.CreateMonitorRecordRule(ctx, monitorRecordRule); err != nil {
 		a.l.Error("创建记录规则失败", zap.Error(err))
 		return err
@@ -157,7 +155,6 @@ func (a *alertManagerRecordService) UpdateMonitorRecordRule(ctx context.Context,
 		return errors.New("无效的实例池ID")
 	}
 
-	// 检查记录规则是否已存在
 	rule, err := a.dao.GetMonitorRecordRuleById(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -199,7 +196,6 @@ func (a *alertManagerRecordService) UpdateMonitorRecordRule(ctx context.Context,
 		return errors.New("表达式不能为空")
 	}
 
-	// 更新记录规则
 	if err := a.dao.UpdateMonitorRecordRule(ctx, monitorRecordRule); err != nil {
 		a.l.Error("更新记录规则失败", zap.Error(err))
 		return err
@@ -214,13 +210,11 @@ func (a *alertManagerRecordService) UpdateMonitorRecordRule(ctx context.Context,
 	return nil
 }
 
-// DeleteMonitorRecordRule 删除记录规则
 func (a *alertManagerRecordService) DeleteMonitorRecordRule(ctx context.Context, req *model.DeleteMonitorRecordRuleReq) error {
 	if req.ID <= 0 {
 		return errors.New("无效的记录规则ID")
 	}
 
-	// 检查记录规则是否存在
 	_, err := a.dao.GetMonitorRecordRuleById(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -231,7 +225,6 @@ func (a *alertManagerRecordService) DeleteMonitorRecordRule(ctx context.Context,
 		return err
 	}
 
-	// 删除记录规则
 	if err := a.dao.DeleteMonitorRecordRule(ctx, req.ID); err != nil {
 		a.l.Error("删除记录规则失败", zap.Error(err))
 		return err
@@ -246,7 +239,6 @@ func (a *alertManagerRecordService) DeleteMonitorRecordRule(ctx context.Context,
 	return nil
 }
 
-// GetMonitorRecordRule 获取记录规则
 func (a *alertManagerRecordService) GetMonitorRecordRule(ctx context.Context, req *model.GetMonitorRecordRuleReq) (*model.MonitorRecordRule, error) {
 	if req.ID <= 0 {
 		return nil, errors.New("无效的记录规则ID")
@@ -261,7 +253,6 @@ func (a *alertManagerRecordService) GetMonitorRecordRule(ctx context.Context, re
 		return nil, err
 	}
 
-	// 获取池名称
 	if rule.PoolID > 0 {
 		pool, err := a.poolDao.GetMonitorScrapePoolById(ctx, rule.PoolID)
 		if err != nil {

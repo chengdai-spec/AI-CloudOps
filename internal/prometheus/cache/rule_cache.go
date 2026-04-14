@@ -104,7 +104,6 @@ func (r *alertRuleConfigCache) GetConfigByIP(ip string) string {
 	return val
 }
 
-// GenerateMainConfig 生成告警规则配置并入库
 func (r *alertRuleConfigCache) GenerateMainConfig(ctx context.Context) error {
 	startTime := time.Now()
 	r.logger.Info(LogModuleMonitor + "开始生成告警规则配置")
@@ -182,7 +181,6 @@ func (r *alertRuleConfigCache) GenerateMainConfig(ctx context.Context) error {
 		processedCount++
 	}
 
-	// 批量保存所有配置到数据库
 	if len(allConfigsToSave) > 0 {
 		if err := batchSaveConfigsToDatabase(ctx, r.batchManager, allConfigsToSave); err != nil {
 			r.logger.Error(LogModuleMonitor+"批量保存告警规则配置失败", zap.Error(err))

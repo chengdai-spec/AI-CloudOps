@@ -31,8 +31,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -54,6 +52,8 @@ type Handler interface {
 	CheckSession(ctx *gin.Context, ssid string) error
 	ClearToken(ctx *gin.Context) error
 	setRefreshToken(ctx *gin.Context, uid int, username string, ssid string, accountType int8) (string, error)
+	ParseUserClaims(tokenStr string) (*UserClaims, error)
+	ParseRefreshClaims(tokenStr string) (*RefreshClaims, error)
 }
 
 type UserClaims struct {
@@ -84,11 +84,15 @@ type handler struct {
 	issuer        string
 }
 
-func NewJWTHandler(c redis.Cmdable) Handler {
-	key1 := viper.GetString("jwt.key1")
-	key2 := viper.GetString("jwt.key2")
-	issuer := viper.GetString("jwt.issuer")
-	expirationMinutes := viper.GetInt64("jwt.expiration")
+type Config struct {
+	Key1              string
+	Key2              string
+	Issuer            string
+	ExpirationMinutes int64
+}
+
+func NewJWTHandler(c redis.Cmdable, cfg Config) Handler {
+	expirationMinutes := cfg.ExpirationMinutes
 	if expirationMinutes <= 0 {
 		expirationMinutes = defaultJWTExpirationMinutes
 	}
@@ -98,10 +102,44 @@ func NewJWTHandler(c redis.Cmdable) Handler {
 		signingMethod: jwt.SigningMethodHS512,
 		jwtExpiration: time.Minute * time.Duration(expirationMinutes),
 		rcExpiration:  time.Hour * 24 * 7,
-		key1:          []byte(key1),
-		key2:          []byte(key2),
-		issuer:        issuer,
+		key1:          []byte(cfg.Key1),
+		key2:          []byte(cfg.Key2),
+		issuer:        cfg.Issuer,
 	}
+}
+
+func (h *handler) ParseUserClaims(tokenStr string) (*UserClaims, error) {
+	if tokenStr == "" {
+		return nil, fmt.Errorf("令牌不能为空")
+	}
+	var uc UserClaims
+	token, err := jwt.ParseWithClaims(tokenStr, &uc, func(token *jwt.Token) (interface{}, error) {
+		return h.key1, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("解析令牌失败: %w", err)
+	}
+	if token == nil || !token.Valid {
+		return nil, fmt.Errorf("令牌无效")
+	}
+	return &uc, nil
+}
+
+func (h *handler) ParseRefreshClaims(tokenStr string) (*RefreshClaims, error) {
+	if tokenStr == "" {
+		return nil, fmt.Errorf("刷新令牌不能为空")
+	}
+	var rc RefreshClaims
+	token, err := jwt.ParseWithClaims(tokenStr, &rc, func(token *jwt.Token) (interface{}, error) {
+		return h.key2, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("解析刷新令牌失败: %w", err)
+	}
+	if token == nil || !token.Valid {
+		return nil, fmt.Errorf("刷新令牌无效")
+	}
+	return &rc, nil
 }
 
 // SetLoginToken 设置长短Token
@@ -147,7 +185,6 @@ func (h *handler) setRefreshToken(_ *gin.Context, uid int, username string, ssid
 		Ssid:        ssid,
 		AccountType: accountType,
 		RegisteredClaims: jwt.RegisteredClaims{
-			// 设置刷新时间为一周
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(h.rcExpiration)),
 		},
 	}
@@ -164,7 +201,6 @@ func (h *handler) ExtractToken(ctx *gin.Context) string {
 	return token
 }
 
-// CheckSession 检查会话状态
 func (h *handler) CheckSession(ctx *gin.Context, ssid string) error {
 	// 判断缓存中是否存在指定键
 	c, err := h.client.Exists(ctx, fmt.Sprintf(sessionKeyPattern, ssid)).Result()

@@ -31,7 +31,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// HashPassword 对密码进行统一校验与加密
 func HashPassword(password string) (string, error) {
 	if err := RequireNonEmpty(password, "密码"); err != nil {
 		return "", err

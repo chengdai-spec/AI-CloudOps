@@ -54,7 +54,6 @@ func (h *CategoryGroupHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateCategory 创建工单分类
 func (h *CategoryGroupHandler) CreateCategory(ctx *gin.Context) {
 	var req model.CreateWorkorderCategoryReq
 
@@ -64,11 +63,10 @@ func (h *CategoryGroupHandler) CreateCategory(ctx *gin.Context) {
 	req.OperatorName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.CreateCategory(ctx, &req)
+		return nil, h.service.CreateCategory(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateCategory 更新工单分类
 func (h *CategoryGroupHandler) UpdateCategory(ctx *gin.Context) {
 	var req model.UpdateWorkorderCategoryReq
 
@@ -80,11 +78,10 @@ func (h *CategoryGroupHandler) UpdateCategory(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateCategory(ctx, &req)
+		return nil, h.service.UpdateCategory(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteCategory 删除工单分类
 func (h *CategoryGroupHandler) DeleteCategory(ctx *gin.Context) {
 	var req model.DeleteWorkorderCategoryReq
 
@@ -96,19 +93,17 @@ func (h *CategoryGroupHandler) DeleteCategory(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteCategory(ctx, req.ID)
+		return nil, h.service.DeleteCategory(ctx.Request.Context(), req.ID)
 	})
 }
 
-// ListCategory 获取工单分类列表
 func (h *CategoryGroupHandler) ListCategory(ctx *gin.Context) {
 	var req model.ListWorkorderCategoryReq
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.ListCategory(ctx, req)
+		return h.service.ListCategory(ctx.Request.Context(), req)
 	})
 }
 
-// DetailCategory 获取工单分类详情
 func (h *CategoryGroupHandler) DetailCategory(ctx *gin.Context) {
 	var req model.DetailWorkorderCategoryReq
 
@@ -120,6 +115,6 @@ func (h *CategoryGroupHandler) DetailCategory(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetCategory(ctx, req.ID)
+		return h.service.GetCategory(ctx.Request.Context(), req.ID)
 	})
 }

@@ -37,7 +37,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// UserInfo 用户信息结构体
 type UserInfo struct {
 	UserID    int    `json:"userId"`
 	Username  string `json:"username"`
@@ -95,7 +94,6 @@ func GetUserInfoFromHTTPRequest(r *http.Request) *UserInfo {
 		UserAgent: r.UserAgent(),
 	}
 
-	// 从请求头中获取用户信息
 	if userIDStr := r.Header.Get("X-User-ID"); userIDStr != "" {
 		if userID, err := strconv.Atoi(userIDStr); err == nil {
 			userInfo.UserID = userID
@@ -120,7 +118,6 @@ func GetUserInfoFromHTTPRequest(r *http.Request) *UserInfo {
 
 // GetClientIP 获取客户端真实IP地址
 func GetClientIP(r *http.Request) string {
-	// 按优先级顺序检查各种头部
 	ipHeaders := []string{
 		"CF-Connecting-IP", // Cloudflare
 		"X-Forwarded-For",  // 标准代理头
@@ -249,17 +246,14 @@ func SetUserInfoToGinContext(c *gin.Context, userInfo *UserInfo) {
 	c.Set("user_agent", userInfo.UserAgent)
 }
 
-// IsEmpty 检查用户信息是否为空
 func (u *UserInfo) IsEmpty() bool {
 	return u == nil || (u.UserID == 0 && u.Username == "")
 }
 
-// IsValid 检查用户信息是否有效
 func (u *UserInfo) IsValid() bool {
 	return u != nil && (u.UserID > 0 || u.Username != "")
 }
 
-// String 返回用户信息的字符串表示
 func (u *UserInfo) String() string {
 	if u == nil {
 		return "UserInfo(nil)"
@@ -267,7 +261,6 @@ func (u *UserInfo) String() string {
 	return fmt.Sprintf("UserInfo(ID:%d, Username:%s, IP:%s)", u.UserID, u.Username, u.IP)
 }
 
-// Clone 创建用户信息的副本
 func (u *UserInfo) Clone() *UserInfo {
 	if u == nil {
 		return nil

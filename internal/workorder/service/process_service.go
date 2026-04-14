@@ -68,9 +68,7 @@ func NewWorkorderProcessService(
 	}
 }
 
-// CreateWorkorderProcess 创建流程
 func (s *workorderProcessService) CreateWorkorderProcess(ctx context.Context, req *model.CreateWorkorderProcessReq) error {
-	// 检查流程名称是否已存在
 	exists, err := s.dao.CheckProcessNameExists(ctx, req.Name)
 	if err != nil {
 		s.logger.Error("检查流程名称失败",
@@ -82,7 +80,6 @@ func (s *workorderProcessService) CreateWorkorderProcess(ctx context.Context, re
 		return fmt.Errorf("流程名称已存在: %s", req.Name)
 	}
 
-	// 检查表单设计是否存在
 	if req.FormDesignID > 0 {
 		_, err := s.formDesignDao.GetFormDesign(ctx, req.FormDesignID)
 		if err != nil {
@@ -91,7 +88,6 @@ func (s *workorderProcessService) CreateWorkorderProcess(ctx context.Context, re
 		}
 	}
 
-	// 检查分类是否存在
 	if req.CategoryID != nil && *req.CategoryID > 0 {
 		_, err := s.categoryDao.GetCategory(ctx, *req.CategoryID)
 		if err != nil {
@@ -112,9 +108,7 @@ func (s *workorderProcessService) CreateWorkorderProcess(ctx context.Context, re
 		IsDefault:    req.IsDefault,
 	}
 
-	// 处理流程定义
 	if len(req.Definition.Steps) > 0 || len(req.Definition.Connections) > 0 {
-		// 执行验证
 		if err := s.dao.ValidateProcessDefinition(ctx, &req.Definition); err != nil {
 			s.logger.Error("流程定义验证失败", zap.Error(err))
 			return fmt.Errorf("流程定义验证失败: %w", err)
@@ -136,7 +130,6 @@ func (s *workorderProcessService) CreateWorkorderProcess(ctx context.Context, re
 		process.Definition = definitionMap
 	}
 
-	// 创建流程
 	if err := s.dao.CreateProcess(ctx, process); err != nil {
 		s.logger.Error("创建流程失败",
 			zap.Error(err),
@@ -148,20 +141,17 @@ func (s *workorderProcessService) CreateWorkorderProcess(ctx context.Context, re
 	return nil
 }
 
-// UpdateWorkorderProcess 更新流程
 func (s *workorderProcessService) UpdateWorkorderProcess(ctx context.Context, req *model.UpdateWorkorderProcessReq) error {
 	if req.ID <= 0 {
 		return errors.New("流程ID无效")
 	}
 
-	// 获取现有流程
 	existingProcess, err := s.dao.GetProcessByID(ctx, req.ID)
 	if err != nil {
 		s.logger.Error("获取流程失败", zap.Error(err), zap.Int("id", req.ID))
 		return fmt.Errorf("获取流程失败: %w", err)
 	}
 
-	// 检查流程名称是否已存在
 	if req.Name != "" && req.Name != existingProcess.Name {
 		exists, err := s.dao.CheckProcessNameExists(ctx, req.Name, req.ID)
 		if err != nil {
@@ -175,7 +165,6 @@ func (s *workorderProcessService) UpdateWorkorderProcess(ctx context.Context, re
 		}
 	}
 
-	// 检查表单设计是否存在
 	if req.FormDesignID > 0 && req.FormDesignID != existingProcess.FormDesignID {
 		_, err := s.formDesignDao.GetFormDesign(ctx, req.FormDesignID)
 		if err != nil {
@@ -184,7 +173,6 @@ func (s *workorderProcessService) UpdateWorkorderProcess(ctx context.Context, re
 		}
 	}
 
-	// 检查分类是否存在
 	if req.CategoryID != nil && *req.CategoryID > 0 && req.CategoryID != existingProcess.CategoryID {
 		_, err := s.categoryDao.GetCategory(ctx, *req.CategoryID)
 		if err != nil {
@@ -193,7 +181,6 @@ func (s *workorderProcessService) UpdateWorkorderProcess(ctx context.Context, re
 		}
 	}
 
-	// 构建更新的流程对象
 	process := &model.WorkorderProcess{
 		Model:        model.Model{ID: req.ID},
 		Name:         req.Name,
@@ -205,9 +192,7 @@ func (s *workorderProcessService) UpdateWorkorderProcess(ctx context.Context, re
 		IsDefault:    req.IsDefault,
 	}
 
-	// 处理流程定义
 	if len(req.Definition.Steps) > 0 || len(req.Definition.Connections) > 0 {
-		// 执行验证
 		if err := s.dao.ValidateProcessDefinition(ctx, &req.Definition); err != nil {
 			s.logger.Error("流程定义验证失败", zap.Error(err))
 			return fmt.Errorf("流程定义验证失败: %w", err)
@@ -228,7 +213,6 @@ func (s *workorderProcessService) UpdateWorkorderProcess(ctx context.Context, re
 		process.Definition = definitionMap
 	}
 
-	// 更新流程
 	if err := s.dao.UpdateProcess(ctx, process); err != nil {
 		s.logger.Error("更新流程失败",
 			zap.Error(err),
@@ -239,7 +223,6 @@ func (s *workorderProcessService) UpdateWorkorderProcess(ctx context.Context, re
 	return nil
 }
 
-// DeleteWorkorderProcess 删除流程
 func (s *workorderProcessService) DeleteWorkorderProcess(ctx context.Context, id int) error {
 	if id <= 0 {
 		return errors.New("流程ID无效")
@@ -279,7 +262,6 @@ func (s *workorderProcessService) DeleteWorkorderProcess(ctx context.Context, id
 		page++
 	}
 
-	// 执行删除
 	if err := s.dao.DeleteProcess(ctx, id); err != nil {
 		s.logger.Error("删除流程失败",
 			zap.Error(err),
@@ -291,7 +273,6 @@ func (s *workorderProcessService) DeleteWorkorderProcess(ctx context.Context, id
 	return nil
 }
 
-// ListWorkorderProcess 获取流程列表
 func (s *workorderProcessService) ListWorkorderProcess(ctx context.Context, req *model.ListWorkorderProcessReq) (*model.ListResp[*model.WorkorderProcess], error) {
 	processes, total, err := s.dao.ListProcess(ctx, req)
 	if err != nil {
@@ -307,13 +288,11 @@ func (s *workorderProcessService) ListWorkorderProcess(ctx context.Context, req 
 	return result, nil
 }
 
-// DetailWorkorderProcess 获取流程
 func (s *workorderProcessService) DetailWorkorderProcess(ctx context.Context, id int) (*model.WorkorderProcess, error) {
 	if id <= 0 {
 		return nil, errors.New("流程ID无效")
 	}
 
-	// 从数据库获取
 	process, err := s.dao.GetProcessByID(ctx, id)
 	if err != nil {
 		s.logger.Error("获取流程详情失败",

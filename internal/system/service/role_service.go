@@ -54,7 +54,6 @@ type RoleService interface {
 	GetRoleUsers(ctx context.Context, roleID int) (*model.ListResp[*model.User], error)
 	GetUserRoles(ctx context.Context, userID int) (*model.ListResp[*model.Role], error)
 
-	// 权限检查
 	CheckUserPermission(ctx context.Context, userID int, method, path string) (bool, error)
 	GetUserPermissions(ctx context.Context, userID int) (*model.ListResp[*model.Api], error)
 }
@@ -71,7 +70,6 @@ func NewRoleService(roleDao dao.RoleDAO, l *zap.Logger) RoleService {
 	}
 }
 
-// ListRoles 获取角色列表
 func (s *roleService) ListRoles(ctx context.Context, req *model.ListRolesRequest) (*model.ListResp[*model.Role], error) {
 	roles, total, err := s.roleDao.List(ctx, req)
 	if err != nil {
@@ -85,7 +83,6 @@ func (s *roleService) ListRoles(ctx context.Context, req *model.ListRolesRequest
 	}, nil
 }
 
-// CreateRole 创建角色
 func (s *roleService) CreateRole(ctx context.Context, req *model.CreateRoleRequest) (*model.Role, error) {
 	// 检查角色名称和编码是否已存在
 	exists, err := s.roleDao.CheckExists(ctx, req.Name, req.Code, 0)
@@ -115,9 +112,7 @@ func (s *roleService) CreateRole(ctx context.Context, req *model.CreateRoleReque
 	return createdRole, nil
 }
 
-// UpdateRole 更新角色
 func (s *roleService) UpdateRole(ctx context.Context, req *model.UpdateRoleRequest) (*model.Role, error) {
-	// 检查角色是否存在
 	existingRole, err := s.roleDao.GetByID(ctx, req.ID)
 	if err != nil {
 		s.l.Error("获取角色失败", zap.Error(err))
@@ -158,9 +153,7 @@ func (s *roleService) UpdateRole(ctx context.Context, req *model.UpdateRoleReque
 	return updatedRole, nil
 }
 
-// DeleteRole 删除角色
 func (s *roleService) DeleteRole(ctx context.Context, id int) error {
-	// 检查角色是否存在
 	role, err := s.roleDao.GetByID(ctx, id)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		s.l.Error("获取角色失败", zap.Error(err))
@@ -171,13 +164,11 @@ func (s *roleService) DeleteRole(ctx context.Context, id int) error {
 		return nil
 	}
 
-	// 系统角色不允许删除
 	if role.IsSystem == 1 {
 		s.l.Error("系统角色不允许删除", zap.Int("role_id", id))
 		return errors.New("系统角色不允许删除")
 	}
 
-	// 检查是否有用户关联该角色
 	hasUsers, err := s.roleDao.CheckHasUsers(ctx, id)
 	if err != nil {
 		s.l.Error("检查角色是否有关联用户失败", zap.Error(err))
@@ -267,7 +258,6 @@ func (s *roleService) RevokeRolesFromUser(ctx context.Context, userID int, roleI
 	return nil
 }
 
-// GetRoleUsers 获取角色下的用户列表
 func (s *roleService) GetRoleUsers(ctx context.Context, roleID int) (*model.ListResp[*model.User], error) {
 	users, err := s.roleDao.GetUsers(ctx, roleID)
 	if err != nil {
@@ -280,7 +270,6 @@ func (s *roleService) GetRoleUsers(ctx context.Context, roleID int) (*model.List
 	}, nil
 }
 
-// GetUserRoles 获取用户的角色列表
 func (s *roleService) GetUserRoles(ctx context.Context, userID int) (*model.ListResp[*model.Role], error) {
 	roles, err := s.roleDao.GetRoles(ctx, userID)
 	if err != nil {
@@ -293,7 +282,6 @@ func (s *roleService) GetUserRoles(ctx context.Context, userID int) (*model.List
 	}, nil
 }
 
-// CheckUserPermission 检查用户权限
 func (s *roleService) CheckUserPermission(ctx context.Context, userID int, method, path string) (bool, error) {
 	hasPermission, err := s.roleDao.CheckPermission(ctx, userID, method, path)
 	if err != nil {
@@ -304,7 +292,6 @@ func (s *roleService) CheckUserPermission(ctx context.Context, userID int, metho
 	return hasPermission, nil
 }
 
-// GetUserPermissions 获取用户的所有权限
 func (s *roleService) GetUserPermissions(ctx context.Context, userID int) (*model.ListResp[*model.Api], error) {
 	permissions, err := s.roleDao.GetPermissions(ctx, userID)
 	if err != nil {

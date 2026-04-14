@@ -76,7 +76,6 @@ func (s *clusterService) ListClusters(ctx context.Context, req *model.ListCluste
 		return model.ListResp[*model.K8sCluster]{}, fmt.Errorf("查询所有集群失败: %w", err)
 	}
 
-	// 清理敏感信息
 	utils.CleanClusterSensitiveInfoList(list)
 
 	return model.ListResp[*model.K8sCluster]{
@@ -155,7 +154,6 @@ func (s *clusterService) CreateCluster(ctx context.Context, req *model.CreateClu
 
 	if err := s.clusterMgr.CreateCluster(ctx, cluster); err != nil {
 		s.logger.Error("创建集群失败", zap.Error(err))
-		// 回滚数据库记录
 		if rollbackErr := s.dao.DeleteCluster(ctx, cluster.ID); rollbackErr != nil {
 			s.logger.Error("回滚失败", zap.Error(rollbackErr))
 		}
@@ -248,7 +246,6 @@ func (s *clusterService) DeleteCluster(ctx context.Context, req *model.DeleteClu
 		return fmt.Errorf("查询集群失败: %w", err)
 	}
 
-	// 删除集群客户端
 	s.client.RemoveCluster(req.ID)
 
 	if err := s.dao.DeleteCluster(ctx, req.ID); err != nil {
@@ -259,7 +256,6 @@ func (s *clusterService) DeleteCluster(ctx context.Context, req *model.DeleteClu
 	return nil
 }
 
-// RefreshClusterStatus 刷新集群状态
 func (s *clusterService) RefreshClusterStatus(ctx context.Context, req *model.RefreshClusterReq) error {
 	if req == nil {
 		return fmt.Errorf("刷新集群状态请求参数不能为空")

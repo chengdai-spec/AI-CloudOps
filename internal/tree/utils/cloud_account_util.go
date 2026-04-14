@@ -34,7 +34,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// VerifyAliyunCredentials 验证阿里云凭证
 func VerifyAliyunCredentials(ctx context.Context, req *model.VerifyCloudCredentialsReq, logger *zap.Logger) error {
 	client, err := NewAliyunClient(req.AccessKey, req.SecretKey, req.Region, logger)
 	if err != nil {
@@ -50,7 +49,6 @@ func VerifyAliyunCredentials(ctx context.Context, req *model.VerifyCloudCredenti
 	return nil
 }
 
-// VerifyTencentCredentials 验证腾讯云凭证
 func VerifyTencentCredentials(ctx context.Context, req *model.VerifyCloudCredentialsReq, logger *zap.Logger) error {
 	logger.Warn("腾讯云凭证验证功能暂未实现")
 	return fmt.Errorf("腾讯云凭证验证功能暂未实现")
@@ -62,7 +60,6 @@ func VerifyAWSCredentials(ctx context.Context, req *model.VerifyCloudCredentials
 	return fmt.Errorf("AWS凭证验证功能暂未实现")
 }
 
-// VerifyHuaweiCredentials 验证华为云凭证
 func VerifyHuaweiCredentials(ctx context.Context, req *model.VerifyCloudCredentialsReq, logger *zap.Logger) error {
 	logger.Warn("华为云凭证验证功能暂未实现")
 	return fmt.Errorf("华为云凭证验证功能暂未实现")
@@ -105,24 +102,20 @@ func SanitizeCloudAccount(account *model.CloudAccount) {
 	if account == nil {
 		return
 	}
-	// 清空敏感信息
 	account.AccessKey = ""
 	account.SecretKey = ""
 }
 
-// SanitizeCloudAccounts 批量清理云账户敏感信息
 func SanitizeCloudAccounts(accounts []*model.CloudAccount) {
 	for _, account := range accounts {
 		SanitizeCloudAccount(account)
 	}
 }
 
-// ValidateAndNormalizeRegions 验证和规范化区域列表
 // 检查区域是否为空、是否重复、默认区域是否唯一
 // 如果没有指定默认区域，会将第一个区域设置为默认
 // 返回规范化后的区域列表（新切片），不修改传入的切片
 func ValidateAndNormalizeRegions(regions []model.CreateCloudAccountRegionItem) ([]model.CreateCloudAccountRegionItem, error) {
-	// 验证区域列表不为空
 	if len(regions) == 0 {
 		return nil, errors.New("必须至少指定一个区域")
 	}
@@ -131,17 +124,14 @@ func ValidateAndNormalizeRegions(regions []model.CreateCloudAccountRegionItem) (
 	normalized := make([]model.CreateCloudAccountRegionItem, len(regions))
 	copy(normalized, regions)
 
-	// 检查是否有重复的区域
 	regionMap := make(map[string]bool)
 	var defaultCount int
 	for i := range normalized {
-		// 检查重复
 		if regionMap[normalized[i].Region] {
 			return nil, fmt.Errorf("区域 %s 重复", normalized[i].Region)
 		}
 		regionMap[normalized[i].Region] = true
 
-		// 统计默认区域数量
 		if normalized[i].IsDefault {
 			defaultCount++
 		}

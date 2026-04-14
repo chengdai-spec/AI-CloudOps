@@ -73,7 +73,7 @@ func (h *K8sEventHandler) GetEventList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventList(ctx, &req)
+		return h.eventService.GetEventList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -103,7 +103,7 @@ func (h *K8sEventHandler) GetEventDetail(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEvent(ctx, &req)
+		return h.eventService.GetEvent(ctx.Request.Context(), &req)
 	})
 }
 
@@ -133,7 +133,7 @@ func (h *K8sEventHandler) GetEventsByPod(ctx *gin.Context) {
 	req.PodName = podName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventsByPod(ctx, &req)
+		return h.eventService.GetEventsByPod(ctx.Request.Context(), &req)
 	})
 }
 
@@ -163,7 +163,7 @@ func (h *K8sEventHandler) GetEventsByDeployment(ctx *gin.Context) {
 	req.DeploymentName = deploymentName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventsByDeployment(ctx, &req)
+		return h.eventService.GetEventsByDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -193,7 +193,7 @@ func (h *K8sEventHandler) GetEventsByService(ctx *gin.Context) {
 	req.ServiceName = serviceName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventsByService(ctx, &req)
+		return h.eventService.GetEventsByService(ctx.Request.Context(), &req)
 	})
 }
 
@@ -216,7 +216,7 @@ func (h *K8sEventHandler) GetEventsByNode(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventsByNode(ctx, &req)
+		return h.eventService.GetEventsByNode(ctx.Request.Context(), &req)
 	})
 }
 
@@ -224,7 +224,7 @@ func (h *K8sEventHandler) GetEventStatistics(ctx *gin.Context) {
 	var req model.GetEventStatisticsReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventStatistics(ctx, &req)
+		return h.eventService.GetEventStatistics(ctx.Request.Context(), &req)
 	})
 }
 
@@ -232,7 +232,7 @@ func (h *K8sEventHandler) GetEventSummary(ctx *gin.Context) {
 	var req model.GetEventSummaryReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventSummary(ctx, &req)
+		return h.eventService.GetEventSummary(ctx.Request.Context(), &req)
 	})
 }
 
@@ -240,7 +240,7 @@ func (h *K8sEventHandler) GetEventTimeline(ctx *gin.Context) {
 	var req model.GetEventTimelineReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventTimeline(ctx, &req)
+		return h.eventService.GetEventTimeline(ctx.Request.Context(), &req)
 	})
 }
 
@@ -248,7 +248,7 @@ func (h *K8sEventHandler) GetEventTrends(ctx *gin.Context) {
 	var req model.GetEventTrendsReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventTrends(ctx, &req)
+		return h.eventService.GetEventTrends(ctx.Request.Context(), &req)
 	})
 }
 
@@ -256,7 +256,7 @@ func (h *K8sEventHandler) GetEventGroupData(ctx *gin.Context) {
 	var req model.GetEventGroupDataReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.eventService.GetEventGroupData(ctx, &req)
+		return h.eventService.GetEventGroupData(ctx.Request.Context(), &req)
 	})
 }
 
@@ -286,7 +286,7 @@ func (h *K8sEventHandler) DeleteEvent(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.eventService.DeleteEvent(ctx, &req)
+		return nil, h.eventService.DeleteEvent(ctx.Request.Context(), &req)
 	})
 }
 
@@ -295,6 +295,6 @@ func (h *K8sEventHandler) CleanupOldEvents(ctx *gin.Context) {
 	var req model.CleanupOldEventsReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.eventService.CleanupOldEvents(ctx, &req)
+		return nil, h.eventService.CleanupOldEvents(ctx.Request.Context(), &req)
 	})
 }

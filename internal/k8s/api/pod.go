@@ -26,22 +26,38 @@
 package api
 
 import (
+	"bufio"
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"net"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/GoSimplicity/AI-CloudOps/internal/k8s/service"
 	"github.com/GoSimplicity/AI-CloudOps/internal/model"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/base"
+	"github.com/GoSimplicity/AI-CloudOps/pkg/sse"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 type K8sPodHandler struct {
 	podService service.PodService
+	sseHandler sse.Handler
+	logger     *zap.Logger
+	wsUpgrader *websocket.Upgrader
 }
 
-func NewK8sPodHandler(podService service.PodService) *K8sPodHandler {
+func NewK8sPodHandler(podService service.PodService, sseHandler sse.Handler, logger *zap.Logger, wsUpgrader *websocket.Upgrader) *K8sPodHandler {
 	return &K8sPodHandler{
 		podService: podService,
+		sseHandler: sseHandler,
+		logger:     logger,
+		wsUpgrader: wsUpgrader,
 	}
 }
 
@@ -91,7 +107,7 @@ func (h *K8sPodHandler) GetPodDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.podService.GetPodDetails(ctx, &req)
+		return h.podService.GetPodDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -107,7 +123,7 @@ func (h *K8sPodHandler) GetPodList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.podService.GetPodList(ctx, &req)
+		return h.podService.GetPodList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -120,7 +136,7 @@ func (h *K8sPodHandler) GetPodContainers(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.podService.GetPodContainers(ctx, &req)
+		return h.podService.GetPodContainers(ctx.Request.Context(), &req)
 	})
 }
 
@@ -137,16 +153,26 @@ func (h *K8sPodHandler) GetPodLogs(ctx *gin.Context) {
 		return
 	}
 
-	// SSE (Server-Sent Events) 响应头配置
-	// 用于实现日志的实时流式推送，避免轮询带来的性能问题
-	ctx.Header("Content-Type", "text/event-stream")
-	ctx.Header("Cache-Control", "no-cache")
-	ctx.Header("Connection", "keep-alive")
-	ctx.Header("Access-Control-Allow-Origin", "*")
-	ctx.Header("Access-Control-Allow-Headers", "Cache-Control")
+	out, err := h.podService.GetPodLogs(ctx.Request.Context(), &req)
+	if err != nil {
+		var previousErr *service.PodLogsPreviousNotFoundError
+		if errors.As(err, &previousErr) {
+			if streamErr := h.sseHandler.Stream(ctx, func(streamCtx context.Context, msgChan chan<- interface{}) {
+				msgChan <- previousErr.Error()
+			}); streamErr != nil {
+				base.BadRequestError(ctx, streamErr.Error())
+			}
+			return
+		}
 
-	if err := h.podService.GetPodLogs(ctx, &req); err != nil {
 		base.BadRequestError(ctx, err.Error())
+		return
+	}
+
+	if streamErr := h.sseHandler.Stream(ctx, func(streamCtx context.Context, msgChan chan<- interface{}) {
+		h.streamPodLogLines(streamCtx, out, req.Follow, msgChan)
+	}); streamErr != nil {
+		h.logger.Error("推送Pod日志失败", zap.Error(streamErr))
 		return
 	}
 }
@@ -177,7 +203,7 @@ func (h *K8sPodHandler) GetPodYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.podService.GetPodYaml(ctx, &req)
+		return h.podService.GetPodYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -193,7 +219,7 @@ func (h *K8sPodHandler) CreatePod(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.podService.CreatePod(ctx, &req)
+		return nil, h.podService.CreatePod(ctx.Request.Context(), &req)
 	})
 }
 
@@ -209,7 +235,7 @@ func (h *K8sPodHandler) CreatePodByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.podService.CreatePodByYaml(ctx, &req)
+		return nil, h.podService.CreatePodByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -239,7 +265,7 @@ func (h *K8sPodHandler) UpdatePod(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.podService.UpdatePod(ctx, &req)
+		return nil, h.podService.UpdatePod(ctx.Request.Context(), &req)
 	})
 }
 
@@ -269,7 +295,7 @@ func (h *K8sPodHandler) UpdatePodByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.podService.UpdatePodByYaml(ctx, &req)
+		return nil, h.podService.UpdatePodByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -299,7 +325,7 @@ func (h *K8sPodHandler) DeletePod(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.podService.DeletePod(ctx, &req)
+		return nil, h.podService.DeletePod(ctx.Request.Context(), &req)
 	})
 }
 
@@ -372,8 +398,29 @@ func (h *K8sPodHandler) PodExec(ctx *gin.Context) {
 	req.Container = container
 	req.Shell = shell
 
-	if err := h.podService.PodExec(ctx, &req); err != nil {
-		base.BadRequestError(ctx, "建立终端连接失败: "+err.Error())
+	if h.wsUpgrader == nil {
+		base.BadRequestError(ctx, "WebSocket升级器未初始化")
+		return
+	}
+
+	conn, err := h.wsUpgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		base.BadRequestError(ctx, "初始化WebSocket失败: "+err.Error())
+		return
+	}
+	defer func() {
+		if closeErr := conn.Close(); closeErr != nil {
+			h.logger.Error("关闭WebSocket连接失败", zap.Error(closeErr))
+		}
+	}()
+
+	if err := h.podService.PodExec(ctx.Request.Context(), &req, conn); err != nil {
+		h.logger.Error("建立终端连接失败",
+			zap.Error(err),
+			zap.Int("clusterID", req.ClusterID),
+			zap.String("namespace", req.Namespace),
+			zap.String("podName", req.PodName),
+			zap.String("container", req.Container))
 		return
 	}
 }
@@ -404,7 +451,7 @@ func (h *K8sPodHandler) PodPortForward(ctx *gin.Context) {
 	req.PodName = podName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.podService.PodPortForward(ctx, &req)
+		return nil, h.podService.PodPortForward(ctx.Request.Context(), &req)
 	})
 }
 
@@ -486,7 +533,12 @@ func (h *K8sPodHandler) PodFileUpload(ctx *gin.Context) {
 	req.ContainerName = container
 	req.FilePath = filePath
 
-	if err := h.podService.PodFileUpload(ctx, &req); err != nil {
+	if ctx.Request.MultipartForm == nil {
+		base.BadRequestError(ctx, "未找到上传的文件")
+		return
+	}
+
+	if err := h.podService.PodFileUpload(ctx.Request.Context(), &req, ctx.Request.MultipartForm); err != nil {
 		base.BadRequestError(ctx, "文件上传失败: "+err.Error())
 		return
 	}
@@ -559,14 +611,148 @@ func (h *K8sPodHandler) PodFileDownload(ctx *gin.Context) {
 	req.ContainerName = container
 	req.FilePath = filePath
 
-	if err := h.podService.PodFileDownload(ctx, &req); err != nil {
+	reader, fileName, err := h.podService.PodFileDownload(ctx.Request.Context(), &req)
+	if err != nil {
 		base.BadRequestError(ctx, "文件下载失败: "+err.Error())
 		return
+	}
+	defer func() {
+		if closeErr := reader.Close(); closeErr != nil {
+			h.logger.Error("关闭文件流失败", zap.Error(closeErr))
+		}
+	}()
+
+	ctx.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.tar"`, fileName))
+	ctx.Header("Content-Type", "application/octet-stream")
+	ctx.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+	ctx.Header("Pragma", "no-cache")
+	ctx.Header("Expires", "0")
+
+	bytesWritten, err := io.Copy(ctx.Writer, reader)
+	if err != nil {
+		h.logger.Error("文件传输失败",
+			zap.Error(err),
+			zap.Int64("bytesWritten", bytesWritten),
+			zap.Int("clusterID", req.ClusterID),
+			zap.String("namespace", req.Namespace),
+			zap.String("podName", req.PodName),
+			zap.String("container", req.ContainerName),
+			zap.String("filePath", req.FilePath))
+		return
+	}
+
+	h.logger.Info("文件下载完成",
+		zap.Int("clusterID", req.ClusterID),
+		zap.String("namespace", req.Namespace),
+		zap.String("podName", req.PodName),
+		zap.String("container", req.ContainerName),
+		zap.String("filePath", req.FilePath),
+		zap.Int64("bytesWritten", bytesWritten))
+}
+
+func (h *K8sPodHandler) streamPodLogLines(ctx context.Context, out io.ReadCloser, follow bool, msgChan chan<- interface{}) {
+	defer func() {
+		if err := out.Close(); err != nil {
+			if errors.Is(err, context.Canceled) ||
+				errors.Is(err, context.DeadlineExceeded) ||
+				strings.Contains(err.Error(), "request canceled") ||
+				strings.Contains(err.Error(), "context cancellation") {
+				h.logger.Debug("Pod日志流已正常关闭", zap.Error(err))
+				return
+			}
+			h.logger.Error("关闭Pod日志流失败", zap.Error(err))
+		}
+	}()
+
+	reader := bufio.NewReader(out)
+	retryCount := 0
+	maxRetries := 5
+
+	for {
+		select {
+		case <-ctx.Done():
+			h.logger.Info("上下文已取消，停止读取Pod日志")
+			return
+		default:
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				if errors.Is(err, context.Canceled) ||
+					errors.Is(err, context.DeadlineExceeded) ||
+					strings.Contains(err.Error(), "Client.Timeout") ||
+					strings.Contains(err.Error(), "context cancellation") ||
+					strings.Contains(err.Error(), "request canceled") {
+					h.logger.Info("客户端断开连接或请求超时，停止读取Pod日志")
+					return
+				}
+
+				var netErr net.Error
+				if errors.As(err, &netErr) && netErr.Timeout() {
+					h.logger.Info("网络超时，停止读取Pod日志")
+					return
+				}
+
+				if errors.Is(err, io.EOF) {
+					line = strings.TrimSpace(line)
+					if line != "" {
+						msgChan <- line
+					}
+
+					if follow {
+						select {
+						case <-ctx.Done():
+							return
+						case <-time.After(time.Millisecond * 100):
+							continue
+						}
+					}
+					return
+				}
+
+				retryCount++
+				if retryCount > maxRetries {
+					h.logger.Error("读取Pod日志失败，已达到最大重试次数",
+						zap.Error(err),
+						zap.Int("retryCount", retryCount),
+						zap.Int("maxRetries", maxRetries))
+					msgChan <- fmt.Sprintf("日志读取失败: %v", err)
+					return
+				}
+
+				h.logger.Warn("读取Pod日志失败，将重试",
+					zap.Error(err),
+					zap.Int("retryCount", retryCount),
+					zap.Int("maxRetries", maxRetries))
+
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(time.Millisecond * 100):
+					continue
+				}
+			}
+
+			retryCount = 0
+
+			if strings.ContainsRune(line, '\r') {
+				segments := strings.Split(line, "\r")
+				for _, seg := range segments {
+					seg = strings.TrimSpace(seg)
+					if seg != "" {
+						msgChan <- seg
+					}
+				}
+				continue
+			}
+
+			line = strings.TrimSpace(line)
+			if line != "" {
+				msgChan <- line
+			}
+		}
 	}
 }
 
 // isValidPath 验证文件路径的安全性，防止路径遍历等安全攻击
-// 关键安全检查：
 // 1. 路径遍历攻击 (..)
 // 2. 注入攻击 (\n, \r)
 // 3. 空字节注入 (\x00)

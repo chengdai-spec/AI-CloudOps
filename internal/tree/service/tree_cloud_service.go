@@ -70,7 +70,6 @@ func NewTreeCloudService(logger *zap.Logger, dao dao.TreeCloudDAO, cloudAccountD
 	}
 }
 
-// GetTreeCloudResourceList 获取云资源列表
 func (s *treeCloudService) GetTreeCloudResourceList(ctx context.Context, req *model.GetTreeCloudResourceListReq) (model.ListResp[*model.TreeCloudResource], error) {
 	// 兜底分页参数，避免offset为负或size为0
 	treeUtils.ValidateAndSetPaginationDefaults(&req.Page, &req.Size)
@@ -87,7 +86,6 @@ func (s *treeCloudService) GetTreeCloudResourceList(ctx context.Context, req *mo
 	}, nil
 }
 
-// GetTreeCloudResourceDetail 获取云资源详情
 func (s *treeCloudService) GetTreeCloudResourceDetail(ctx context.Context, req *model.GetTreeCloudResourceDetailReq) (*model.TreeCloudResource, error) {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return nil, fmt.Errorf("无效的云资源ID: %w", err)
@@ -133,13 +131,11 @@ func (s *treeCloudService) GetTreeCloudResourceForConnection(ctx context.Context
 	return cloud, nil
 }
 
-// UpdateTreeCloudResource 更新云资源本地元数据
 func (s *treeCloudService) UpdateTreeCloudResource(ctx context.Context, req *model.UpdateTreeCloudResourceReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云资源ID: %w", err)
 	}
 
-	// 检查资源是否存在
 	_, err := s.dao.GetByID(ctx, req.ID)
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -184,19 +180,16 @@ func (s *treeCloudService) UpdateTreeCloudResource(ctx context.Context, req *mod
 		metadata["auth_mode"] = req.AuthMode
 	}
 
-	// 如果没有字段需要更新
 	if len(metadata) == 0 {
 		s.logger.Info("没有字段需要更新", zap.Int("id", req.ID))
 		return nil
 	}
 
-	// 更新元数据
 	if err := s.dao.UpdateMetadata(ctx, req.ID, metadata); err != nil {
 		s.logger.Error("更新云资源元数据失败", zap.Int("id", req.ID), zap.Error(err))
 		return err
 	}
 
-	// 记录变更日志
 	// 获取资源实例ID用于日志
 	resource, _ := s.dao.GetByID(ctx, req.ID)
 	instanceID := ""
@@ -218,7 +211,6 @@ func (s *treeCloudService) UpdateTreeCloudResource(ctx context.Context, req *mod
 			OperatorName: req.OperatorName,
 			ChangeTime:   time.Now(),
 		}
-		// 异步记录，不影响主流程
 		go func(log *model.CloudResourceChangeLog) {
 			if err := s.dao.CreateChangeLog(context.Background(), log); err != nil {
 				s.logger.Error("记录变更日志失败", zap.Error(err))
@@ -230,13 +222,11 @@ func (s *treeCloudService) UpdateTreeCloudResource(ctx context.Context, req *mod
 	return nil
 }
 
-// DeleteTreeCloudResource 删除云资源
 func (s *treeCloudService) DeleteTreeCloudResource(ctx context.Context, req *model.DeleteTreeCloudResourceReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云资源ID: %w", err)
 	}
 
-	// 获取资源信息用于日志记录
 	cloud, err := s.dao.GetByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -246,7 +236,6 @@ func (s *treeCloudService) DeleteTreeCloudResource(ctx context.Context, req *mod
 		return err
 	}
 
-	// 记录删除日志
 	s.recordChangeLog(ctx, cloud, nil, model.ChangeSourceManual, req.OperatorID, req.OperatorName)
 
 	if err := s.dao.Delete(ctx, req.ID); err != nil {
@@ -261,7 +250,6 @@ func (s *treeCloudService) DeleteTreeCloudResource(ctx context.Context, req *mod
 	return nil
 }
 
-// BindTreeCloudResource 绑定云资源到树节点
 func (s *treeCloudService) BindTreeCloudResource(ctx context.Context, req *model.BindTreeCloudResourceReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云资源ID: %w", err)
@@ -275,7 +263,6 @@ func (s *treeCloudService) BindTreeCloudResource(ctx context.Context, req *model
 	return nil
 }
 
-// UnBindTreeCloudResource 解绑云资源与树节点
 func (s *treeCloudService) UnBindTreeCloudResource(ctx context.Context, req *model.UnBindTreeCloudResourceReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云资源ID: %w", err)
@@ -289,7 +276,6 @@ func (s *treeCloudService) UnBindTreeCloudResource(ctx context.Context, req *mod
 	return nil
 }
 
-// GetTreeNodeCloudResources 获取树节点下的云资源
 func (s *treeCloudService) GetTreeNodeCloudResources(ctx context.Context, req *model.GetTreeNodeCloudResourcesReq) ([]*model.TreeCloudResource, error) {
 	if err := treeUtils.ValidateID(req.NodeID); err != nil {
 		return nil, fmt.Errorf("无效的节点ID: %w", err)
@@ -304,13 +290,11 @@ func (s *treeCloudService) GetTreeNodeCloudResources(ctx context.Context, req *m
 	return clouds, nil
 }
 
-// UpdateCloudResourceStatus 更新云资源状态
 func (s *treeCloudService) UpdateCloudResourceStatus(ctx context.Context, req *model.UpdateCloudResourceStatusReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云资源ID: %w", err)
 	}
 
-	// 检查云资源是否存在
 	_, err := s.dao.GetByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -328,22 +312,18 @@ func (s *treeCloudService) UpdateCloudResourceStatus(ctx context.Context, req *m
 	return nil
 }
 
-// SyncTreeCloudResource 从云厂商同步资源
 func (s *treeCloudService) SyncTreeCloudResource(ctx context.Context, req *model.SyncTreeCloudResourceReq) (*model.SyncCloudResourceResp, error) {
 	startTime := time.Now()
 
-	// 设置默认的同步模式
 	if req.SyncMode == "" {
 		req.SyncMode = model.SyncModeIncremental
 	}
 
-	// 初始化同步响应
 	resp := &model.SyncCloudResourceResp{
 		SyncTime:        startTime,
 		FailedInstances: []string{},
 	}
 
-	// 创建同步历史记录
 	syncHistory := &model.CloudResourceSyncHistory{
 		CloudAccountID: req.CloudAccountID,
 		SyncMode:       req.SyncMode,
@@ -351,7 +331,6 @@ func (s *treeCloudService) SyncTreeCloudResource(ctx context.Context, req *model
 		SyncStatus:     "running",
 	}
 
-	// 获取云账户信息
 	account, err := s.cloudAccountDAO.GetByID(ctx, req.CloudAccountID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -361,7 +340,6 @@ func (s *treeCloudService) SyncTreeCloudResource(ctx context.Context, req *model
 		return nil, err
 	}
 
-	// 检查云账户状态
 	if account.Status != model.CloudAccountEnabled {
 		return nil, errors.New("云账户已禁用，无法同步资源")
 	}
@@ -385,7 +363,6 @@ func (s *treeCloudService) SyncTreeCloudResource(ctx context.Context, req *model
 		return nil, fmt.Errorf("解密SecretKey失败: %w", err)
 	}
 
-	// 获取要同步的区域列表
 	var regionsToSync []*model.CloudAccountRegion
 	if len(req.CloudAccountRegionIDs) > 0 {
 		// 同步指定的区域
@@ -435,7 +412,6 @@ func (s *treeCloudService) SyncTreeCloudResource(ctx context.Context, req *model
 		syncErr = fmt.Errorf("不支持的云厂商: %d", account.Provider)
 	}
 
-	// 更新同步历史记录
 	endTime := time.Now()
 	syncHistory.EndTime = &endTime
 	syncHistory.Duration = int(endTime.Sub(startTime).Seconds())
@@ -478,7 +454,6 @@ func (s *treeCloudService) SyncTreeCloudResource(ctx context.Context, req *model
 }
 
 // syncAliyunResourcesWithStats 同步阿里云资源并返回统计信息
-// syncAliyunResourcesForMultipleRegions 多区域阿里云资源同步
 func (s *treeCloudService) syncAliyunResourcesForMultipleRegions(ctx context.Context, account *model.CloudAccount, accessKey, secretKey string, regions []*model.CloudAccountRegion, req *model.SyncTreeCloudResourceReq, resp *model.SyncCloudResourceResp) error {
 	// 遍历每个区域进行同步
 	for _, region := range regions {
@@ -486,7 +461,6 @@ func (s *treeCloudService) syncAliyunResourcesForMultipleRegions(ctx context.Con
 			zap.String("region", region.Region),
 			zap.String("regionName", region.RegionName))
 
-		// 构建同步配置
 		config := &treeUtils.AliyunSyncConfig{
 			AccessKey:      accessKey,
 			SecretKey:      secretKey,
@@ -497,7 +471,6 @@ func (s *treeCloudService) syncAliyunResourcesForMultipleRegions(ctx context.Con
 			SyncMode:       req.SyncMode,
 		}
 
-		// 从阿里云获取资源列表
 		resources, err := treeUtils.SyncAliyunResources(ctx, config, s.logger)
 		if err != nil {
 			s.logger.Error("同步区域资源失败",
@@ -507,13 +480,11 @@ func (s *treeCloudService) syncAliyunResourcesForMultipleRegions(ctx context.Con
 			continue
 		}
 
-		// 为资源设置区域关联信息
 		for _, resource := range resources {
 			resource.CloudAccountRegionID = region.ID
 			resource.Region = region.Region // 冗余字段，便于查询
 		}
 
-		// 根据同步模式处理资源
 		if req.SyncMode == model.SyncModeFull {
 			// 全量同步：先删除该区域下的所有ECS资源，再重新创建
 			err = s.fullSyncResourcesForRegion(ctx, region.ID, resources, resp, req.AutoBind, req.BindNodeID, req.OperatorID, req.OperatorName)
@@ -554,7 +525,6 @@ func (s *treeCloudService) syncAliyunResourcesWithStats(ctx context.Context, acc
 		return errors.New("云账户没有配置区域")
 	}
 
-	// 构建同步配置
 	config := &treeUtils.AliyunSyncConfig{
 		AccessKey:      accessKey,
 		SecretKey:      secretKey,
@@ -565,19 +535,16 @@ func (s *treeCloudService) syncAliyunResourcesWithStats(ctx context.Context, acc
 		SyncMode:       req.SyncMode,
 	}
 
-	// 从阿里云获取资源列表
 	resources, err := treeUtils.SyncAliyunResources(ctx, config, s.logger)
 	if err != nil {
 		return err
 	}
 
-	// 为资源设置区域关联信息
 	for _, resource := range resources {
 		resource.CloudAccountRegionID = region.ID
 		resource.Region = region.Region // 冗余字段，便于查询
 	}
 
-	// 根据同步模式处理资源
 	if req.SyncMode == model.SyncModeFull {
 		// 全量同步：先删除该云账户下的所有ECS资源，再重新创建
 		return s.fullSyncResources(ctx, account.ID, resources, resp, req.AutoBind, req.BindNodeID, req.OperatorID, req.OperatorName)
@@ -587,7 +554,6 @@ func (s *treeCloudService) syncAliyunResourcesWithStats(ctx context.Context, acc
 	return s.incrementalSyncResources(ctx, account.ID, resources, resp, req.AutoBind, req.BindNodeID, req.OperatorID, req.OperatorName)
 }
 
-// fullSyncResources 全量同步资源
 func (s *treeCloudService) fullSyncResources(ctx context.Context, cloudAccountID int, resources []*model.TreeCloudResource, resp *model.SyncCloudResourceResp, autoBind bool, bindNodeID int, operatorID int, operatorName string) error {
 	// 获取该云账户下的所有ECS资源
 	req := &model.GetTreeCloudResourceListReq{
@@ -618,17 +584,14 @@ func (s *treeCloudService) fullSyncResources(ctx context.Context, cloudAccountID
 				resp.FailedInstances = append(resp.FailedInstances, existingResource.InstanceID)
 			} else {
 				resp.DeleteCount++
-				// 记录删除日志
 				s.recordChangeLog(ctx, existingResource, nil, model.ChangeSourceSync, operatorID, operatorName)
 			}
 		}
 	}
 
-	// 更新或创建资源
 	return s.incrementalSyncResources(ctx, cloudAccountID, resources, resp, autoBind, bindNodeID, operatorID, operatorName)
 }
 
-// fullSyncResourcesForRegion 基于区域的全量同步资源
 func (s *treeCloudService) fullSyncResourcesForRegion(ctx context.Context, regionID int, resources []*model.TreeCloudResource, resp *model.SyncCloudResourceResp, autoBind bool, bindNodeID int, operatorID int, operatorName string) error {
 	// 通过DAO层查询指定区域的资源
 	existingResources, err := s.dao.GetResourcesByRegion(ctx, regionID, model.ResourceTypeECS)
@@ -651,17 +614,14 @@ func (s *treeCloudService) fullSyncResourcesForRegion(ctx context.Context, regio
 				resp.FailedInstances = append(resp.FailedInstances, existingResource.InstanceID)
 			} else {
 				resp.DeleteCount++
-				// 记录删除日志
 				s.recordChangeLog(ctx, existingResource, nil, model.ChangeSourceSync, operatorID, operatorName)
 			}
 		}
 	}
 
-	// 更新或创建资源
 	return s.incrementalSyncResourcesForRegion(ctx, regionID, resources, resp, autoBind, bindNodeID, operatorID, operatorName)
 }
 
-// incrementalSyncResourcesForRegion 基于区域的增量同步资源
 func (s *treeCloudService) incrementalSyncResourcesForRegion(ctx context.Context, regionID int, resources []*model.TreeCloudResource, resp *model.SyncCloudResourceResp, autoBind bool, bindNodeID int, operatorID int, operatorName string) error {
 	for _, resource := range resources {
 		resp.TotalCount++
@@ -679,7 +639,6 @@ func (s *treeCloudService) incrementalSyncResourcesForRegion(ctx context.Context
 		}
 
 		if existing != nil {
-			// 更新现有资源
 			resource.ID = existing.ID
 			if err := s.dao.Update(ctx, resource); err != nil {
 				s.logger.Error("更新区域资源失败", zap.Int("id", existing.ID), zap.Error(err))
@@ -687,11 +646,9 @@ func (s *treeCloudService) incrementalSyncResourcesForRegion(ctx context.Context
 				resp.FailedInstances = append(resp.FailedInstances, resource.InstanceID)
 			} else {
 				resp.UpdateCount++
-				// 记录更新日志
 				s.recordChangeLog(ctx, existing, resource, model.ChangeSourceSync, operatorID, operatorName)
 			}
 		} else {
-			// 创建新资源
 			if err := s.dao.Create(ctx, resource); err != nil {
 				s.logger.Error("创建区域资源失败",
 					zap.Int("regionID", regionID),
@@ -701,10 +658,8 @@ func (s *treeCloudService) incrementalSyncResourcesForRegion(ctx context.Context
 				resp.FailedInstances = append(resp.FailedInstances, resource.InstanceID)
 			} else {
 				resp.NewCount++
-				// 记录创建日志
 				s.recordChangeLog(ctx, nil, resource, model.ChangeSourceSync, operatorID, operatorName)
 
-				// 自动绑定到服务树节点
 				if autoBind && bindNodeID > 0 {
 					bindReq := &model.BindTreeCloudResourceReq{
 						ID:          resource.ID,
@@ -724,12 +679,10 @@ func (s *treeCloudService) incrementalSyncResourcesForRegion(ctx context.Context
 	return nil
 }
 
-// incrementalSyncResources 增量同步资源
 func (s *treeCloudService) incrementalSyncResources(ctx context.Context, cloudAccountID int, resources []*model.TreeCloudResource, resp *model.SyncCloudResourceResp, autoBind bool, bindNodeID int, operatorID int, operatorName string) error {
 	for _, resource := range resources {
 		resp.TotalCount++
 
-		// 检查资源是否已存在
 		existing, err := s.dao.GetByAccountAndInstanceID(ctx, cloudAccountID, resource.InstanceID)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			s.logger.Error("查询资源失败", zap.String("instanceID", resource.InstanceID), zap.Error(err))
@@ -739,7 +692,6 @@ func (s *treeCloudService) incrementalSyncResources(ctx context.Context, cloudAc
 		}
 
 		if existing != nil {
-			// 更新现有资源
 			resource.ID = existing.ID
 			if err := s.dao.Update(ctx, resource); err != nil {
 				s.logger.Error("更新资源失败", zap.Int("id", existing.ID), zap.Error(err))
@@ -747,18 +699,15 @@ func (s *treeCloudService) incrementalSyncResources(ctx context.Context, cloudAc
 				resp.FailedInstances = append(resp.FailedInstances, resource.InstanceID)
 			} else {
 				resp.UpdateCount++
-				// 记录更新日志
 				s.recordChangeLog(ctx, existing, resource, model.ChangeSourceSync, operatorID, operatorName)
 			}
 		} else {
-			// 创建新资源
 			if err := s.dao.Create(ctx, resource); err != nil {
 				s.logger.Error("创建资源失败", zap.String("instanceID", resource.InstanceID), zap.Error(err))
 				resp.FailedCount++
 				resp.FailedInstances = append(resp.FailedInstances, resource.InstanceID)
 			} else {
 				resp.NewCount++
-				// 记录创建日志
 				s.recordChangeLog(ctx, nil, resource, model.ChangeSourceSync, operatorID, operatorName)
 
 				// 如果启用自动绑定，则绑定到指定节点
@@ -777,9 +726,7 @@ func (s *treeCloudService) incrementalSyncResources(ctx context.Context, cloudAc
 	return nil
 }
 
-// recordChangeLog 记录资源变更日志
 func (s *treeCloudService) recordChangeLog(ctx context.Context, oldResource, newResource *model.TreeCloudResource, source string, operatorID int, operatorName string) {
-	// 如果是删除操作
 	if oldResource != nil && newResource == nil {
 		changeLog := &model.CloudResourceChangeLog{
 			ResourceID:   oldResource.ID,
@@ -793,14 +740,12 @@ func (s *treeCloudService) recordChangeLog(ctx context.Context, oldResource, new
 			OperatorName: operatorName,
 			ChangeTime:   time.Now(),
 		}
-		// 保存变更日志
 		if err := s.dao.CreateChangeLog(ctx, changeLog); err != nil {
 			s.logger.Error("保存删除日志失败", zap.Error(err))
 		}
 		return
 	}
 
-	// 如果是创建操作
 	if oldResource == nil && newResource != nil {
 		changeLog := &model.CloudResourceChangeLog{
 			ResourceID:   newResource.ID,
@@ -814,7 +759,6 @@ func (s *treeCloudService) recordChangeLog(ctx context.Context, oldResource, new
 			OperatorName: operatorName,
 			ChangeTime:   time.Now(),
 		}
-		// 保存变更日志
 		if err := s.dao.CreateChangeLog(ctx, changeLog); err != nil {
 			s.logger.Error("保存创建日志失败", zap.Error(err))
 		}
@@ -823,7 +767,6 @@ func (s *treeCloudService) recordChangeLog(ctx context.Context, oldResource, new
 
 	// 如果是更新操作，比较字段变化
 	if oldResource != nil && newResource != nil {
-		// 比较状态
 		if oldResource.Status != newResource.Status {
 			changeLog := &model.CloudResourceChangeLog{
 				ResourceID:   newResource.ID,
@@ -837,7 +780,6 @@ func (s *treeCloudService) recordChangeLog(ctx context.Context, oldResource, new
 				OperatorName: operatorName,
 				ChangeTime:   time.Now(),
 			}
-			// 保存变更日志
 			if err := s.dao.CreateChangeLog(ctx, changeLog); err != nil {
 				s.logger.Error("保存状态变更日志失败", zap.Error(err))
 			}
@@ -846,16 +788,13 @@ func (s *treeCloudService) recordChangeLog(ctx context.Context, oldResource, new
 	}
 }
 
-// saveSyncHistory 保存同步历史
 func (s *treeCloudService) saveSyncHistory(ctx context.Context, history *model.CloudResourceSyncHistory) {
 	if err := s.dao.CreateSyncHistory(ctx, history); err != nil {
 		s.logger.Error("保存同步历史失败", zap.Error(err))
 	}
 }
 
-// GetSyncHistory 获取同步历史
 func (s *treeCloudService) GetSyncHistory(ctx context.Context, req *model.GetCloudResourceSyncHistoryReq) (model.ListResp[*model.CloudResourceSyncHistory], error) {
-	// 兜底分页参数
 	treeUtils.ValidateAndSetPaginationDefaults(&req.Page, &req.Size)
 
 	histories, total, err := s.dao.GetSyncHistoryList(ctx, req)
@@ -870,9 +809,7 @@ func (s *treeCloudService) GetSyncHistory(ctx context.Context, req *model.GetClo
 	}, nil
 }
 
-// GetChangeLog 获取资源变更日志
 func (s *treeCloudService) GetChangeLog(ctx context.Context, req *model.GetCloudResourceChangeLogReq) (model.ListResp[*model.CloudResourceChangeLog], error) {
-	// 兜底分页参数
 	treeUtils.ValidateAndSetPaginationDefaults(&req.Page, &req.Size)
 
 	logs, total, err := s.dao.GetChangeLogList(ctx, req)
@@ -887,13 +824,11 @@ func (s *treeCloudService) GetChangeLog(ctx context.Context, req *model.GetCloud
 	}, nil
 }
 
-// BatchDeleteTreeCloudResource 批量删除云资源
 func (s *treeCloudService) BatchDeleteTreeCloudResource(ctx context.Context, req *model.BatchDeleteTreeCloudResourceReq) error {
 	if len(req.IDs) == 0 {
 		return errors.New("批量删除ID列表不能为空")
 	}
 
-	// 检查所有云资源是否存在
 	resources, err := s.dao.BatchGetByIDs(ctx, req.IDs)
 	if err != nil {
 		return err
@@ -903,13 +838,11 @@ func (s *treeCloudService) BatchDeleteTreeCloudResource(ctx context.Context, req
 		return errors.New("部分云资源不存在")
 	}
 
-	// 执行批量删除
 	if err := s.dao.BatchDelete(ctx, req.IDs); err != nil {
 		s.logger.Error("批量删除云资源失败", zap.Error(err))
 		return err
 	}
 
-	// 记录删除日志
 	for _, resource := range resources {
 		s.recordChangeLog(ctx, resource, nil, model.ChangeSourceManual, req.OperatorID, req.OperatorName)
 	}
@@ -918,13 +851,11 @@ func (s *treeCloudService) BatchDeleteTreeCloudResource(ctx context.Context, req
 	return nil
 }
 
-// BatchUpdateCloudResourceStatus 批量更新云资源状态
 func (s *treeCloudService) BatchUpdateCloudResourceStatus(ctx context.Context, req *model.BatchUpdateCloudResourceStatusReq) error {
 	if len(req.IDs) == 0 {
 		return errors.New("批量更新ID列表不能为空")
 	}
 
-	// 检查所有云资源是否存在
 	resources, err := s.dao.BatchGetByIDs(ctx, req.IDs)
 	if err != nil {
 		return err
@@ -934,13 +865,11 @@ func (s *treeCloudService) BatchUpdateCloudResourceStatus(ctx context.Context, r
 		return errors.New("部分云资源不存在")
 	}
 
-	// 执行批量更新状态
 	if err := s.dao.BatchUpdateStatus(ctx, req.IDs, req.Status); err != nil {
 		s.logger.Error("批量更新云资源状态失败", zap.Error(err))
 		return err
 	}
 
-	// 记录状态变更日志
 	for _, resource := range resources {
 		if resource.Status != req.Status {
 			changeLog := &model.CloudResourceChangeLog{

@@ -59,7 +59,6 @@ func (e *EmailChannel) GetName() string {
 func (e *EmailChannel) Send(ctx context.Context, request *SendRequest) (*SendResponse, error) {
 	startTime := time.Now()
 
-	// 验证邮箱
 	if !validateEmailAddress(request.RecipientAddr) {
 		return &SendResponse{
 			Success:      false,
@@ -70,18 +69,15 @@ func (e *EmailChannel) Send(ctx context.Context, request *SendRequest) (*SendRes
 		}, fmt.Errorf("invalid email address: %s", request.RecipientAddr)
 	}
 
-	// 创建邮件
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf("%s <%s>", e.config.GetFromName(), e.config.GetUsername()))
 	m.SetHeader("To", request.RecipientAddr)
-	// 设置主题
 	subject := request.Subject
 	if subject == "" {
 		subject = "工单通知"
 	}
 	m.SetHeader("Subject", subject)
 
-	// 设置内容
 	content := e.buildEmailContent(request)
 	m.SetBody("text/html", content)
 
@@ -180,7 +176,6 @@ func (e *EmailChannel) parseEmailError(err error, smtpHost string) string {
 		return "Outlook认证失败：请检查账号密码是否正确，或考虑使用应用密码"
 	}
 
-	// 通用错误处理
 	switch {
 	case strings.Contains(errStr, "535"):
 		return "SMTP认证失败：账号或密码错误，或需要使用授权码/应用密码"
@@ -211,23 +206,18 @@ func (e *EmailChannel) parseEmailError(err error, smtpHost string) string {
 	}
 }
 
-// Validate 验证邮件通道配置有效性
 func (e *EmailChannel) Validate() error {
-	// 验证通道是否启用
 	if !e.config.IsEnabled() {
 		return nil // 如果未启用，跳过验证
 	}
 
-	// 验证用户名（发件人邮箱）
 	if e.config.GetUsername() == "" {
 		return fmt.Errorf("SMTP username (sender email) is required")
 	}
 
-	// 验证邮箱格式
 	if !validateEmailAddress(e.config.GetUsername()) {
 		return fmt.Errorf("invalid sender email format: %s", e.config.GetUsername())
 	}
-	// 验证密码
 	if e.config.GetPassword() == "" {
 		return fmt.Errorf("SMTP password is required")
 	}
@@ -238,18 +228,15 @@ func (e *EmailChannel) Validate() error {
 	// 如果配置了自定义SMTP主机，验证其有效性
 	configuredHost := e.config.GetSMTPHost()
 	if configuredHost != "" && configuredHost != "smtp.gmail.com" {
-		// 验证主机名格式
 		if !strings.Contains(configuredHost, ".") {
 			return fmt.Errorf("invalid SMTP host format: %s", configuredHost)
 		}
 
-		// 验证端口
 		configuredPort := e.config.GetSMTPPort()
 		if configuredPort <= 0 || configuredPort > 65535 {
 			return fmt.Errorf("invalid SMTP port: %d", configuredPort)
 		}
 
-		// 验证端口合法性
 		validPorts := []int{25, 465, 587, 993, 995, 2525}
 		isValidPort := false
 		for _, port := range validPorts {
@@ -276,24 +263,20 @@ func (e *EmailChannel) Validate() error {
 			zap.Bool("detected_tls", detectedTLS))
 	}
 
-	// 验证重试配置
 	if e.config.GetMaxRetries() < 0 || e.config.GetMaxRetries() > 10 {
 		e.logger.Warn("重试次数设置异常", zap.Int("max_retries", e.config.GetMaxRetries()))
 	}
 
-	// 验证超时配置
 	timeout := e.config.GetTimeout()
 	if timeout < 5*time.Second || timeout > 120*time.Second {
 		e.logger.Warn("超时时间设置异常", zap.Duration("timeout", timeout))
 	}
 
-	// 验证重试间隔
 	retryInterval := e.config.GetRetryInterval()
 	if retryInterval < 1*time.Second || retryInterval > 30*time.Minute {
 		e.logger.Warn("重试间隔设置异常", zap.Duration("retry_interval", retryInterval))
 	}
 
-	// 验证发件人名称
 	fromName := e.config.GetFromName()
 	if fromName == "" {
 		e.logger.Warn("未设置发件人名称，将使用默认名称")
@@ -304,22 +287,18 @@ func (e *EmailChannel) Validate() error {
 	return e.config.Validate()
 }
 
-// IsEnabled 检查通道是否启用
 func (e *EmailChannel) IsEnabled() bool {
 	return e.config.IsEnabled()
 }
 
-// GetMaxRetries 获取最大重试次数
 func (e *EmailChannel) GetMaxRetries() int {
 	return e.config.GetMaxRetries()
 }
 
-// GetRetryInterval 获取重试间隔
 func (e *EmailChannel) GetRetryInterval() time.Duration {
 	return e.config.GetRetryInterval()
 }
 
-// buildEmailContent 构建邮件内容
 func (e *EmailChannel) buildEmailContent(request *SendRequest) string {
 	template := `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -752,7 +731,6 @@ func (e *EmailChannel) buildEmailContent(request *SendRequest) string {
 </body>
 </html>`
 
-	// 优先级显示配置
 	var priorityClass, priorityText string
 	switch request.Priority {
 	case 1:
@@ -769,7 +747,6 @@ func (e *EmailChannel) buildEmailContent(request *SendRequest) string {
 		priorityText = "普通 NORMAL"
 	}
 
-	// 获取工单编号
 	workorderNumber := "系统通知"
 	if request.InstanceID != nil {
 		workorderNumber = fmt.Sprintf("#%d", *request.InstanceID)
@@ -778,7 +755,6 @@ func (e *EmailChannel) buildEmailContent(request *SendRequest) string {
 	// 事件类型显示
 	eventTypeDisplay := fmt.Sprintf("%s %s", GetEventTypeIcon(request.EventType), GetEventTypeText(request.EventType))
 
-	// 处理收件人名称
 	recipientName := request.RecipientName
 	if recipientName == "" {
 		recipientName = "尊敬的用户"
@@ -856,9 +832,7 @@ func (e *EmailChannel) detectSMTPConfig(username string) (string, int, bool) {
 	}
 }
 
-// validateEmailAddress 验证邮箱地址格式
 func validateEmailAddress(email string) bool {
-	// 基本格式检查
 	if email == "" || len(email) > 254 {
 		return false
 	}

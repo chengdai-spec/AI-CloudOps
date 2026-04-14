@@ -55,7 +55,6 @@ func (h *AlertRuleHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateMonitorAlertRule 创建新的告警规则
 func (h *AlertRuleHandler) CreateMonitorAlertRule(ctx *gin.Context) {
 	var req model.CreateMonitorAlertRuleReq
 
@@ -64,11 +63,10 @@ func (h *AlertRuleHandler) CreateMonitorAlertRule(ctx *gin.Context) {
 	req.CreateUserName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.CreateMonitorAlertRule(ctx, &req)
+		return nil, h.svc.CreateMonitorAlertRule(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateMonitorAlertRule 更新现有的告警规则
 func (h *AlertRuleHandler) UpdateMonitorAlertRule(ctx *gin.Context) {
 	var req model.UpdateMonitorAlertRuleReq
 
@@ -81,11 +79,10 @@ func (h *AlertRuleHandler) UpdateMonitorAlertRule(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.UpdateMonitorAlertRule(ctx, &req)
+		return nil, h.svc.UpdateMonitorAlertRule(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteMonitorAlertRule 删除指定的告警规则
 func (h *AlertRuleHandler) DeleteMonitorAlertRule(ctx *gin.Context) {
 	var req model.DeleteMonitorAlertRuleReq
 
@@ -98,16 +95,15 @@ func (h *AlertRuleHandler) DeleteMonitorAlertRule(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.DeleteMonitorAlertRule(ctx, &req)
+		return nil, h.svc.DeleteMonitorAlertRule(ctx.Request.Context(), &req)
 	})
 }
 
-// GetMonitorAlertRuleList 获取告警规则列表
 func (h *AlertRuleHandler) GetMonitorAlertRuleList(ctx *gin.Context) {
 	var req model.GetMonitorAlertRuleListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetMonitorAlertRuleList(ctx, &req)
+		return h.svc.GetMonitorAlertRuleList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -120,7 +116,6 @@ func (h *AlertRuleHandler) PromqlExprCheck(ctx *gin.Context) {
 	})
 }
 
-// GetMonitorAlertRule 获取指定的告警规则详情
 func (h *AlertRuleHandler) GetMonitorAlertRule(ctx *gin.Context) {
 	var req model.GetMonitorAlertRuleReq
 
@@ -133,6 +128,6 @@ func (h *AlertRuleHandler) GetMonitorAlertRule(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetMonitorAlertRule(ctx, &req)
+		return h.svc.GetMonitorAlertRule(ctx.Request.Context(), &req)
 	})
 }

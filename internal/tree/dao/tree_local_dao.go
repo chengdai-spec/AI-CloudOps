@@ -59,7 +59,6 @@ func NewTreeLocalDAO(db *gorm.DB, logger *zap.Logger) TreeLocalDAO {
 	}
 }
 
-// Create 创建本地主机
 func (d *treeLocalDAO) Create(ctx context.Context, local *model.TreeLocalResource) error {
 	if err := d.db.WithContext(ctx).Create(local).Error; err != nil {
 		d.logger.Error("创建本地主机失败", zap.Error(err))
@@ -69,7 +68,6 @@ func (d *treeLocalDAO) Create(ctx context.Context, local *model.TreeLocalResourc
 	return nil
 }
 
-// Update 更新本地主机
 func (d *treeLocalDAO) Update(ctx context.Context, local *model.TreeLocalResource) error {
 	if err := d.db.WithContext(ctx).Model(local).Updates(local).Error; err != nil {
 		d.logger.Error("更新本地主机失败", zap.Error(err))
@@ -79,7 +77,6 @@ func (d *treeLocalDAO) Update(ctx context.Context, local *model.TreeLocalResourc
 	return nil
 }
 
-// Delete 删除本地主机
 func (d *treeLocalDAO) Delete(ctx context.Context, id int) error {
 	if err := d.db.WithContext(ctx).Delete(&model.TreeLocalResource{}, id).Error; err != nil {
 		d.logger.Error("删除本地主机失败", zap.Error(err), zap.Int("id", id))
@@ -102,14 +99,12 @@ func (d *treeLocalDAO) GetByID(ctx context.Context, id int) (*model.TreeLocalRes
 	return &local, nil
 }
 
-// GetList 获取本地主机列表
 func (d *treeLocalDAO) GetList(ctx context.Context, req *model.GetTreeLocalResourceListReq) ([]*model.TreeLocalResource, int64, error) {
 	var locals []*model.TreeLocalResource
 	var total int64
 
 	query := d.db.WithContext(ctx).Model(&model.TreeLocalResource{})
 
-	// 添加查询条件
 	if req.Status != 0 {
 		query = query.Where("status = ?", req.Status)
 	}
@@ -118,14 +113,12 @@ func (d *treeLocalDAO) GetList(ctx context.Context, req *model.GetTreeLocalResou
 		query = query.Where("name LIKE ?", "%"+req.Search+"%")
 	}
 
-	// 计算总数
 	err := query.Count(&total).Error
 	if err != nil {
 		d.logger.Error("获取本地主机总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	err = query.
 		Order("created_at DESC").
@@ -171,21 +164,18 @@ func (d *treeLocalDAO) BatchGetByIDs(ctx context.Context, ids []int) ([]*model.T
 	return locals, nil
 }
 
-// BindTreeNodes 绑定树节点
 func (d *treeLocalDAO) BindTreeNodes(ctx context.Context, localID int, treeNodeIds []int) error {
 	if !treeUtils.ValidateTreeNodeIDs(treeNodeIds) {
 		d.logger.Info("没有需要绑定的树节点")
 		return nil
 	}
 
-	// 获取本地资源
 	var local model.TreeLocalResource
 	if err := d.db.WithContext(ctx).First(&local, localID).Error; err != nil {
 		d.logger.Error("获取本地资源失败", zap.Error(err), zap.Int("localID", localID))
 		return err
 	}
 
-	// 构建要绑定的树节点列表
 	var treeNodes []model.TreeNode
 	for _, nodeID := range treeNodeIds {
 		treeNodes = append(treeNodes, model.TreeNode{Model: model.Model{ID: nodeID}})
@@ -208,14 +198,12 @@ func (d *treeLocalDAO) UnBindTreeNodes(ctx context.Context, localID int, treeNod
 		return nil
 	}
 
-	// 获取本地资源
 	var local model.TreeLocalResource
 	if err := d.db.WithContext(ctx).First(&local, localID).Error; err != nil {
 		d.logger.Error("获取本地资源失败", zap.Error(err), zap.Int("localID", localID))
 		return err
 	}
 
-	// 构建要解绑的树节点列表
 	var treeNodes []model.TreeNode
 	for _, nodeID := range treeNodeIds {
 		treeNodes = append(treeNodes, model.TreeNode{Model: model.Model{ID: nodeID}})

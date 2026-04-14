@@ -176,7 +176,6 @@ func GetAvailableRegionsByProviderWithoutCredentials(provider model.CloudProvide
 	}
 }
 
-// getAliyunAvailableRegions 获取阿里云可用区域列表
 func getAliyunAvailableRegions(ctx context.Context, accessKey, secretKey string, logger *zap.Logger) ([]model.AvailableRegion, error) {
 	// 使用任意区域创建客户端来获取区域列表（获取区域列表本身不依赖具体区域）
 	client, err := NewAliyunClient(accessKey, secretKey, "cn-hangzhou", logger)
@@ -196,7 +195,6 @@ func getAliyunAvailableRegions(ctx context.Context, accessKey, secretKey string,
 	return regions, nil
 }
 
-// getTencentAvailableRegions 获取腾讯云可用区域列表
 func getTencentAvailableRegions(ctx context.Context, accessKey, secretKey string, logger *zap.Logger) ([]model.AvailableRegion, error) {
 	logger.Warn("腾讯云区域获取功能暂未实现，返回默认区域列表")
 	// TODO: 实现腾讯云SDK调用
@@ -210,7 +208,6 @@ func getAWSAvailableRegions(ctx context.Context, accessKey, secretKey string, lo
 	return GetAvailableRegionsByProviderWithoutCredentials(model.ProviderAWS), nil
 }
 
-// getHuaweiAvailableRegions 获取华为云可用区域列表
 func getHuaweiAvailableRegions(ctx context.Context, accessKey, secretKey string, logger *zap.Logger) ([]model.AvailableRegion, error) {
 	logger.Warn("华为云区域获取功能暂未实现，返回默认区域列表")
 	// TODO: 实现华为云SDK调用
@@ -231,7 +228,6 @@ func getGCPAvailableRegions(ctx context.Context, accessKey, secretKey string, lo
 	return GetAvailableRegionsByProviderWithoutCredentials(model.ProviderGCP), nil
 }
 
-// GetProviderName 获取云厂商名称
 func GetProviderName(provider model.CloudProvider) string {
 	switch provider {
 	case model.ProviderAliyun:

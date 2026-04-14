@@ -54,16 +54,14 @@ func (h *MonitorConfigHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetMonitorConfigList 获取监控配置列表
 func (h *MonitorConfigHandler) GetMonitorConfigList(ctx *gin.Context) {
 	var req model.GetMonitorConfigListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetMonitorConfigList(ctx, &req)
+		return h.svc.GetMonitorConfigList(ctx.Request.Context(), &req)
 	})
 }
 
-// GetMonitorConfig 获取监控配置
 func (h *MonitorConfigHandler) GetMonitorConfig(ctx *gin.Context) {
 	var req model.GetMonitorConfigReq
 
@@ -76,20 +74,18 @@ func (h *MonitorConfigHandler) GetMonitorConfig(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetMonitorConfigByID(ctx, &req)
+		return h.svc.GetMonitorConfigByID(ctx.Request.Context(), &req)
 	})
 }
 
-// CreateMonitorConfig 创建监控配置
 func (h *MonitorConfigHandler) CreateMonitorConfig(ctx *gin.Context) {
 	var req model.CreateMonitorConfigReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.CreateMonitorConfig(ctx, &req)
+		return nil, h.svc.CreateMonitorConfig(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateMonitorConfig 更新监控配置
 func (h *MonitorConfigHandler) UpdateMonitorConfig(ctx *gin.Context) {
 	var req model.UpdateMonitorConfigReq
 
@@ -102,11 +98,10 @@ func (h *MonitorConfigHandler) UpdateMonitorConfig(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.UpdateMonitorConfig(ctx, &req)
+		return nil, h.svc.UpdateMonitorConfig(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteMonitorConfig 删除监控配置
 func (h *MonitorConfigHandler) DeleteMonitorConfig(ctx *gin.Context) {
 	var req model.DeleteMonitorConfigReq
 
@@ -119,6 +114,6 @@ func (h *MonitorConfigHandler) DeleteMonitorConfig(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.DeleteMonitorConfig(ctx, &req)
+		return nil, h.svc.DeleteMonitorConfig(ctx.Request.Context(), &req)
 	})
 }

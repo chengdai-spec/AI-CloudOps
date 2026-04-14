@@ -36,8 +36,6 @@ import (
 	"github.com/GoSimplicity/AI-CloudOps/pkg/base"
 	jwt2 "github.com/GoSimplicity/AI-CloudOps/pkg/jwt"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/spf13/viper"
 )
 
 type UserHandler struct {
@@ -71,21 +69,19 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 	}
 }
 
-// SignUp 用户注册处理
 func (h *UserHandler) SignUp(ctx *gin.Context) {
 	var req model.UserSignUpReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.SignUp(ctx, &req)
+		return nil, h.service.SignUp(ctx.Request.Context(), &req)
 	})
 }
 
-// Login 用户登录处理
 func (h *UserHandler) Login(ctx *gin.Context) {
 	var req model.UserLoginReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		user, err := h.service.Login(ctx, &req)
+		user, err := h.service.Login(ctx.Request.Context(), &req)
 		if err != nil {
 			switch {
 			case errors.Is(err, constants.ErrorUserNotExist):
@@ -114,14 +110,12 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	})
 }
 
-// Logout 用户登出处理
 func (h *UserHandler) Logout(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
 		return nil, h.jwt.ClearToken(ctx)
 	})
 }
 
-// Profile 获取用户信息
 func (h *UserHandler) Profile(ctx *gin.Context) {
 	var req model.ProfileReq
 
@@ -133,7 +127,7 @@ func (h *UserHandler) Profile(ctx *gin.Context) {
 	req.ID = uc.Uid
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetProfile(ctx, req.ID)
+		return h.service.GetProfile(ctx.Request.Context(), req.ID)
 	})
 }
 
@@ -142,14 +136,8 @@ func (h *UserHandler) RefreshToken(ctx *gin.Context) {
 	var req model.TokenRequest
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		rc := jwt2.RefreshClaims{}
-
-		key := viper.GetString("jwt.key2")
-		token, err := jwt.ParseWithClaims(req.RefreshToken, &rc, func(token *jwt.Token) (interface{}, error) {
-			return []byte(key), nil
-		})
-
-		if err != nil || token == nil || !token.Valid {
+		rc, err := h.jwt.ParseRefreshClaims(req.RefreshToken)
+		if err != nil || rc == nil {
 			return nil, fmt.Errorf("令牌无效，请重新登录")
 		}
 
@@ -161,7 +149,6 @@ func (h *UserHandler) RefreshToken(ctx *gin.Context) {
 	})
 }
 
-// GetPermCode 获取权限码
 func (h *UserHandler) GetPermCode(ctx *gin.Context) {
 	var req model.GetPermCodeReq
 
@@ -173,16 +160,15 @@ func (h *UserHandler) GetPermCode(ctx *gin.Context) {
 	req.ID = uc.Uid
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetPermCode(ctx, req.ID)
+		return h.service.GetPermCode(ctx.Request.Context(), req.ID)
 	})
 }
 
-// GetUserList 获取用户列表
 func (h *UserHandler) GetUserList(ctx *gin.Context) {
 	var req model.GetUserListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetUserList(ctx, &req)
+		return h.service.GetUserList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -198,7 +184,7 @@ func (h *UserHandler) ChangePassword(ctx *gin.Context) {
 	req.UserID = uc.Uid
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.ChangePassword(ctx, &req)
+		return nil, h.service.ChangePassword(ctx.Request.Context(), &req)
 	})
 }
 
@@ -213,11 +199,10 @@ func (h *UserHandler) WriteOff(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.WriteOff(ctx, uc.Uid, req.Password)
+		return nil, h.service.WriteOff(ctx.Request.Context(), uc.Uid, req.Password)
 	})
 }
 
-// UpdateProfile 更新用户信息
 func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 	var req model.UpdateProfileReq
 
@@ -240,11 +225,10 @@ func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateProfile(ctx, &req)
+		return nil, h.service.UpdateProfile(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteUser 删除用户
 func (h *UserHandler) DeleteUser(ctx *gin.Context) {
 	var req model.DeleteUserReq
 
@@ -257,11 +241,10 @@ func (h *UserHandler) DeleteUser(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return nil, h.service.DeleteUser(ctx, req.ID)
+		return nil, h.service.DeleteUser(ctx.Request.Context(), req.ID)
 	})
 }
 
-// GetUserDetail 获取用户详情
 func (h *UserHandler) GetUserDetail(ctx *gin.Context) {
 	var req model.GetUserDetailReq
 
@@ -274,13 +257,12 @@ func (h *UserHandler) GetUserDetail(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetUserDetail(ctx, req.ID)
+		return h.service.GetUserDetail(ctx.Request.Context(), req.ID)
 	})
 }
 
-// GetUserStatistics 获取用户统计
 func (h *UserHandler) GetUserStatistics(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return h.service.GetUserStatistics(ctx)
+		return h.service.GetUserStatistics(ctx.Request.Context())
 	})
 }

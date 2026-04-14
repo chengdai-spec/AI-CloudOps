@@ -49,10 +49,8 @@ func BuildK8sDeployment(ctx context.Context, clusterID int, deployment appsv1.De
 		return nil, fmt.Errorf("无效的集群ID: %d", clusterID)
 	}
 
-	// 获取部署状态
 	status := getDeploymentStatus(deployment)
 
-	// 获取部署策略信息
 	strategy := "RollingUpdate"
 	maxUnavailable := ""
 	maxSurge := ""
@@ -114,9 +112,7 @@ func BuildK8sDeployment(ctx context.Context, clusterID int, deployment appsv1.De
 	return k8sDeployment, nil
 }
 
-// getDeploymentStatus 获取部署状态
 func getDeploymentStatus(deployment appsv1.Deployment) model.K8sDeploymentStatus {
-	// 首先检查是否处于暂停状态
 	if deployment.Spec.Paused {
 		return model.K8sDeploymentStatusPaused
 	}
@@ -169,7 +165,6 @@ func BuildDeploymentListOptions(req *model.GetDeploymentListReq) metav1.ListOpti
 	return options
 }
 
-// FilterDeploymentsByStatus 根据部署状态过滤
 func FilterDeploymentsByStatus(deployments []appsv1.Deployment, status string) []appsv1.Deployment {
 	if status == "" {
 		return deployments
@@ -178,7 +173,6 @@ func FilterDeploymentsByStatus(deployments []appsv1.Deployment, status string) [
 	var filtered []appsv1.Deployment
 	for _, deployment := range deployments {
 		deploymentStatus := getDeploymentStatus(deployment)
-		// 正确转换状态为字符串
 		var statusStr string
 		switch deploymentStatus {
 		case model.K8sDeploymentStatusRunning:
@@ -464,10 +458,8 @@ func ConvertToK8sDeployment(deployment *appsv1.Deployment) *model.K8sDeployment 
 		return nil
 	}
 
-	// 获取部署状态
 	status := getDeploymentStatus(*deployment)
 
-	// 获取部署策略信息
 	strategy := "RollingUpdate"
 	maxUnavailable := ""
 	maxSurge := ""

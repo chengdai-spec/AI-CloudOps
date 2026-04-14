@@ -84,7 +84,6 @@ func (s *yamlTaskService) CreateYamlTask(ctx context.Context, req *model.YamlTas
 }
 
 func (s *yamlTaskService) UpdateYamlTask(ctx context.Context, req *model.YamlTaskUpdateReq) error {
-	// 将请求转换为任务模型
 	task := &model.K8sYamlTask{
 		Model:      model.Model{ID: req.ID},
 		Name:       req.Name,

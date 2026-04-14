@@ -106,7 +106,6 @@ type InvolvedObject struct {
 	FieldPath  string `json:"field_path,omitempty"` // 如：spec.containers{nginx}
 }
 
-// EventSource 事件源信息
 type EventSource struct {
 	Component string `json:"component"` // kubelet, controller-manager等
 	Host      string `json:"host"`      // 节点名称
@@ -136,7 +135,6 @@ type EventSummary struct {
 	TopObjects    []CountItem      `json:"top_objects"`    // 热门对象
 }
 
-// EventGroupData 分组数据
 type EventGroupData struct {
 	Group  string     `json:"group"`            // 分组名称
 	Count  int64      `json:"count"`            // 计数
@@ -150,7 +148,6 @@ type EventTrend struct {
 	Type      string    `json:"type,omitempty"` // 类型
 }
 
-// EventStatistics 事件统计
 type EventStatistics struct {
 	TimeRange TimeRange        `json:"time_range"`       // 时间范围
 	Summary   EventSummary     `json:"summary"`          // 汇总信息
@@ -173,7 +170,6 @@ type EventTimeline struct {
 	Timeline []EventTimelineItem `json:"timeline"` // 时间线
 }
 
-// GetEventListReq 获取事件列表请求
 type GetEventListReq struct {
 	ListReq
 	ClusterID     int    `json:"cluster_id" form:"cluster_id" binding:"required" comment:"集群ID"`
@@ -182,7 +178,6 @@ type GetEventListReq struct {
 	EventType     string `json:"event_type" form:"event_type" comment:"事件类型：Normal,Warning"`
 }
 
-// GetEventDetailReq 获取事件详情请求
 type GetEventDetailReq struct {
 	ClusterID int    `json:"cluster_id" binding:"required" comment:"集群ID"`
 	Namespace string `json:"namespace" binding:"required" comment:"命名空间"`
@@ -216,7 +211,6 @@ type GetEventsByNodeReq struct {
 	NodeName  string `json:"node_name" binding:"required" comment:"Node名称"`
 }
 
-// GetEventStatisticsReq 获取事件统计请求
 type GetEventStatisticsReq struct {
 	ClusterID int       `json:"cluster_id" form:"cluster_id" binding:"required" comment:"集群ID"`
 	Namespace string    `json:"namespace" form:"namespace" comment:"命名空间"`
@@ -225,7 +219,6 @@ type GetEventStatisticsReq struct {
 	GroupBy   string    `json:"group_by" form:"group_by" comment:"分组方式：type,reason,object,severity"`
 }
 
-// GetEventSummaryReq 获取事件汇总请求
 type GetEventSummaryReq struct {
 	ClusterID int       `json:"cluster_id" form:"cluster_id" binding:"required" comment:"集群ID"`
 	Namespace string    `json:"namespace" form:"namespace" comment:"命名空间"`
@@ -233,7 +226,6 @@ type GetEventSummaryReq struct {
 	EndTime   time.Time `json:"end_time" form:"end_time" comment:"结束时间"`
 }
 
-// GetEventTimelineReq 获取事件时间线请求
 type GetEventTimelineReq struct {
 	ClusterID  int       `json:"cluster_id" form:"cluster_id" binding:"required" comment:"集群ID"`
 	Namespace  string    `json:"namespace" form:"namespace" binding:"required" comment:"命名空间"`
@@ -243,7 +235,6 @@ type GetEventTimelineReq struct {
 	EndTime    time.Time `json:"end_time" form:"end_time" comment:"结束时间"`
 }
 
-// GetEventTrendsReq 获取事件趋势请求
 type GetEventTrendsReq struct {
 	ClusterID int       `json:"cluster_id" form:"cluster_id" binding:"required" comment:"集群ID"`
 	Namespace string    `json:"namespace" form:"namespace" comment:"命名空间"`
@@ -253,7 +244,6 @@ type GetEventTrendsReq struct {
 	EventType string    `json:"event_type" form:"event_type" comment:"事件类型：Normal,Warning"`
 }
 
-// GetEventGroupDataReq 获取事件分组数据请求
 type GetEventGroupDataReq struct {
 	ClusterID int       `json:"cluster_id" form:"cluster_id" binding:"required" comment:"集群ID"`
 	Namespace string    `json:"namespace" form:"namespace" comment:"命名空间"`
@@ -263,14 +253,12 @@ type GetEventGroupDataReq struct {
 	Limit     int       `json:"limit" form:"limit" comment:"限制结果数量"`
 }
 
-// DeleteEventReq 删除事件请求
 type DeleteEventReq struct {
 	ClusterID int    `json:"cluster_id" binding:"required" comment:"集群ID"`
 	Namespace string `json:"namespace" binding:"required" comment:"命名空间"`
 	Name      string `json:"name" binding:"required" comment:"事件名称"`
 }
 
-// CleanupOldEventsReq 清理旧事件请求
 type CleanupOldEventsReq struct {
 	ClusterID  int       `json:"cluster_id" form:"cluster_id" binding:"required" comment:"集群ID"`
 	Namespace  string    `json:"namespace" form:"namespace" comment:"命名空间"`

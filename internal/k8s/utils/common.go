@@ -37,7 +37,6 @@ import (
 
 // K8s资源状态常量定义
 const (
-	// 通用状态
 	StatusPending     = "Pending"
 	StatusUnknown     = "Unknown"
 	StatusReady       = "Ready"

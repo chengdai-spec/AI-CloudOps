@@ -32,34 +32,27 @@ import (
 
 // NotificationChannel 通知渠道接口
 type NotificationChannel interface {
-	// GetName 获取渠道名称
 	GetName() string
 
 	// Send 发送通知
 	Send(ctx context.Context, request *SendRequest) (*SendResponse, error)
 
-	// Validate 验证配置
 	Validate() error
 
 	// IsEnabled 是否启用
 	IsEnabled() bool
 
-	// GetMaxRetries 获取最大重试次数
 	GetMaxRetries() int
 
-	// GetRetryInterval 获取重试间隔
 	GetRetryInterval() time.Duration
 }
 
-// SendRequest 发送请求
 type SendRequest struct {
-	// 基础信息
 	MessageID string `json:"message_id"` // 消息ID
 	Subject   string `json:"subject"`    // 主题
 	Content   string `json:"content"`    // 内容
 	Priority  int8   `json:"priority"`   // 优先级 1-高 2-中 3-低
 
-	// 接收人信息
 	RecipientType string `json:"recipient_type"` // 接收人类型
 	RecipientID   string `json:"recipient_id"`   // 接收人ID
 	RecipientAddr string `json:"recipient_addr"` // 接收人地址(邮箱/手机号等)
@@ -69,13 +62,11 @@ type SendRequest struct {
 	InstanceID *int   `json:"instance_id,omitempty"` // 工单实例ID
 	EventType  string `json:"event_type"`            // 事件类型
 
-	// 扩展数据
 	Metadata    map[string]interface{} `json:"metadata,omitempty"`    // 元数据
 	Templates   map[string]string      `json:"templates,omitempty"`   // 模板变量
 	Attachments []Attachment           `json:"attachments,omitempty"` // 附件
 }
 
-// SendResponse 发送响应
 type SendResponse struct {
 	Success      bool                   `json:"success"`                 // 是否成功
 	MessageID    string                 `json:"message_id"`              // 消息ID
@@ -95,13 +86,11 @@ type Attachment struct {
 	Size        int64  `json:"size"`         // 大小
 }
 
-// ChannelConfig 渠道配置接口
 type ChannelConfig interface {
 	GetChannelName() string
 	Validate() error
 }
 
-// BaseChannelConfig 基础渠道配置
 type BaseChannelConfig struct {
 	Enabled       bool          `json:"enabled" yaml:"enabled"`               // 是否启用
 	MaxRetries    int           `json:"max_retries" yaml:"max_retries"`       // 最大重试次数
@@ -109,7 +98,6 @@ type BaseChannelConfig struct {
 	Timeout       time.Duration `json:"timeout" yaml:"timeout"`               // 超时时间
 }
 
-// GetMaxRetries 获取最大重试次数
 func (c *BaseChannelConfig) GetMaxRetries() int {
 	if c.MaxRetries <= 0 {
 		return 3 // 默认重试3次
@@ -117,7 +105,6 @@ func (c *BaseChannelConfig) GetMaxRetries() int {
 	return c.MaxRetries
 }
 
-// GetRetryInterval 获取重试间隔
 func (c *BaseChannelConfig) GetRetryInterval() time.Duration {
 	if c.RetryInterval <= 0 {
 		return 5 * time.Minute // 默认5分钟
@@ -125,7 +112,6 @@ func (c *BaseChannelConfig) GetRetryInterval() time.Duration {
 	return c.RetryInterval
 }
 
-// GetTimeout 获取超时时间
 func (c *BaseChannelConfig) GetTimeout() time.Duration {
 	if c.Timeout <= 0 {
 		return 30 * time.Second // 默认30秒

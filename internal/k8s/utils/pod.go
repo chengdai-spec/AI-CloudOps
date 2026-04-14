@@ -127,7 +127,6 @@ func getTotalRestartCount(pod *corev1.Pod) int32 {
 	return total
 }
 
-// getReadyStatus 获取就绪状态
 func getReadyStatus(pod *corev1.Pod) string {
 	ready := 0
 	total := len(pod.Status.ContainerStatuses)
@@ -232,7 +231,6 @@ func convertContainersWithStatus(containers []corev1.Container, statuses []corev
 	return results
 }
 
-// convertEnvVars 转换环境变量
 func convertEnvVars(envs []corev1.EnvVar) []model.PodEnvVar {
 	if len(envs) == 0 {
 		return nil
@@ -247,7 +245,6 @@ func convertEnvVars(envs []corev1.EnvVar) []model.PodEnvVar {
 	return res
 }
 
-// convertContainerPorts 转换容器端口
 func convertContainerPorts(ports []corev1.ContainerPort) []model.PodContainerPort {
 	if len(ports) == 0 {
 		return nil
@@ -263,7 +260,6 @@ func convertContainerPorts(ports []corev1.ContainerPort) []model.PodContainerPor
 	return res
 }
 
-// convertVolumeMounts 转换卷挂载
 func convertVolumeMounts(mounts []corev1.VolumeMount) []model.PodVolumeMount {
 	if len(mounts) == 0 {
 		return nil
@@ -280,7 +276,6 @@ func convertVolumeMounts(mounts []corev1.VolumeMount) []model.PodVolumeMount {
 	return res
 }
 
-// convertResourceRequirements 转换资源要求
 func convertResourceRequirements(rr corev1.ResourceRequirements) model.PodResourceRequirements {
 	result := model.PodResourceRequirements{}
 
@@ -303,7 +298,6 @@ func convertResourceRequirements(rr corev1.ResourceRequirements) model.PodResour
 	return result
 }
 
-// convertProbe 转换探针
 func convertProbe(probe *corev1.Probe) *model.PodProbe {
 	if probe == nil {
 		return nil
@@ -383,7 +377,6 @@ func ConvertPodContainers(pod *corev1.Pod) []model.PodContainer {
 	return containers
 }
 
-// convertContainerState 转换容器状态
 func convertContainerState(state corev1.ContainerState) model.PodContainerState {
 	result := model.PodContainerState{}
 
@@ -600,7 +593,6 @@ func BuildPodFromRequest(req *model.CreatePodReq) (*corev1.Pod, error) {
 				Limits:   make(corev1.ResourceList),
 			}
 
-			// 解析资源请求
 			if c.Resources.Requests.CPU != "" {
 				container.Resources.Requests[corev1.ResourceCPU] = parseQuantity(c.Resources.Requests.CPU)
 			}
@@ -608,7 +600,6 @@ func BuildPodFromRequest(req *model.CreatePodReq) (*corev1.Pod, error) {
 				container.Resources.Requests[corev1.ResourceMemory] = parseQuantity(c.Resources.Requests.Memory)
 			}
 
-			// 解析资源限制
 			if c.Resources.Limits.CPU != "" {
 				container.Resources.Limits[corev1.ResourceCPU] = parseQuantity(c.Resources.Limits.CPU)
 			}
@@ -670,7 +661,6 @@ func BuildPodFromRequest(req *model.CreatePodReq) (*corev1.Pod, error) {
 				Limits:   make(corev1.ResourceList),
 			}
 
-			// 解析资源请求
 			if c.Resources.Requests.CPU != "" {
 				container.Resources.Requests[corev1.ResourceCPU] = parseQuantity(c.Resources.Requests.CPU)
 			}
@@ -678,7 +668,6 @@ func BuildPodFromRequest(req *model.CreatePodReq) (*corev1.Pod, error) {
 				container.Resources.Requests[corev1.ResourceMemory] = parseQuantity(c.Resources.Requests.Memory)
 			}
 
-			// 解析资源限制
 			if c.Resources.Limits.CPU != "" {
 				container.Resources.Limits[corev1.ResourceCPU] = parseQuantity(c.Resources.Limits.CPU)
 			}
@@ -717,7 +706,6 @@ func parseQuantity(s string) resource.Quantity {
 	}
 	q, err := resource.ParseQuantity(s)
 	if err != nil {
-		// 如果解析失败，返回零值
 		return resource.Quantity{}
 	}
 	return q

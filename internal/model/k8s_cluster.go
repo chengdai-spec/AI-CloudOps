@@ -67,7 +67,6 @@ func (k8sCluster *K8sCluster) TableName() string {
 	return "cl_k8s_clusters"
 }
 
-// CreateClusterReq 创建集群请求
 type CreateClusterReq struct {
 	Name                 string       `json:"name" binding:"required,min=1,max=200"` // 集群名称
 	CpuRequest           string       `json:"cpu_request,omitempty"`                 // CPU 请求量
@@ -85,7 +84,6 @@ type CreateClusterReq struct {
 	Tags                 KeyValueList `json:"tags,omitempty"`                        // 标签
 }
 
-// UpdateClusterReq 更新集群请求
 type UpdateClusterReq struct {
 	ID                   int          `json:"id" form:"id" uri:"id" binding:"required" comment:"集群ID"`
 	Name                 string       `json:"name" binding:"required,min=1,max=200"` // 集群名称
@@ -102,22 +100,18 @@ type UpdateClusterReq struct {
 	Tags                 KeyValueList `json:"tags,omitempty"`                        // 标签
 }
 
-// DeleteClusterReq 删除集群请求
 type DeleteClusterReq struct {
 	ID int `json:"id" form:"id" uri:"id" binding:"required" comment:"集群ID"`
 }
 
-// RefreshClusterReq 刷新集群请求
 type RefreshClusterReq struct {
 	ID int `json:"id" form:"id" uri:"id" binding:"required" comment:"集群ID"`
 }
 
-// GetClusterReq 获取单个集群请求
 type GetClusterReq struct {
 	ID int `json:"id" form:"id" uri:"id" binding:"required" comment:"集群ID"`
 }
 
-// ListClustersReq 获取集群列表请求
 type ListClustersReq struct {
 	ListReq
 	Status string `json:"status" form:"status"`

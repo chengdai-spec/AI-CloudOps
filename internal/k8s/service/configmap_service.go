@@ -177,7 +177,6 @@ func (s *configMapService) CreateConfigMap(ctx context.Context, req *model.Creat
 		BinaryData: map[string][]byte(req.BinaryData),
 	}
 
-	// 设置不可变标志
 	if req.Immutable {
 		configMap.Immutable = &req.Immutable
 	}
@@ -220,10 +219,8 @@ func (s *configMapService) UpdateConfigMap(ctx context.Context, req *model.Updat
 		return fmt.Errorf("获取ConfigMap失败: %w", err)
 	}
 
-	// 只保留必要的元数据字段
 	updatedConfigMap := existingConfigMap.DeepCopy()
 
-	// 完全覆盖数据字段
 	updatedConfigMap.Data = req.Data
 	updatedConfigMap.BinaryData = map[string][]byte(req.BinaryData)
 	updatedConfigMap.Labels = req.Labels
@@ -309,7 +306,6 @@ func (s *configMapService) GetConfigMapYAML(ctx context.Context, req *model.GetC
 
 // convertToK8sConfigMap 将Kubernetes ConfigMap转换为模型对象
 func (s *configMapService) convertToK8sConfigMap(configMap *corev1.ConfigMap, clusterID int) *model.K8sConfigMap {
-	// 计算数据大小
 	var totalSize int64
 	for _, v := range configMap.Data {
 		totalSize += int64(len(v))
@@ -321,7 +317,6 @@ func (s *configMapService) convertToK8sConfigMap(configMap *corev1.ConfigMap, cl
 	// 格式化大小
 	size := k8sutils.FormatBytes(totalSize)
 
-	// 计算数据条目数量
 	dataCount := len(configMap.Data) + len(configMap.BinaryData)
 
 	// 判断是否不可变
@@ -419,7 +414,6 @@ func (s *configMapService) UpdateConfigMapByYaml(ctx context.Context, req *model
 	cm.ResourceVersion = existing.ResourceVersion
 	cm.UID = existing.UID
 
-	// 执行完全覆盖式更新
 	_, err = s.configMapManager.UpdateConfigMap(ctx, req.ClusterID, cm)
 	if err != nil {
 		s.logger.Error("通过YAML更新ConfigMap失败", zap.Error(err),

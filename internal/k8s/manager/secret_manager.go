@@ -180,7 +180,3 @@ func (m *secretManager) ListSecretsBySelectors(ctx context.Context, clusterID in
 }
 
 // 删除未使用的按类型过滤方法
-
-// 删除未使用的数据读取方法
-
-// 删除未使用的数据更新方法

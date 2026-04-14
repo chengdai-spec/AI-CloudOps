@@ -47,7 +47,6 @@ func MapToStringSlice(inputMap map[string]string) ([]string, error) {
 		result = append(result, key, value)
 	}
 
-	// 确保结果长度为偶数
 	if len(result)%2 != 0 {
 		return nil, fmt.Errorf("转换后的字符串切片长度为奇数，不符合键值对要求")
 	}
@@ -133,15 +132,12 @@ func GetLocalIPs() ([]string, error) {
 	return ips, nil
 }
 
-// ValidateUniqueResource 验证是否存在相同的资源
 func ValidateUniqueResource[T any](ctx context.Context, getResourceFunc func(context.Context, interface{}) (T, error), newResource T, id interface{}) error {
-	// 获取已存在的资源
 	existingResource, err := getResourceFunc(ctx, id)
 	if err != nil {
 		return fmt.Errorf("获取资源失败: %w", err)
 	}
 
-	// 使用比较两个资源是否相同
 	if reflect.DeepEqual(existingResource, newResource) {
 		return fmt.Errorf("资源已存在")
 	}
@@ -179,7 +175,6 @@ func (e *BusinessError) Error() string {
 	return e.Message
 }
 
-// NewBusinessError 创建业务错误
 func NewBusinessError(code error, message string) error {
 	return &BusinessError{
 		Code:    code,

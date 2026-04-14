@@ -77,16 +77,13 @@ func (h *handler) Stream(ctx *gin.Context, producer Producer, config ...*Config)
 		return fmt.Errorf("生产者函数不能为空")
 	}
 
-	// 获取配置
 	cfg := h.getConfig(config...)
 
 	// 设置SSE响应头
 	h.setSSEHeaders(ctx)
 
-	// 创建消息通道
 	msgChan := make(chan interface{}, cfg.BufferSize)
 
-	// 创建可取消的上下文
 	cancelCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -142,13 +139,10 @@ func (h *handler) StreamWithContext(ctx context.Context, writer io.Writer, produ
 		return fmt.Errorf("生产者函数不能为空")
 	}
 
-	// 获取配置
 	cfg := h.getConfig(config...)
 
-	// 创建消息通道
 	msgChan := make(chan interface{}, cfg.BufferSize)
 
-	// 创建可取消的上下文
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -188,15 +182,12 @@ func (h *handler) StreamWithContext(ctx context.Context, writer io.Writer, produ
 	}
 }
 
-// getConfig 获取有效配置
 func (h *handler) getConfig(config ...*Config) *Config {
-	// 默认配置
 	cfg := &Config{
 		BufferSize: 1,
 		EventName:  "message",
 	}
 
-	// 使用提供的配置覆盖默认值
 	if len(config) > 0 && config[0] != nil {
 		if config[0].BufferSize > 0 {
 			cfg.BufferSize = config[0].BufferSize
@@ -218,7 +209,6 @@ func (h *handler) setSSEHeaders(ctx *gin.Context) {
 	ctx.Header("Access-Control-Allow-Headers", "Cache-Control")
 }
 
-// monitorConnection 监听客户端连接状态
 func (h *handler) monitorConnection(ctx *gin.Context, cancelCtx context.Context, cancel context.CancelFunc) {
 	select {
 	case <-ctx.Request.Context().Done():
@@ -247,7 +237,6 @@ func (h *handler) writeSSEMessage(writer io.Writer, eventName string, data inter
 	// 格式化SSE消息
 	message := fmt.Sprintf("event: %s\ndata: %v\n\n", eventName, data)
 
-	// 写入数据
 	_, err := writer.Write([]byte(message))
 	if err != nil {
 		return fmt.Errorf("写入SSE消息失败: %w", err)

@@ -57,7 +57,6 @@ func NewWorkorderCategoryDAO(db *gorm.DB, logger *zap.Logger) WorkorderCategoryD
 	}
 }
 
-// CreateCategory 创建分类
 func (dao *workorderCategoryDAO) CreateCategory(ctx context.Context, category *model.WorkorderCategory) error {
 	if err := dao.db.WithContext(ctx).Create(category).Error; err != nil {
 		dao.logger.Error("创建分类失败", zap.Error(err))
@@ -67,7 +66,6 @@ func (dao *workorderCategoryDAO) CreateCategory(ctx context.Context, category *m
 	return nil
 }
 
-// UpdateCategory 更新分类
 func (dao *workorderCategoryDAO) UpdateCategory(ctx context.Context, category *model.WorkorderCategory) error {
 	result := dao.db.WithContext(ctx).
 		Model(&model.WorkorderCategory{}).
@@ -93,7 +91,6 @@ func (dao *workorderCategoryDAO) UpdateCategory(ctx context.Context, category *m
 	return nil
 }
 
-// DeleteCategory 删除分类 (软删除)
 func (dao *workorderCategoryDAO) DeleteCategory(ctx context.Context, id int) error {
 	result := dao.db.WithContext(ctx).Delete(&model.WorkorderCategory{}, id)
 	if err := result.Error; err != nil {
@@ -116,7 +113,6 @@ func (dao *workorderCategoryDAO) ListCategory(ctx context.Context, req model.Lis
 	var categories []*model.WorkorderCategory
 	var total int64
 
-	// 验证分页参数
 	req.Page, req.Size = ValidatePagination(req.Page, req.Size)
 
 	query := dao.db.WithContext(ctx).Model(&model.WorkorderCategory{})
@@ -129,16 +125,13 @@ func (dao *workorderCategoryDAO) ListCategory(ctx context.Context, req model.Lis
 		query = query.Where("name LIKE ?", "%"+req.Search+"%")
 	}
 
-	// 计算总数
 	if err := query.Count(&total).Error; err != nil {
 		dao.logger.Error("计算分类总数失败", zap.Error(err))
 		return nil, 0, fmt.Errorf("获取分类总数失败，请稍后重试，错误信息：%w", err)
 	}
 
-	// 分页参数验证和设置
 	offset := (req.Page - 1) * req.Size
 
-	// 执行查询
 	if err := query.Offset(offset).
 		Limit(req.Size).
 		Order("id ASC").
@@ -162,7 +155,6 @@ func (dao *workorderCategoryDAO) ListCategoryByIDs(ctx context.Context, ids []in
 	return categories, nil
 }
 
-// GetCategory 获取单个分类详情
 func (dao *workorderCategoryDAO) GetCategory(ctx context.Context, id int) (*model.WorkorderCategory, error) {
 	var category model.WorkorderCategory
 	if err := dao.db.WithContext(ctx).Where("id = ?", id).First(&category).Error; err != nil {

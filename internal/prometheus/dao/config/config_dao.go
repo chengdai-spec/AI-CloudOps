@@ -61,7 +61,6 @@ func NewMonitorConfigDAO(l *zap.Logger, db *gorm.DB) MonitorConfigDAO {
 	}
 }
 
-// GetMonitorConfigList 获取监控配置列表
 func (d *monitorConfigDAO) GetMonitorConfigList(ctx context.Context, req *model.GetMonitorConfigListReq) ([]*model.MonitorConfig, int64, error) {
 	var (
 		total int64
@@ -91,7 +90,6 @@ func (d *monitorConfigDAO) GetMonitorConfigList(ctx context.Context, req *model.
 		db = db.Where("status = ?", *req.Status)
 	}
 
-	// 获取总数
 	if err := db.Count(&total).Error; err != nil {
 		d.l.Error("获取监控配置列表总数失败", zap.Error(err))
 		return nil, 0, err
@@ -130,7 +128,6 @@ func (d *monitorConfigDAO) GetMonitorConfigByID(ctx context.Context, id int) (*m
 	return &config, nil
 }
 
-// CreateMonitorConfig 创建监控配置
 func (d *monitorConfigDAO) CreateMonitorConfig(ctx context.Context, config *model.MonitorConfig) error {
 	if err := d.db.WithContext(ctx).Create(config).Error; err != nil {
 		d.l.Error("创建监控配置失败", zap.String("name", config.Name), zap.Error(err))
@@ -140,7 +137,6 @@ func (d *monitorConfigDAO) CreateMonitorConfig(ctx context.Context, config *mode
 	return nil
 }
 
-// UpdateMonitorConfig 更新监控配置
 func (d *monitorConfigDAO) UpdateMonitorConfig(ctx context.Context, config *model.MonitorConfig) error {
 	if config.ID == 0 {
 		return errors.New("无效的监控配置ID")
@@ -154,7 +150,6 @@ func (d *monitorConfigDAO) UpdateMonitorConfig(ctx context.Context, config *mode
 	return nil
 }
 
-// DeleteMonitorConfig 删除监控配置
 func (d *monitorConfigDAO) DeleteMonitorConfig(ctx context.Context, id int) error {
 	if id <= 0 {
 		return fmt.Errorf("无效的ID: %d", id)
@@ -190,7 +185,6 @@ func (d *monitorConfigDAO) GetMonitorConfigByInstance(ctx context.Context, insta
 	return &config, nil
 }
 
-// BatchCreateMonitorConfigs 批量创建监控配置
 func (d *monitorConfigDAO) BatchCreateMonitorConfigs(ctx context.Context, configs []*model.MonitorConfig) error {
 	if len(configs) == 0 {
 		return nil
@@ -220,7 +214,6 @@ func (d *monitorConfigDAO) BatchCreateMonitorConfigs(ctx context.Context, config
 	return nil
 }
 
-// BatchUpdateMonitorConfigs 批量更新监控配置
 func (d *monitorConfigDAO) BatchUpdateMonitorConfigs(ctx context.Context, configs []*model.MonitorConfig) error {
 	if len(configs) == 0 {
 		return nil
@@ -242,7 +235,6 @@ func (d *monitorConfigDAO) BatchUpdateMonitorConfigs(ctx context.Context, config
 	})
 }
 
-// BatchUpsertMonitorConfigs 批量插入或更新监控配置
 func (d *monitorConfigDAO) BatchUpsertMonitorConfigs(ctx context.Context, configs []*model.MonitorConfig) error {
 	if len(configs) == 0 {
 		return nil
@@ -260,7 +252,6 @@ func (d *monitorConfigDAO) BatchUpsertMonitorConfigs(ctx context.Context, config
 
 			// 使用ON DUPLICATE KEY UPDATE语法进行批量upsert
 			if err := tx.Clauses(
-			// 在冲突时更新指定字段
 			// 这里假设unique key是 instance_ip + config_type
 			).CreateInBatches(batch, batchSize).Error; err != nil {
 				// 如果批量upsert失败，回退到逐个处理
@@ -269,7 +260,6 @@ func (d *monitorConfigDAO) BatchUpsertMonitorConfigs(ctx context.Context, config
 					err := tx.Where("instance_ip = ? AND config_type = ?", config.InstanceIP, config.ConfigType).First(&existing).Error
 
 					if errors.Is(err, gorm.ErrRecordNotFound) {
-						// 记录不存在，创建新记录
 						if err := tx.Create(config).Error; err != nil {
 							d.l.Error("创建监控配置失败",
 								zap.String("instance_ip", config.InstanceIP),
@@ -284,7 +274,6 @@ func (d *monitorConfigDAO) BatchUpsertMonitorConfigs(ctx context.Context, config
 							zap.Error(err))
 						return err
 					} else {
-						// 记录存在，更新记录
 						config.ID = existing.ID
 						if err := tx.Model(&existing).Updates(config).Error; err != nil {
 							d.l.Error("更新监控配置失败",
@@ -304,7 +293,6 @@ func (d *monitorConfigDAO) BatchUpsertMonitorConfigs(ctx context.Context, config
 	})
 }
 
-// GetMonitorConfigsByInstances 批量获取监控配置
 func (d *monitorConfigDAO) GetMonitorConfigsByInstances(ctx context.Context, instanceIPs []string, configType int8) ([]*model.MonitorConfig, error) {
 	if len(instanceIPs) == 0 {
 		return nil, errors.New("instanceIPs不能为空")

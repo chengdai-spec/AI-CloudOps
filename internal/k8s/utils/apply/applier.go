@@ -110,7 +110,6 @@ func (a *applier) ResourceForReader(content io.Reader, opt *BuilderOptions) ([]*
 func (a *applier) ApplyResourceOne(info *resource.Info) error {
 	helper := resource.NewHelper(info.Client, info.Mapping)
 
-	// 如果不存在，就直接创建
 	if err := info.Get(); err != nil {
 		if !IsNotFound(err) {
 			return fmt.Errorf("error retrieving current configuration of\n%s\nfrom server: %v", info.String(), err)

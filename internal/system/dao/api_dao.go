@@ -234,12 +234,10 @@ func (d *apiDAO) ListApis(ctx context.Context, page, size int, search string, is
 	var apis []*model.Api
 	var total int64
 
-	// 获取总数
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("获取API总数失败: %v", err)
 	}
 
-	// 获取分页数据
 	offset := (page - 1) * size
 	if err := query.Offset(offset).Limit(size).Order("id DESC").Find(&apis).Error; err != nil {
 		return nil, 0, fmt.Errorf("获取API列表失败: %v", err)

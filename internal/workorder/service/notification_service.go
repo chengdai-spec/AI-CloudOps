@@ -73,12 +73,10 @@ func NewWorkorderNotificationService(dao workorderDao.WorkorderNotificationDAO, 
 	}
 }
 
-// CreateNotification 创建通知配置
 func (s *workorderNotificationService) CreateNotification(ctx context.Context, req *model.CreateWorkorderNotificationReq) error {
 	return s.dao.CreateNotification(ctx, req)
 }
 
-// UpdateNotification 更新通知配置
 func (s *workorderNotificationService) UpdateNotification(ctx context.Context, req *model.UpdateWorkorderNotificationReq) error {
 	_, err := s.dao.GetNotificationByID(ctx, req.ID)
 	if err != nil {
@@ -91,7 +89,6 @@ func (s *workorderNotificationService) UpdateNotification(ctx context.Context, r
 	return s.dao.UpdateNotification(ctx, req)
 }
 
-// DeleteNotification 删除通知配置
 func (s *workorderNotificationService) DeleteNotification(ctx context.Context, req *model.DeleteWorkorderNotificationReq) error {
 	_, err := s.dao.GetNotificationByID(ctx, req.ID)
 	if err != nil {
@@ -104,7 +101,6 @@ func (s *workorderNotificationService) DeleteNotification(ctx context.Context, r
 	return s.dao.DeleteNotification(ctx, req)
 }
 
-// ListNotification 获取通知配置列表
 func (s *workorderNotificationService) ListNotification(ctx context.Context, req *model.ListWorkorderNotificationReq) (*model.ListResp[*model.WorkorderNotification], error) {
 	result, err := s.dao.ListNotification(ctx, req)
 	if err != nil {
@@ -114,12 +110,10 @@ func (s *workorderNotificationService) ListNotification(ctx context.Context, req
 	return result, nil
 }
 
-// DetailNotification 获取通知配置
 func (s *workorderNotificationService) DetailNotification(ctx context.Context, req *model.DetailWorkorderNotificationReq) (*model.WorkorderNotification, error) {
 	return s.dao.DetailNotification(ctx, req)
 }
 
-// GetSendLogs 获取发送日志
 func (s *workorderNotificationService) GetSendLogs(ctx context.Context, req *model.ListWorkorderNotificationLogReq) (*model.ListResp[*model.WorkorderNotificationLog], error) {
 	result, err := s.dao.GetSendLogs(ctx, req)
 	if err != nil {
@@ -129,7 +123,6 @@ func (s *workorderNotificationService) GetSendLogs(ctx context.Context, req *mod
 	return result, nil
 }
 
-// TestSendNotification 测试发送指定通知配置
 func (s *workorderNotificationService) TestSendNotification(ctx context.Context, req *model.TestSendWorkorderNotificationReq) error {
 	notificationConfig, err := s.dao.GetNotificationByID(ctx, req.NotificationID)
 	if err != nil {
@@ -189,7 +182,6 @@ func (s *workorderNotificationService) TestSendNotification(ctx context.Context,
 			},
 		}
 
-		// 统一商务化模板变量设置
 		sendRequest.Templates["workorder_id"] = fmt.Sprintf("%d", testInstanceID)
 		sendRequest.Templates["serial_number"] = fmt.Sprintf("WO-%d", testInstanceID)
 		sendRequest.Templates["title"] = "系统测试工单 - 通知功能验证"
@@ -298,7 +290,6 @@ func (s *workorderNotificationService) SendWorkorderNotification(ctx context.Con
 	return nil
 }
 
-// processNotification 处理并发送单个通知配置
 func (s *workorderNotificationService) processNotification(ctx context.Context, notification *model.WorkorderNotification,
 	instance *model.WorkorderInstance, eventType string, senderID int, customContent ...string) error {
 
@@ -360,7 +351,6 @@ func (s *workorderNotificationService) processNotification(ctx context.Context, 
 	return nil
 }
 
-// getRecipients 根据配置获取接收人列表
 func (s *workorderNotificationService) getRecipients(ctx context.Context, notification *model.WorkorderNotification,
 	instance *model.WorkorderInstance) ([]RecipientInfo, error) {
 
@@ -534,7 +524,6 @@ func (s *workorderNotificationService) sendChannelNotification(ctx context.Conte
 	return nil
 }
 
-// buildMessageContent 根据模板构建消息内容
 func (s *workorderNotificationService) buildMessageContent(notificationConfig *model.WorkorderNotification,
 	instance *model.WorkorderInstance, eventType string, customContent ...string) (string, string) {
 
@@ -549,7 +538,6 @@ func (s *workorderNotificationService) buildMessageContent(notificationConfig *m
 		Metadata:   make(map[string]interface{}),
 	}
 
-	// 统一商务化模板变量设置
 	sendRequest.Templates["workorder_id"] = fmt.Sprintf("%d", instance.ID)
 	sendRequest.Templates["serial_number"] = instance.SerialNumber
 	sendRequest.Templates["title"] = instance.Title
@@ -566,7 +554,6 @@ func (s *workorderNotificationService) buildMessageContent(notificationConfig *m
 	sendRequest.Templates["platform_name"] = "运维管理平台"
 	sendRequest.Templates["department"] = "技术运维部"
 
-	// 处理处理人名称
 	assigneeName := "待分配"
 	if instance.AssigneeID != nil {
 		if user, err := s.userDAO.GetByID(context.Background(), *instance.AssigneeID); err == nil && user != nil {
@@ -598,7 +585,6 @@ func (s *workorderNotificationService) buildMessageContent(notificationConfig *m
 		subject = renderedSubject
 	}
 
-	// 渲染内容
 	content := notificationConfig.MessageTemplate
 	if content == "" {
 		content = fmt.Sprintf(`尊敬的用户，您好！
@@ -709,7 +695,6 @@ func (s *workorderNotificationService) getRecipientAddress(recipient RecipientIn
 	}
 }
 
-// getRecipientTypeForChannel 获取渠道对应的接收人类型
 func (s *workorderNotificationService) getRecipientTypeForChannel(channel string) string {
 	switch channel {
 	case model.NotificationChannelEmail:
@@ -778,7 +763,6 @@ func (s *workorderNotificationService) GetAvailableChannels() *model.ListResp[*m
 	}
 }
 
-// RecipientInfo 接收人信息
 type RecipientInfo struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`

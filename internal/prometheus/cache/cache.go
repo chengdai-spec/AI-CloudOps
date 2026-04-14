@@ -74,7 +74,6 @@ func (mc *monitorCache) MonitorCacheManager(ctx context.Context) error {
 
 	g, ctx := errgroup.WithContext(ctx)
 
-	// 任务定义与执行优化
 	type taskDef struct {
 		name string
 		fn   func(context.Context) error
@@ -116,7 +115,6 @@ func (mc *monitorCache) MonitorCacheManager(ctx context.Context) error {
 	return nil
 }
 
-// executeTask 封装任务执行逻辑
 func (mc *monitorCache) executeTask(ctx context.Context, taskName string, taskFn func(context.Context) error) error {
 	startTime := time.Now()
 	mc.l.Info("开始执行配置任务",

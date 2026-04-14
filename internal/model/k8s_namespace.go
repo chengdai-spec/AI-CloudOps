@@ -36,7 +36,6 @@ type K8sNamespace struct {
 	Annotations KeyValueList `json:"annotations" `                           // 注解
 }
 
-// K8sNamespaceListReq 命名空间列表查询请求
 type K8sNamespaceListReq struct {
 	ListReq
 	ClusterID     int          `json:"cluster_id" form:"cluster_id" binding:"required"` // 集群ID，必填
@@ -46,7 +45,6 @@ type K8sNamespaceListReq struct {
 	Search        string       `json:"search" form:"search"`                            // 搜索关键字（用于过滤命名空间名称）
 }
 
-// K8sNamespaceCreateReq 创建命名空间请求
 type K8sNamespaceCreateReq struct {
 	ClusterID   int          `json:"cluster_id" form:"cluster_id" binding:"required"` // 集群ID，必填
 	Name        string       `json:"name" binding:"required,min=1,max=200"`           // 命名空间名称，必填
@@ -54,7 +52,6 @@ type K8sNamespaceCreateReq struct {
 	Annotations KeyValueList `json:"annotations"`                                     // 注解
 }
 
-// K8sNamespaceUpdateReq 更新命名空间请求
 type K8sNamespaceUpdateReq struct {
 	ClusterID   int          `json:"cluster_id" form:"cluster_id" binding:"required"` // 集群ID，必填
 	Name        string       `json:"name" binding:"required"`                         // 命名空间名称，必填
@@ -62,7 +59,6 @@ type K8sNamespaceUpdateReq struct {
 	Annotations KeyValueList `json:"annotations"`                                     // 注解
 }
 
-// K8sNamespaceDeleteReq 删除命名空间请求
 type K8sNamespaceDeleteReq struct {
 	ClusterID          int    `json:"cluster_id" form:"cluster_id" binding:"required"` // 集群ID，必填
 	Name               string `json:"name" binding:"required"`                         // 命名空间名称，必填
@@ -70,7 +66,6 @@ type K8sNamespaceDeleteReq struct {
 	Force              int8   `json:"force" binding:"required,oneof= 1 2"`             // 是否强制删除
 }
 
-// K8sNamespaceGetDetailsReq 获取命名空间详情请求
 type K8sNamespaceGetDetailsReq struct {
 	ClusterID int    `json:"cluster_id" form:"cluster_id" binding:"required"` // 集群ID，必填
 	Name      string `json:"name" binding:"required"`                         // 命名空间名称，必填

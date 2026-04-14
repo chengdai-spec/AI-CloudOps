@@ -71,7 +71,6 @@ func NewTreeCloudDAO(db *gorm.DB, logger *zap.Logger) TreeCloudDAO {
 	}
 }
 
-// Create 创建云资源
 func (d *treeCloudDAO) Create(ctx context.Context, cloud *model.TreeCloudResource) error {
 	if err := d.db.WithContext(ctx).Create(cloud).Error; err != nil {
 		d.logger.Error("创建云资源失败", zap.Error(err))
@@ -81,7 +80,6 @@ func (d *treeCloudDAO) Create(ctx context.Context, cloud *model.TreeCloudResourc
 	return nil
 }
 
-// Update 更新云资源
 func (d *treeCloudDAO) Update(ctx context.Context, cloud *model.TreeCloudResource) error {
 	if err := d.db.WithContext(ctx).Model(cloud).Updates(cloud).Error; err != nil {
 		d.logger.Error("更新云资源失败", zap.Error(err))
@@ -91,7 +89,6 @@ func (d *treeCloudDAO) Update(ctx context.Context, cloud *model.TreeCloudResourc
 	return nil
 }
 
-// UpdateMetadata 更新云资源元数据
 func (d *treeCloudDAO) UpdateMetadata(ctx context.Context, id int, metadata map[string]interface{}) error {
 	if err := d.db.WithContext(ctx).
 		Model(&model.TreeCloudResource{}).
@@ -104,7 +101,6 @@ func (d *treeCloudDAO) UpdateMetadata(ctx context.Context, id int, metadata map[
 	return nil
 }
 
-// Delete 删除云资源
 func (d *treeCloudDAO) Delete(ctx context.Context, id int) error {
 	if err := d.db.WithContext(ctx).Delete(&model.TreeCloudResource{}, id).Error; err != nil {
 		d.logger.Error("删除云资源失败", zap.Error(err), zap.Int("id", id))
@@ -127,14 +123,12 @@ func (d *treeCloudDAO) GetByID(ctx context.Context, id int) (*model.TreeCloudRes
 	return &cloud, nil
 }
 
-// GetList 获取云资源列表
 func (d *treeCloudDAO) GetList(ctx context.Context, req *model.GetTreeCloudResourceListReq) ([]*model.TreeCloudResource, int64, error) {
 	var clouds []*model.TreeCloudResource
 	var total int64
 
 	query := d.db.WithContext(ctx).Model(&model.TreeCloudResource{})
 
-	// 添加查询条件
 	if req.CloudAccountID != 0 {
 		query = query.Where("cloud_account_id = ?", req.CloudAccountID)
 	}
@@ -155,14 +149,12 @@ func (d *treeCloudDAO) GetList(ctx context.Context, req *model.GetTreeCloudResou
 		query = query.Where("name LIKE ? OR instance_id LIKE ?", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
 
-	// 计算总数
 	err := query.Count(&total).Error
 	if err != nil {
 		d.logger.Error("获取云资源总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 分页查询，关联云账户信息
 	offset := (req.Page - 1) * req.Size
 	err = query.
 		Order("created_at DESC").
@@ -227,7 +219,6 @@ func (d *treeCloudDAO) GetByNodeID(ctx context.Context, nodeID int, req *model.G
 	return clouds, nil
 }
 
-// BatchGetByIDs 批量获取云资源
 func (d *treeCloudDAO) BatchGetByIDs(ctx context.Context, ids []int) ([]*model.TreeCloudResource, error) {
 	if len(ids) == 0 {
 		return nil, nil
@@ -243,7 +234,6 @@ func (d *treeCloudDAO) BatchGetByIDs(ctx context.Context, ids []int) ([]*model.T
 	return clouds, nil
 }
 
-// BatchCreate 批量创建云资源
 func (d *treeCloudDAO) BatchCreate(ctx context.Context, clouds []*model.TreeCloudResource) error {
 	if len(clouds) == 0 {
 		return nil
@@ -258,7 +248,6 @@ func (d *treeCloudDAO) BatchCreate(ctx context.Context, clouds []*model.TreeClou
 	return nil
 }
 
-// UpdateStatus 更新云资源状态
 func (d *treeCloudDAO) UpdateStatus(ctx context.Context, id int, status model.CloudResourceStatus) error {
 	if err := d.db.WithContext(ctx).
 		Model(&model.TreeCloudResource{}).
@@ -271,21 +260,18 @@ func (d *treeCloudDAO) UpdateStatus(ctx context.Context, id int, status model.Cl
 	return nil
 }
 
-// BindTreeNodes 绑定树节点
 func (d *treeCloudDAO) BindTreeNodes(ctx context.Context, cloudID int, treeNodeIds []int) error {
 	if !treeUtils.ValidateTreeNodeIDs(treeNodeIds) {
 		d.logger.Info("没有需要绑定的树节点")
 		return nil
 	}
 
-	// 获取云资源
 	var cloud model.TreeCloudResource
 	if err := d.db.WithContext(ctx).First(&cloud, cloudID).Error; err != nil {
 		d.logger.Error("获取云资源失败", zap.Error(err), zap.Int("cloudID", cloudID))
 		return err
 	}
 
-	// 构建要绑定的树节点列表
 	var treeNodes []model.TreeNode
 	for _, nodeID := range treeNodeIds {
 		treeNodes = append(treeNodes, model.TreeNode{Model: model.Model{ID: nodeID}})
@@ -302,21 +288,18 @@ func (d *treeCloudDAO) BindTreeNodes(ctx context.Context, cloudID int, treeNodeI
 	return nil
 }
 
-// UnBindTreeNodes 解绑树节点
 func (d *treeCloudDAO) UnBindTreeNodes(ctx context.Context, cloudID int, treeNodeIds []int) error {
 	if !treeUtils.ValidateTreeNodeIDs(treeNodeIds) {
 		d.logger.Info("没有需要解绑的树节点")
 		return nil
 	}
 
-	// 获取云资源
 	var cloud model.TreeCloudResource
 	if err := d.db.WithContext(ctx).First(&cloud, cloudID).Error; err != nil {
 		d.logger.Error("获取云资源失败", zap.Error(err), zap.Int("cloudID", cloudID))
 		return err
 	}
 
-	// 构建要解绑的树节点列表
 	var treeNodes []model.TreeNode
 	for _, nodeID := range treeNodeIds {
 		treeNodes = append(treeNodes, model.TreeNode{Model: model.Model{ID: nodeID}})
@@ -333,7 +316,6 @@ func (d *treeCloudDAO) UnBindTreeNodes(ctx context.Context, cloudID int, treeNod
 	return nil
 }
 
-// CreateSyncHistory 创建同步历史记录
 func (d *treeCloudDAO) CreateSyncHistory(ctx context.Context, history *model.CloudResourceSyncHistory) error {
 	if err := d.db.WithContext(ctx).Create(history).Error; err != nil {
 		d.logger.Error("创建同步历史失败", zap.Error(err))
@@ -346,14 +328,12 @@ func (d *treeCloudDAO) CreateSyncHistory(ctx context.Context, history *model.Clo
 	return nil
 }
 
-// GetSyncHistoryList 获取同步历史列表
 func (d *treeCloudDAO) GetSyncHistoryList(ctx context.Context, req *model.GetCloudResourceSyncHistoryReq) ([]*model.CloudResourceSyncHistory, int64, error) {
 	var histories []*model.CloudResourceSyncHistory
 	var total int64
 
 	query := d.db.WithContext(ctx).Model(&model.CloudResourceSyncHistory{})
 
-	// 添加查询条件
 	if req.CloudAccountID != 0 {
 		query = query.Where("cloud_account_id = ?", req.CloudAccountID)
 	}
@@ -366,13 +346,11 @@ func (d *treeCloudDAO) GetSyncHistoryList(ctx context.Context, req *model.GetClo
 		query = query.Where("error_message LIKE ?", "%"+req.Search+"%")
 	}
 
-	// 计算总数
 	if err := query.Count(&total).Error; err != nil {
 		d.logger.Error("获取同步历史总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	if err := query.Order("created_at DESC").
 		Limit(req.Size).
@@ -385,7 +363,6 @@ func (d *treeCloudDAO) GetSyncHistoryList(ctx context.Context, req *model.GetClo
 	return histories, total, nil
 }
 
-// CreateChangeLog 创建变更日志
 func (d *treeCloudDAO) CreateChangeLog(ctx context.Context, log *model.CloudResourceChangeLog) error {
 	if err := d.db.WithContext(ctx).Create(log).Error; err != nil {
 		d.logger.Error("创建变更日志失败", zap.Error(err))
@@ -395,14 +372,12 @@ func (d *treeCloudDAO) CreateChangeLog(ctx context.Context, log *model.CloudReso
 	return nil
 }
 
-// GetChangeLogList 获取变更日志列表
 func (d *treeCloudDAO) GetChangeLogList(ctx context.Context, req *model.GetCloudResourceChangeLogReq) ([]*model.CloudResourceChangeLog, int64, error) {
 	var logs []*model.CloudResourceChangeLog
 	var total int64
 
 	query := d.db.WithContext(ctx).Model(&model.CloudResourceChangeLog{})
 
-	// 添加查询条件
 	if req.ResourceID != 0 {
 		query = query.Where("resource_id = ?", req.ResourceID)
 	}
@@ -416,13 +391,11 @@ func (d *treeCloudDAO) GetChangeLogList(ctx context.Context, req *model.GetCloud
 			"%"+req.Search+"%", "%"+req.Search+"%")
 	}
 
-	// 计算总数
 	if err := query.Count(&total).Error; err != nil {
 		d.logger.Error("获取变更日志总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	if err := query.Order("change_time DESC").
 		Limit(req.Size).
@@ -477,7 +450,6 @@ func (d *treeCloudDAO) GetByRegionAndInstanceID(ctx context.Context, regionID in
 	return &resource, nil
 }
 
-// BatchDelete 批量删除云资源
 func (d *treeCloudDAO) BatchDelete(ctx context.Context, ids []int) error {
 	if len(ids) == 0 {
 		return errors.New("批量删除ID列表不能为空")
@@ -492,7 +464,6 @@ func (d *treeCloudDAO) BatchDelete(ctx context.Context, ids []int) error {
 	return nil
 }
 
-// BatchUpdateStatus 批量更新云资源状态
 func (d *treeCloudDAO) BatchUpdateStatus(ctx context.Context, ids []int, status model.CloudResourceStatus) error {
 	if len(ids) == 0 {
 		return errors.New("批量更新ID列表不能为空")

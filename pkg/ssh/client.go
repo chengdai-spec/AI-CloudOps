@@ -63,7 +63,6 @@ type Client interface {
 	Run(command string) (string, error)
 	// CreateSession 创建新的SSH会话
 	CreateSession(userID int) error
-	// GetSession 获取用户会话
 	GetSession(userID int) *ssh.Session
 	// CloseSession 关闭指定用户会话
 	CloseSession(userID int) error
@@ -104,7 +103,6 @@ func (c *client) Connect(config *Config) error {
 
 	c.config = config
 
-	// 设置默认参数
 	if config.Port <= 0 || config.Port > 65535 {
 		config.Port = 22
 		c.logger.Warn("端口号无效，使用默认端口22", zap.Int("原端口", config.Port))
@@ -121,7 +119,6 @@ func (c *client) Connect(config *Config) error {
 		Timeout:         time.Duration(config.Timeout) * time.Second,
 	}
 
-	// 配置认证方法
 	auth, err := c.getAuthMethod(config)
 	if err != nil {
 		return fmt.Errorf("配置认证方法失败: %w", err)
@@ -155,7 +152,6 @@ func (c *client) Run(command string) (string, error) {
 		return "", fmt.Errorf("SSH客户端未连接")
 	}
 
-	// 创建新会话执行命令
 	session, err := c.sshClient.NewSession()
 	if err != nil {
 		c.logger.Error("创建命令执行会话失败", zap.Error(err))
@@ -167,7 +163,6 @@ func (c *client) Run(command string) (string, error) {
 		}
 	}()
 
-	// 执行命令并获取输出
 	c.logger.Debug("执行命令", zap.String("命令", command))
 	output, err := session.CombinedOutput(command)
 	result := string(output)
@@ -213,7 +208,6 @@ func (c *client) CreateSession(userID int) error {
 	return nil
 }
 
-// GetSession 获取用户会话
 func (c *client) GetSession(userID int) *ssh.Session {
 	c.sessionMux.RLock()
 	defer c.sessionMux.RUnlock()
@@ -296,7 +290,6 @@ func (c *client) Close() error {
 	return nil
 }
 
-// validateConfig 验证配置参数
 func (c *client) validateConfig(config *Config) error {
 	if config == nil {
 		return fmt.Errorf("配置不能为空")
@@ -319,7 +312,6 @@ func (c *client) validateConfig(config *Config) error {
 	return nil
 }
 
-// getAuthMethod 获取认证方法
 func (c *client) getAuthMethod(config *Config) (ssh.AuthMethod, error) {
 	switch config.Mode {
 	case AuthModePassword:

@@ -36,7 +36,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Processor 通知任务处理器
 type Processor struct {
 	manager *Manager
 	logger  *zap.Logger
@@ -49,7 +48,6 @@ func NewProcessor(manager *Manager, logger *zap.Logger) *Processor {
 	}
 }
 
-// RegisterTasks 注册任务处理器
 func (p *Processor) RegisterTasks(mux *asynq.ServeMux) {
 	mux.HandleFunc(model.TaskTypeSendNotification, p.HandleSendNotification)
 	mux.HandleFunc(model.TaskTypeBatchSendNotification, p.HandleBatchSendNotification)
@@ -57,7 +55,6 @@ func (p *Processor) RegisterTasks(mux *asynq.ServeMux) {
 	mux.HandleFunc(model.TaskTypeRetryFailedNotification, p.HandleRetryFailedNotification)
 }
 
-// HandleSendNotification 处理单个通知发送任务
 func (p *Processor) HandleSendNotification(ctx context.Context, task *asynq.Task) error {
 	var payload SendNotificationPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
@@ -90,7 +87,6 @@ func (p *Processor) HandleSendNotification(ctx context.Context, task *asynq.Task
 	return nil
 }
 
-// HandleBatchSendNotification 处理批量通知发送任务
 func (p *Processor) HandleBatchSendNotification(ctx context.Context, task *asynq.Task) error {
 	var payload BatchSendNotificationPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
@@ -113,7 +109,6 @@ func (p *Processor) HandleBatchSendNotification(ctx context.Context, task *asynq
 		return err
 	}
 
-	// 统计发送结果
 	successCount := 0
 	failedCount := 0
 	for _, response := range responses {
@@ -132,7 +127,6 @@ func (p *Processor) HandleBatchSendNotification(ctx context.Context, task *asynq
 	return nil
 }
 
-// HandleScheduledNotification 处理定时通知任务
 func (p *Processor) HandleScheduledNotification(ctx context.Context, task *asynq.Task) error {
 	var payload ScheduledNotificationPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
@@ -147,7 +141,6 @@ func (p *Processor) HandleScheduledNotification(ctx context.Context, task *asynq
 		zap.String("schedule_type", payload.ScheduleType),
 		zap.Time("scheduled_at", payload.ScheduledAt))
 
-	// 检查是否到达执行时间
 	if time.Now().Before(payload.ScheduledAt) {
 		p.logger.Warn("定时通知尚未到达执行时间",
 			zap.String("task_id", task.Type()),
@@ -171,7 +164,6 @@ func (p *Processor) HandleScheduledNotification(ctx context.Context, task *asynq
 	return nil
 }
 
-// HandleRetryFailedNotification 处理重试失败的通知任务
 func (p *Processor) HandleRetryFailedNotification(ctx context.Context, task *asynq.Task) error {
 	var payload RetryFailedNotificationPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
@@ -205,21 +197,18 @@ func (p *Processor) HandleRetryFailedNotification(ctx context.Context, task *asy
 	return nil
 }
 
-// SendNotificationPayload 发送通知任务载荷
 type SendNotificationPayload struct {
 	Request   *SendRequest           `json:"request"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 	CreatedAt time.Time              `json:"created_at"`
 }
 
-// BatchSendNotificationPayload 批量发送通知任务载荷
 type BatchSendNotificationPayload struct {
 	Requests  []*SendRequest         `json:"requests"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 	CreatedAt time.Time              `json:"created_at"`
 }
 
-// ScheduledNotificationPayload 定时通知任务载荷
 type ScheduledNotificationPayload struct {
 	Request      *SendRequest           `json:"request"`
 	ScheduledAt  time.Time              `json:"scheduled_at"`
@@ -228,7 +217,6 @@ type ScheduledNotificationPayload struct {
 	CreatedAt    time.Time              `json:"created_at"`
 }
 
-// RetryFailedNotificationPayload 重试失败通知任务载荷
 type RetryFailedNotificationPayload struct {
 	Request           *SendRequest           `json:"request"`
 	OriginalMessageID string                 `json:"original_message_id"`
@@ -238,7 +226,6 @@ type RetryFailedNotificationPayload struct {
 	CreatedAt         time.Time              `json:"created_at"`
 }
 
-// CreateSendNotificationTask 创建发送通知任务
 func CreateSendNotificationTask(request *SendRequest, metadata map[string]interface{}) (*asynq.Task, error) {
 	payload := SendNotificationPayload{
 		Request:   request,
@@ -254,7 +241,6 @@ func CreateSendNotificationTask(request *SendRequest, metadata map[string]interf
 	return asynq.NewTask(model.TaskTypeSendNotification, data), nil
 }
 
-// CreateBatchSendNotificationTask 创建批量发送通知任务
 func CreateBatchSendNotificationTask(requests []*SendRequest, metadata map[string]interface{}) (*asynq.Task, error) {
 	payload := BatchSendNotificationPayload{
 		Requests:  requests,
@@ -270,7 +256,6 @@ func CreateBatchSendNotificationTask(requests []*SendRequest, metadata map[strin
 	return asynq.NewTask(model.TaskTypeBatchSendNotification, data), nil
 }
 
-// CreateScheduledNotificationTask 创建定时通知任务
 func CreateScheduledNotificationTask(request *SendRequest, scheduledAt time.Time, scheduleType string, metadata map[string]interface{}) (*asynq.Task, error) {
 	payload := ScheduledNotificationPayload{
 		Request:      request,
@@ -288,7 +273,6 @@ func CreateScheduledNotificationTask(request *SendRequest, scheduledAt time.Time
 	return asynq.NewTask(model.TaskTypeScheduledNotification, data), nil
 }
 
-// CreateRetryFailedNotificationTask 创建重试失败通知任务
 func CreateRetryFailedNotificationTask(request *SendRequest, originalMessageID string, retryCount int, lastError string, metadata map[string]interface{}) (*asynq.Task, error) {
 	payload := RetryFailedNotificationPayload{
 		Request:           request,

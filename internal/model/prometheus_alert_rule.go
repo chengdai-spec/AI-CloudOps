@@ -33,7 +33,6 @@ const (
 	AlertRuleSeverityCritical
 )
 
-// MonitorAlertRule 告警规则的配置
 type MonitorAlertRule struct {
 	Model
 	Name           string            `json:"name" binding:"required,min=1,max=50" gorm:"size:100;comment:告警规则名称"`
@@ -57,14 +56,12 @@ func (m *MonitorAlertRule) TableName() string {
 	return "cl_monitor_alert_rules"
 }
 
-// GetMonitorAlertRuleListReq 获取告警规则列表的请求
 type GetMonitorAlertRuleListReq struct {
 	ListReq
 	Enable   *int8              `json:"enable" form:"enable" binding:"omitempty,oneof=1 2"`
 	Severity *AlertRuleSeverity `json:"severity" form:"severity" binding:"omitempty,oneof=1 2 3"`
 }
 
-// CreateMonitorAlertRuleReq 创建告警规则请求
 type CreateMonitorAlertRuleReq struct {
 	Name           string            `json:"name" binding:"required,min=1,max=50"`
 	UserID         int               `json:"user_id"`
@@ -81,7 +78,6 @@ type CreateMonitorAlertRuleReq struct {
 	CreateUserName string            `json:"create_user_name"`
 }
 
-// UpdateMonitorAlertRuleReq 更新告警规则请求
 type UpdateMonitorAlertRuleReq struct {
 	ID          int               `json:"id" form:"id" binding:"required"`
 	Name        string            `json:"name" binding:"required,min=1,max=50"`
@@ -97,7 +93,6 @@ type UpdateMonitorAlertRuleReq struct {
 	Annotations StringList        `json:"annotations"`
 }
 
-// DeleteMonitorAlertRuleReq 删除告警规则请求
 type DeleteMonitorAlertRuleReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }
@@ -107,7 +102,6 @@ type PromqlAlertRuleExprCheckReq struct {
 	PromqlExpr string `json:"promql_expr" binding:"required"`
 }
 
-// GetMonitorAlertRuleReq 获取告警规则请求
 type GetMonitorAlertRuleReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }

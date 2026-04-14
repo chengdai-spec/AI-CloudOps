@@ -70,7 +70,7 @@ func (h *K8sConfigMapHandler) GetConfigMapList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.configMapService.GetConfigMapList(ctx, &req)
+		return h.configMapService.GetConfigMapList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -100,7 +100,7 @@ func (h *K8sConfigMapHandler) GetConfigMap(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.configMapService.GetConfigMap(ctx, &req)
+		return h.configMapService.GetConfigMap(ctx.Request.Context(), &req)
 	})
 }
 
@@ -116,7 +116,7 @@ func (h *K8sConfigMapHandler) CreateConfigMap(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.configMapService.CreateConfigMap(ctx, &req)
+		return nil, h.configMapService.CreateConfigMap(ctx.Request.Context(), &req)
 	})
 }
 
@@ -146,7 +146,7 @@ func (h *K8sConfigMapHandler) UpdateConfigMap(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.configMapService.UpdateConfigMap(ctx, &req)
+		return nil, h.configMapService.UpdateConfigMap(ctx.Request.Context(), &req)
 	})
 }
 
@@ -176,7 +176,7 @@ func (h *K8sConfigMapHandler) DeleteConfigMap(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.configMapService.DeleteConfigMap(ctx, &req)
+		return nil, h.configMapService.DeleteConfigMap(ctx.Request.Context(), &req)
 	})
 }
 
@@ -206,7 +206,7 @@ func (h *K8sConfigMapHandler) GetConfigMapYAML(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.configMapService.GetConfigMapYAML(ctx, &req)
+		return h.configMapService.GetConfigMapYAML(ctx.Request.Context(), &req)
 	})
 }
 
@@ -222,7 +222,7 @@ func (h *K8sConfigMapHandler) CreateConfigMapByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.configMapService.CreateConfigMapByYaml(ctx, &req)
+		return nil, h.configMapService.CreateConfigMapByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -252,6 +252,6 @@ func (h *K8sConfigMapHandler) UpdateConfigMapByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.configMapService.UpdateConfigMapByYaml(ctx, &req)
+		return nil, h.configMapService.UpdateConfigMapByYaml(ctx.Request.Context(), &req)
 	})
 }

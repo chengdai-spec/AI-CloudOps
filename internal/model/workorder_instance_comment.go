@@ -31,7 +31,6 @@ const (
 	CommentTypeSystem = "system" // 系统评论
 )
 
-// 评论状态常量
 const (
 	CommentStatusNormal  int8 = 1 // 正常
 	CommentStatusDeleted int8 = 2 // 已删除
@@ -57,7 +56,6 @@ func (WorkorderInstanceComment) TableName() string {
 	return "cl_workorder_instance_comment"
 }
 
-// CreateWorkorderInstanceCommentReq 创建工单实例评论请求
 type CreateWorkorderInstanceCommentReq struct {
 	InstanceID   int    `json:"instance_id" binding:"required,min=1"`
 	OperatorID   int    `json:"operator_id" binding:"required,min=1"`
@@ -69,7 +67,6 @@ type CreateWorkorderInstanceCommentReq struct {
 	IsSystem     int8   `json:"is_system" binding:"omitempty,oneof=1 2"`
 }
 
-// UpdateWorkorderInstanceCommentReq 更新工单实例评论请求
 type UpdateWorkorderInstanceCommentReq struct {
 	ID       int    `json:"id" binding:"required,min=1"`
 	Content  string `json:"content" binding:"required,min=1,max=2000"`
@@ -77,17 +74,14 @@ type UpdateWorkorderInstanceCommentReq struct {
 	IsSystem int8   `json:"is_system" binding:"omitempty,oneof=1 2"`
 }
 
-// DeleteWorkorderInstanceCommentReq 删除工单实例评论请求
 type DeleteWorkorderInstanceCommentReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// DetailWorkorderInstanceCommentReq 获取工单实例评论详情请求
 type DetailWorkorderInstanceCommentReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// ListWorkorderInstanceCommentReq 工单实例评论列表请求
 type ListWorkorderInstanceCommentReq struct {
 	ListReq
 	InstanceID *int    `json:"instance_id" form:"instance_id" binding:"omitempty,min=1"`
@@ -95,7 +89,6 @@ type ListWorkorderInstanceCommentReq struct {
 	Status     *int8   `json:"status" form:"status" binding:"omitempty,oneof=1 2 3"`
 }
 
-// GetInstanceCommentsTreeReq 获取工单实例评论树请求
 type GetInstanceCommentsTreeReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }

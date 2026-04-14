@@ -78,13 +78,10 @@ type unifiedCronManager struct {
 	promConfigCache cache.MonitorCache
 	clusterMgr      manager.ClusterManager
 
-	// 用户自定义任务调度器
 	cronScheduler *scheduler.CronScheduler
 
-	// 内置任务管理器
 	builtinTaskMgr *BuiltinTaskManager
 
-	// 管理器状态
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 }
@@ -114,15 +111,12 @@ func NewUnifiedCronManager(
 
 // === 统一管理方法 ===
 
-// Start 统一启动所有定时任务
 func (cm *unifiedCronManager) Start(ctx context.Context) error {
 	cm.logger.Info("启动统一Cron管理器")
 
-	// 创建带取消的上下文
 	ctx, cancel := context.WithCancel(ctx)
 	cm.cancel = cancel
 
-	// 初始化内置任务到数据库
 	if err := cm.builtinTaskMgr.InitializeBuiltinTasks(ctx); err != nil {
 		cm.logger.Error("初始化内置任务失败，尝试强制初始化", zap.Error(err))
 		// 如果正常初始化失败，尝试强制初始化
@@ -138,7 +132,6 @@ func (cm *unifiedCronManager) Start(ctx context.Context) error {
 		return err
 	}
 
-	// 启动用户自定义任务调度器
 	if err := cm.StartUserTaskScheduler(ctx); err != nil {
 		cm.logger.Error("启动用户任务调度器失败", zap.Error(err))
 		return err
@@ -152,7 +145,6 @@ func (cm *unifiedCronManager) Start(ctx context.Context) error {
 func (cm *unifiedCronManager) StartSystemTasks(ctx context.Context) error {
 	cm.logger.Info("启动系统内置任务")
 
-	// 获取启用的内置任务
 	enabledTasks, err := cm.builtinTaskMgr.GetEnabledBuiltinTasks(ctx)
 	if err != nil {
 		cm.logger.Error("获取启用的内置任务失败", zap.Error(err))
@@ -200,7 +192,6 @@ func (cm *unifiedCronManager) StartSystemTasks(ctx context.Context) error {
 	return nil
 }
 
-// StartUserTaskScheduler 启动用户自定义任务调度器
 func (cm *unifiedCronManager) StartUserTaskScheduler(ctx context.Context) error {
 	cm.logger.Info("启动用户自定义任务调度器")
 
@@ -215,11 +206,9 @@ func (cm *unifiedCronManager) StartUserTaskScheduler(ctx context.Context) error 
 	return nil
 }
 
-// Stop 优雅停止所有任务
 func (cm *unifiedCronManager) Stop(ctx context.Context) error {
 	cm.logger.Info("停止统一Cron管理器")
 
-	// 取消所有任务
 	if cm.cancel != nil {
 		cm.cancel()
 	}
@@ -244,7 +233,6 @@ func (cm *unifiedCronManager) Stop(ctx context.Context) error {
 
 // === 以下是从原 cron.go 迁移的系统内置任务实现 ===
 
-// startOnDutyHistoryManager 启动值班历史记录填充任务
 func (cm *unifiedCronManager) startOnDutyHistoryManager(ctx context.Context) error {
 	cm.logger.Info("启动值班历史记录填充任务")
 
@@ -253,7 +241,6 @@ func (cm *unifiedCronManager) startOnDutyHistoryManager(ctx context.Context) err
 		defer func() {
 			if r := recover(); r != nil {
 				cm.logger.Error("值班历史记录填充任务发生 panic，正在重启", zap.Any("panic", r))
-				// 重启任务
 				time.Sleep(RetryDelay)
 				go cm.startOnDutyHistoryManager(ctx)
 			}
@@ -309,7 +296,6 @@ func (cm *unifiedCronManager) startCheckK8sStatusManager(ctx context.Context) er
 		defer func() {
 			if r := recover(); r != nil {
 				cm.logger.Error("k8s状态检查任务发生 panic，正在重启", zap.Any("panic", r))
-				// 重启任务
 				time.Sleep(RetryDelay)
 				go cm.startCheckK8sStatusManager(ctx)
 			}
@@ -365,7 +351,6 @@ func (cm *unifiedCronManager) startPrometheusConfigRefreshManager(ctx context.Co
 		defer func() {
 			if r := recover(); r != nil {
 				cm.logger.Error("Prometheus配置刷新任务发生 panic，正在重启", zap.Any("panic", r))
-				// 重启任务
 				time.Sleep(RetryDelay)
 				go cm.startPrometheusConfigRefreshManager(ctx)
 			}
@@ -433,7 +418,6 @@ func (cm *unifiedCronManager) fillOnDutyHistoryWithRetry(ctx context.Context) er
 	return nil
 }
 
-// fetchAllEnabledGroups 获取所有启用的值班组
 func (cm *unifiedCronManager) fetchAllEnabledGroups(ctx context.Context) ([]*model.MonitorOnDutyGroup, error) {
 	var allGroups []*model.MonitorOnDutyGroup
 	page := 1
@@ -486,7 +470,6 @@ func (cm *unifiedCronManager) filterValidGroups(groups []*model.MonitorOnDutyGro
 	return validGroups
 }
 
-// processGroupsInParallel 并行处理值班组
 func (cm *unifiedCronManager) processGroupsInParallel(ctx context.Context, groups []*model.MonitorOnDutyGroup) {
 	errChan := make(chan error, len(groups))
 	var wg sync.WaitGroup
@@ -520,7 +503,6 @@ func (cm *unifiedCronManager) processGroupsInParallel(ctx context.Context, group
 	cm.logProcessResults(errChan, len(groups))
 }
 
-// logProcessResults 记录处理结果
 func (cm *unifiedCronManager) logProcessResults(errChan <-chan error, totalGroups int) {
 	errCount := 0
 	for err := range errChan {
@@ -537,7 +519,6 @@ func (cm *unifiedCronManager) logProcessResults(errChan <-chan error, totalGroup
 	}
 }
 
-// processOnDutyHistoryForGroup 填充单个值班组的历史记录
 func (cm *unifiedCronManager) processOnDutyHistoryForGroup(ctx context.Context, group *model.MonitorOnDutyGroup) error {
 	if len(group.Users) == 0 {
 		return ErrNoUsers
@@ -552,14 +533,12 @@ func (cm *unifiedCronManager) processOnDutyHistoryForGroup(ctx context.Context, 
 		return err
 	}
 
-	// 检查今天是否有换班记录
 	changes, _, err := cm.onDutyDao.GetMonitorOnDutyChangesByGroupAndTimeRange(ctx, group.ID, todayStr, todayStr)
 	if err != nil {
 		cm.logger.Error("获取换班记录失败", zap.Error(err), zap.String("group", group.Name), zap.Int("groupID", group.ID))
 		return err
 	}
 
-	// 优先处理换班记录
 	if len(changes) > 0 {
 		cm.logger.Info("发现换班记录，优先处理", zap.String("group", group.Name), zap.Int("groupID", group.ID))
 		latestChange := changes[len(changes)-1]
@@ -724,7 +703,6 @@ func (cm *unifiedCronManager) isShiftNeeded(ctx context.Context, group *model.Mo
 	return consecutiveDays >= group.ShiftDays, nil
 }
 
-// getMemberIndex 获取成员在值班组中的索引
 func (cm *unifiedCronManager) getMemberIndex(group *model.MonitorOnDutyGroup, userID int) int {
 	if group == nil || len(group.Users) == 0 {
 		return 0
@@ -813,7 +791,6 @@ func (cm *unifiedCronManager) checkK8sStatusWithRetry(ctx context.Context) error
 	return nil
 }
 
-// checkClusterStatus 检查单个集群状态
 func (cm *unifiedCronManager) checkClusterStatus(ctx context.Context, cluster *model.K8sCluster) error {
 	startTime := time.Now()
 	var newStatus model.ClusterStatus

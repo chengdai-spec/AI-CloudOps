@@ -82,7 +82,6 @@ func (d *clusterDAO) GetClusterList(ctx context.Context, req *model.ListClusters
 			"%"+req.Search+"%", "%"+req.Search+"%")
 	}
 
-	// 获取总数
 	if err := query.Count(&total).Error; err != nil {
 		d.l.Error("GetClusterList: 统计集群总数失败",
 			zap.String("status", req.Status),

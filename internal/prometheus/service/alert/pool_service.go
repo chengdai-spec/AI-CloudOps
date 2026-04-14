@@ -130,7 +130,6 @@ func (a *alertManagerPoolService) UpdateMonitorAlertManagerPool(ctx context.Cont
 		return errors.New("无效的告警池ID")
 	}
 
-	// 先获取原有的告警池信息
 	oldPool, err := a.dao.GetAlertPoolByID(ctx, req.ID)
 	if err != nil {
 		a.l.Error("更新 AlertManager 集群池失败：获取原有告警池信息出错", zap.Error(err))

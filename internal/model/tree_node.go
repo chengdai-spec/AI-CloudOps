@@ -45,7 +45,6 @@ const (
 	IsLeafNo  int8 = 2 // 不是叶子节点
 )
 
-// TreeNode 服务树节点结构
 type TreeNode struct {
 	Model
 	Name               string               `json:"name" gorm:"type:varchar(50);not null;comment:节点名称"`        // 节点名称
@@ -67,24 +66,20 @@ func (t *TreeNode) TableName() string {
 	return "cl_tree_node"
 }
 
-// GetTreeNodeListReq 获取树节点列表请求
 type GetTreeNodeListReq struct {
 	ListReq
 	Level  int            `json:"level" form:"level" binding:"omitempty,min=1"`
 	Status TreeNodeStatus `json:"status" form:"status" binding:"omitempty,oneof=1 2"`
 }
 
-// GetTreeNodeDetailReq 获取节点详情请求
 type GetTreeNodeDetailReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }
 
-// GetTreeNodeChildNodesReq 获取子节点列表请求
 type GetTreeNodeChildNodesReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }
 
-// CreateTreeNodeReq 创建节点请求
 type CreateTreeNodeReq struct {
 	Name           string         `json:"name" form:"name" binding:"required,min=1,max=50"`
 	ParentID       int            `json:"parent_id" form:"parent_id"` // 父节点ID，0表示根节点
@@ -95,7 +90,6 @@ type CreateTreeNodeReq struct {
 	Status         TreeNodeStatus `json:"status" form:"status" binding:"omitempty,oneof=1 2"`
 }
 
-// UpdateTreeNodeReq 更新节点请求
 type UpdateTreeNodeReq struct {
 	ID          int            `json:"id" form:"id" binding:"required"`
 	Name        string         `json:"name" form:"name" binding:"required,min=1,max=50"`
@@ -105,69 +99,58 @@ type UpdateTreeNodeReq struct {
 	IsLeaf      int8           `json:"is_leaf" form:"is_leaf" binding:"omitempty,oneof=1 2"`
 }
 
-// UpdateTreeNodeStatusReq 更新节点状态请求
 type UpdateTreeNodeStatusReq struct {
 	ID     int            `json:"id" binding:"required"`
 	Status TreeNodeStatus `json:"status" binding:"required,oneof=1 2"`
 }
 
-// DeleteTreeNodeReq 删除节点请求
 type DeleteTreeNodeReq struct {
 	ID int `json:"id" binding:"required"`
 }
 
-// MoveTreeNodeReq 移动节点请求
 type MoveTreeNodeReq struct {
 	ID          int `json:"id" form:"id" binding:"required"`
 	NewParentID int `json:"new_parent_id" form:"new_parent_id" binding:"required"` // 新父节点ID，必填
 }
 
-// GetTreeNodeMembersReq 获取节点成员请求
 type GetTreeNodeMembersReq struct {
 	ID   int                `json:"id" binding:"required"`
 	Type TreeNodeMemberType `json:"type" form:"type" binding:"omitempty,oneof=1 2"`
 }
 
-// AddTreeNodeMemberReq 添加节点成员请求
 type AddTreeNodeMemberReq struct {
 	NodeID     int                `json:"node_id" form:"node_id" binding:"required"`
 	UserID     int                `json:"user_id" form:"user_id" binding:"required"`
 	MemberType TreeNodeMemberType `json:"member_type" form:"member_type" binding:"required,oneof=1 2"`
 }
 
-// RemoveTreeNodeMemberReq 移除节点成员请求
 type RemoveTreeNodeMemberReq struct {
 	NodeID     int                `json:"node_id" form:"node_id" binding:"required"`
 	UserID     int                `json:"user_id" form:"user_id" binding:"required"`
 	MemberType TreeNodeMemberType `json:"member_type" form:"member_type" binding:"required,oneof=1 2"`
 }
 
-// BindTreeNodeResourceReq 绑定资源请求
 type BindTreeNodeResourceReq struct {
 	NodeID      int   `json:"node_id" binding:"required"`
 	ResourceIDs []int `json:"resource_ids" binding:"required,min=1"`
 }
 
-// UnbindTreeNodeResourceReq 解绑资源请求
 type UnbindTreeNodeResourceReq struct {
 	NodeID     int `json:"node_id" binding:"required"`
 	ResourceID int `json:"resource_id" binding:"required"`
 }
 
-// CheckTreeNodePermissionReq 检查节点权限请求
 type CheckTreeNodePermissionReq struct {
 	UserID    int    `json:"user_id" binding:"required"`
 	NodeID    int    `json:"node_id" binding:"required"`
 	Operation string `json:"operation" binding:"required"`
 }
 
-// GetUserTreeNodesReq 获取用户相关节点请求
 type GetUserTreeNodesReq struct {
 	UserID int                `json:"user_id" binding:"required"`
 	Role   TreeNodeMemberType `json:"role" binding:"omitempty,oneof=1 2"`
 }
 
-// TreeNodeStatisticsResp 服务树统计响应
 type TreeNodeStatisticsResp struct {
 	TotalNodes     int `json:"total_nodes"`     // 节点总数
 	TotalResources int `json:"total_resources"` // 资源总数

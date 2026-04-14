@@ -67,7 +67,7 @@ func (h *K8sRoleBindingHandler) GetRoleBindingList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.roleBindingService.GetRoleBindingList(ctx, &req)
+		return h.roleBindingService.GetRoleBindingList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -97,7 +97,7 @@ func (h *K8sRoleBindingHandler) GetRoleBindingDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.roleBindingService.GetRoleBindingDetails(ctx, &req)
+		return h.roleBindingService.GetRoleBindingDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -105,7 +105,7 @@ func (h *K8sRoleBindingHandler) CreateRoleBinding(ctx *gin.Context) {
 	var req model.CreateRoleBindingReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleBindingService.CreateRoleBinding(ctx, &req)
+		return nil, h.roleBindingService.CreateRoleBinding(ctx.Request.Context(), &req)
 	})
 }
 
@@ -121,7 +121,7 @@ func (h *K8sRoleBindingHandler) CreateRoleBindingByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleBindingService.CreateRoleBindingByYaml(ctx, &req)
+		return nil, h.roleBindingService.CreateRoleBindingByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -129,7 +129,7 @@ func (h *K8sRoleBindingHandler) UpdateRoleBinding(ctx *gin.Context) {
 	var req model.UpdateRoleBindingReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleBindingService.UpdateRoleBinding(ctx, &req)
+		return nil, h.roleBindingService.UpdateRoleBinding(ctx.Request.Context(), &req)
 	})
 }
 
@@ -159,7 +159,7 @@ func (h *K8sRoleBindingHandler) DeleteRoleBinding(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleBindingService.DeleteRoleBinding(ctx, &req)
+		return nil, h.roleBindingService.DeleteRoleBinding(ctx.Request.Context(), &req)
 	})
 }
 
@@ -189,7 +189,7 @@ func (h *K8sRoleBindingHandler) GetRoleBindingYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.roleBindingService.GetRoleBindingYaml(ctx, &req)
+		return h.roleBindingService.GetRoleBindingYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -197,6 +197,6 @@ func (h *K8sRoleBindingHandler) UpdateRoleBindingYaml(ctx *gin.Context) {
 	var req model.UpdateRoleBindingByYamlReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleBindingService.UpdateRoleBindingYaml(ctx, &req)
+		return nil, h.roleBindingService.UpdateRoleBindingYaml(ctx.Request.Context(), &req)
 	})
 }

@@ -96,7 +96,6 @@ type IngressLoadBalancerIngress struct {
 	Ports    []IngressPortStatus `json:"ports"`    // 端口状态
 }
 
-// IngressPortStatus 端口状态
 type IngressPortStatus struct {
 	Port     int32  `json:"port"`     // 端口号
 	Protocol string `json:"protocol"` // 协议

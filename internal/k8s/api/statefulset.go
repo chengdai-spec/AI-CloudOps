@@ -73,7 +73,7 @@ func (h *K8sStatefulSetHandler) GetStatefulSetList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.statefulSetService.GetStatefulSetList(ctx, &req)
+		return h.statefulSetService.GetStatefulSetList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -103,7 +103,7 @@ func (h *K8sStatefulSetHandler) GetStatefulSetDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.statefulSetService.GetStatefulSetDetails(ctx, &req)
+		return h.statefulSetService.GetStatefulSetDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -133,7 +133,7 @@ func (h *K8sStatefulSetHandler) GetStatefulSetYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.statefulSetService.GetStatefulSetYaml(ctx, &req)
+		return h.statefulSetService.GetStatefulSetYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -149,7 +149,7 @@ func (h *K8sStatefulSetHandler) CreateStatefulSet(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.statefulSetService.CreateStatefulSet(ctx, &req)
+		return nil, h.statefulSetService.CreateStatefulSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -165,7 +165,7 @@ func (h *K8sStatefulSetHandler) CreateStatefulSetByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.statefulSetService.CreateStatefulSetByYaml(ctx, &req)
+		return nil, h.statefulSetService.CreateStatefulSetByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -195,7 +195,7 @@ func (h *K8sStatefulSetHandler) UpdateStatefulSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.statefulSetService.UpdateStatefulSet(ctx, &req)
+		return nil, h.statefulSetService.UpdateStatefulSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -225,7 +225,7 @@ func (h *K8sStatefulSetHandler) UpdateStatefulSetByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.statefulSetService.UpdateStatefulSetByYaml(ctx, &req)
+		return nil, h.statefulSetService.UpdateStatefulSetByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -255,7 +255,7 @@ func (h *K8sStatefulSetHandler) DeleteStatefulSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.statefulSetService.DeleteStatefulSet(ctx, &req)
+		return nil, h.statefulSetService.DeleteStatefulSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -285,7 +285,7 @@ func (h *K8sStatefulSetHandler) RestartStatefulSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.statefulSetService.RestartStatefulSet(ctx, &req)
+		return nil, h.statefulSetService.RestartStatefulSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -316,7 +316,7 @@ func (h *K8sStatefulSetHandler) ScaleStatefulSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.statefulSetService.ScaleStatefulSet(ctx, &req)
+		return nil, h.statefulSetService.ScaleStatefulSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -346,7 +346,7 @@ func (h *K8sStatefulSetHandler) RollbackStatefulSet(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.statefulSetService.RollbackStatefulSet(ctx, &req)
+		return nil, h.statefulSetService.RollbackStatefulSet(ctx.Request.Context(), &req)
 	})
 }
 
@@ -376,7 +376,7 @@ func (h *K8sStatefulSetHandler) GetStatefulSetPods(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.statefulSetService.GetStatefulSetPods(ctx, &req)
+		return h.statefulSetService.GetStatefulSetPods(ctx.Request.Context(), &req)
 	})
 }
 
@@ -406,6 +406,6 @@ func (h *K8sStatefulSetHandler) GetStatefulSetHistory(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.statefulSetService.GetStatefulSetHistory(ctx, &req)
+		return h.statefulSetService.GetStatefulSetHistory(ctx.Request.Context(), &req)
 	})
 }

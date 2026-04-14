@@ -64,7 +64,6 @@ func (h *InstanceHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateInstance 创建工单实例
 func (h *InstanceHandler) CreateInstance(ctx *gin.Context) {
 	var req model.CreateWorkorderInstanceReq
 	user := ctx.MustGet("user").(jwt.UserClaims)
@@ -73,11 +72,10 @@ func (h *InstanceHandler) CreateInstance(ctx *gin.Context) {
 	req.OperatorName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.CreateInstance(ctx, &req)
+		return nil, h.service.CreateInstance(ctx.Request.Context(), &req)
 	})
 }
 
-// CreateInstanceFromTemplate 从模板创建工单实例
 func (h *InstanceHandler) CreateInstanceFromTemplate(ctx *gin.Context) {
 	var req model.CreateWorkorderInstanceFromTemplateReq
 	user := ctx.MustGet("user").(jwt.UserClaims)
@@ -92,11 +90,10 @@ func (h *InstanceHandler) CreateInstanceFromTemplate(ctx *gin.Context) {
 	req.OperatorName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.CreateInstanceFromTemplate(ctx, templateID, &req)
+		return nil, h.service.CreateInstanceFromTemplate(ctx.Request.Context(), templateID, &req)
 	})
 }
 
-// UpdateInstance 更新工单实例
 func (h *InstanceHandler) UpdateInstance(ctx *gin.Context) {
 	var req model.UpdateWorkorderInstanceReq
 
@@ -109,11 +106,10 @@ func (h *InstanceHandler) UpdateInstance(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.UpdateInstance(ctx, &req)
+		return nil, h.service.UpdateInstance(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteInstance 删除工单实例
 func (h *InstanceHandler) DeleteInstance(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -122,11 +118,10 @@ func (h *InstanceHandler) DeleteInstance(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, nil, func() (any, error) {
-		return nil, h.service.DeleteInstance(ctx, id)
+		return nil, h.service.DeleteInstance(ctx.Request.Context(), id)
 	})
 }
 
-// DetailInstance 获取工单实例详情
 func (h *InstanceHandler) DetailInstance(ctx *gin.Context) {
 	id, err := base.GetParamID(ctx)
 	if err != nil {
@@ -135,16 +130,15 @@ func (h *InstanceHandler) DetailInstance(ctx *gin.Context) {
 	}
 
 	base.HandleRequest(ctx, nil, func() (any, error) {
-		return h.service.GetInstance(ctx, id)
+		return h.service.GetInstance(ctx.Request.Context(), id)
 	})
 }
 
-// ListInstance 获取工单实例列表
 func (h *InstanceHandler) ListInstance(ctx *gin.Context) {
 	var req model.ListWorkorderInstanceReq
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return h.service.ListInstance(ctx, &req)
+		return h.service.ListInstance(ctx.Request.Context(), &req)
 	})
 }
 
@@ -162,7 +156,7 @@ func (h *InstanceHandler) SubmitInstance(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.SubmitInstance(ctx, req.ID, user.Uid, user.Username)
+		return nil, h.service.SubmitInstance(ctx.Request.Context(), req.ID, user.Uid, user.Username)
 	})
 }
 
@@ -180,7 +174,7 @@ func (h *InstanceHandler) AssignInstance(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.AssignInstance(ctx, req.ID, req.AssigneeID, user.Uid, user.Username)
+		return nil, h.service.AssignInstance(ctx.Request.Context(), req.ID, req.AssigneeID, user.Uid, user.Username)
 	})
 }
 
@@ -198,7 +192,7 @@ func (h *InstanceHandler) ApproveInstance(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.ApproveInstance(ctx, req.ID, user.Uid, user.Username, req.Comment)
+		return nil, h.service.ApproveInstance(ctx.Request.Context(), req.ID, user.Uid, user.Username, req.Comment)
 	})
 }
 
@@ -216,7 +210,7 @@ func (h *InstanceHandler) RejectInstance(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.RejectInstance(ctx, req.ID, user.Uid, user.Username, req.Comment)
+		return nil, h.service.RejectInstance(ctx.Request.Context(), req.ID, user.Uid, user.Username, req.Comment)
 	})
 }
 
@@ -234,7 +228,7 @@ func (h *InstanceHandler) CancelInstance(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.CancelInstance(ctx, req.ID, user.Uid, user.Username, req.Comment)
+		return nil, h.service.CancelInstance(ctx.Request.Context(), req.ID, user.Uid, user.Username, req.Comment)
 	})
 }
 
@@ -252,7 +246,7 @@ func (h *InstanceHandler) CompleteInstance(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.CompleteInstance(ctx, req.ID, user.Uid, user.Username, req.Comment)
+		return nil, h.service.CompleteInstance(ctx.Request.Context(), req.ID, user.Uid, user.Username, req.Comment)
 	})
 }
 
@@ -270,11 +264,10 @@ func (h *InstanceHandler) ReturnInstance(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return nil, h.service.ReturnInstance(ctx, req.ID, user.Uid, user.Username, req.Comment)
+		return nil, h.service.ReturnInstance(ctx.Request.Context(), req.ID, user.Uid, user.Username, req.Comment)
 	})
 }
 
-// GetAvailableActions 获取可执行动作
 func (h *InstanceHandler) GetAvailableActions(ctx *gin.Context) {
 	var req model.GetAvailableActionsReq
 	id, err := base.GetParamID(ctx)
@@ -288,11 +281,10 @@ func (h *InstanceHandler) GetAvailableActions(ctx *gin.Context) {
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, nil, func() (any, error) {
-		return h.service.GetAvailableActions(ctx, req.ID, user.Uid)
+		return h.service.GetAvailableActions(ctx.Request.Context(), req.ID, user.Uid)
 	})
 }
 
-// GetCurrentStep 获取当前步骤
 func (h *InstanceHandler) GetCurrentStep(ctx *gin.Context) {
 	var req model.GetCurrentStepReq
 	id, err := base.GetParamID(ctx)
@@ -304,6 +296,6 @@ func (h *InstanceHandler) GetCurrentStep(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, nil, func() (any, error) {
-		return h.service.GetCurrentStep(ctx, req.ID)
+		return h.service.GetCurrentStep(ctx.Request.Context(), req.ID)
 	})
 }

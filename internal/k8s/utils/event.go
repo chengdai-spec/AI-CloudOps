@@ -246,22 +246,18 @@ func GetEventSummary(events []corev1.Event) map[string]interface{} {
 	objectCounts := make(map[string]int)
 
 	for _, event := range events {
-		// 统计事件类型
 		if event.Type == "Normal" {
 			normalEvents++
 		} else if event.Type == "Warning" {
 			warningEvents++
 		}
 
-		// 统计关键事件
 		if IsEventCritical(event.Type, event.Reason) {
 			criticalEvents++
 		}
 
-		// 统计原因
 		reasonCounts[event.Reason]++
 
-		// 统计对象
 		objectKey := fmt.Sprintf("%s/%s", event.InvolvedObject.Kind, event.InvolvedObject.Name)
 		objectCounts[objectKey]++
 	}
@@ -280,7 +276,6 @@ func ParseEventMessage(message string) map[string]string {
 	info := make(map[string]string)
 	info["message"] = message
 
-	// 提取常见的错误信息
 	if strings.Contains(message, "ErrImagePull") {
 		info["error_type"] = "ImagePull"
 		info["severity"] = "High"

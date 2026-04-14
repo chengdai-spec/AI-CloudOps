@@ -27,7 +27,6 @@ package model
 
 import "time"
 
-// 工单状态
 const (
 	InstanceStatusDraft      int8 = 1 // 草稿
 	InstanceStatusPending    int8 = 2 // 待处理
@@ -44,7 +43,6 @@ const (
 	PriorityLow    int8 = 3 // 低
 )
 
-// 记录类型
 const (
 	FlowRecordTypeUser   int8 = 1 // 用户操作
 	FlowRecordTypeSystem int8 = 2 // 系统操作
@@ -85,7 +83,6 @@ func (WorkorderInstance) TableName() string {
 	return "cl_workorder_instance"
 }
 
-// 创建工单请求
 type CreateWorkorderInstanceReq struct {
 	Title        string     `json:"title" binding:"required,min=1,max=200"`
 	ProcessID    int        `json:"process_id" binding:"required,min=1"`
@@ -100,7 +97,6 @@ type CreateWorkorderInstanceReq struct {
 	DueDate      *time.Time `json:"due_date" binding:"omitempty"`
 }
 
-// 更新工单请求
 type UpdateWorkorderInstanceReq struct {
 	ID          int        `json:"id" binding:"required,min=1"`
 	Title       string     `json:"title" binding:"omitempty,min=1,max=200"`
@@ -114,17 +110,14 @@ type UpdateWorkorderInstanceReq struct {
 	CompletedAt *time.Time `json:"completed_at" binding:"omitempty"`
 }
 
-// 删除工单请求
 type DeleteWorkorderInstanceReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// 工单详情请求
 type DetailWorkorderInstanceReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// 工单列表请求
 type ListWorkorderInstanceReq struct {
 	ListReq
 	Status    *int8 `json:"status" form:"status" binding:"omitempty,oneof=1 2 3 4 5 6"`
@@ -155,7 +148,6 @@ type RejectWorkorderInstanceReq struct {
 	Comment string `json:"comment" binding:"required,min=1,max=500"`
 }
 
-// 从模板创建工单
 type CreateWorkorderInstanceFromTemplateReq struct {
 	Title        string     `json:"title" binding:"required,min=1,max=200"`
 	FormData     JSONMap    `json:"form_data" binding:"omitempty"`

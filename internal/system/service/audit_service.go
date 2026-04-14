@@ -64,13 +64,11 @@ func NewAuditService(dao dao.AuditDAO, logger *zap.Logger) AuditService {
 		done:      make(chan struct{}),
 	}
 
-	// 启动单个后台处理协程
 	go s.processAsync()
 
 	return s
 }
 
-// 同步创建审计日志
 func (s *auditService) CreateAuditLog(ctx context.Context, req *model.CreateAuditLogRequest) error {
 	auditLog := s.buildAuditLog(req)
 	if err := s.dao.CreateAuditLog(ctx, auditLog); err != nil {
@@ -80,7 +78,6 @@ func (s *auditService) CreateAuditLog(ctx context.Context, req *model.CreateAudi
 	return nil
 }
 
-// 异步创建审计日志
 func (s *auditService) CreateAuditLogAsync(ctx context.Context, req *model.CreateAuditLogRequest) {
 	auditLog := s.buildAuditLog(req)
 
@@ -88,14 +85,12 @@ func (s *auditService) CreateAuditLogAsync(ctx context.Context, req *model.Creat
 	case s.asyncChan <- auditLog:
 		// 成功入队
 	default:
-		// 队列满时记录并丢弃
 		s.logger.Warn("审计日志队列已满",
 			zap.String("操作", req.OperationType),
 			zap.String("端点", req.Endpoint))
 	}
 }
 
-// 简化的异步处理
 func (s *auditService) processAsync() {
 	for {
 		select {
@@ -105,7 +100,6 @@ func (s *auditService) processAsync() {
 				s.logger.Error("异步创建审计日志失败", zap.Error(err))
 			}
 		case <-s.done:
-			// 处理剩余日志
 			for {
 				select {
 				case log := <-s.asyncChan:
@@ -121,7 +115,6 @@ func (s *auditService) processAsync() {
 	}
 }
 
-// 构建审计日志对象
 func (s *auditService) buildAuditLog(req *model.CreateAuditLogRequest) *model.AuditLog {
 	return &model.AuditLog{
 		UserID:        req.UserID,
@@ -141,7 +134,6 @@ func (s *auditService) buildAuditLog(req *model.CreateAuditLogRequest) *model.Au
 	}
 }
 
-// 批量创建审计日志
 func (s *auditService) BatchCreateAuditLogs(ctx context.Context, logs []model.AuditLog) error {
 	if len(logs) == 0 {
 		return nil
@@ -154,9 +146,7 @@ func (s *auditService) BatchCreateAuditLogs(ctx context.Context, logs []model.Au
 	return nil
 }
 
-// 获取审计日志列表
 func (s *auditService) ListAuditLogs(ctx context.Context, req *model.ListAuditLogsRequest) (*model.ListResp[model.AuditLog], error) {
-	// 参数校验
 	req.Size = s.validatePageSize(req.Size, 10, 100)
 	if req.Page <= 0 {
 		req.Page = 1
@@ -174,7 +164,6 @@ func (s *auditService) ListAuditLogs(ctx context.Context, req *model.ListAuditLo
 	}, nil
 }
 
-// 获取审计日志详情
 func (s *auditService) GetAuditLogDetail(ctx context.Context, id int) (*model.AuditLog, error) {
 	log, err := s.dao.GetAuditLogByID(ctx, id)
 	if err != nil {
@@ -186,7 +175,6 @@ func (s *auditService) GetAuditLogDetail(ctx context.Context, id int) (*model.Au
 
 // 搜索审计日志
 func (s *auditService) SearchAuditLogs(ctx context.Context, req *model.SearchAuditLogsRequest) (*model.ListResp[model.AuditLog], error) {
-	// 参数校验
 	req.Size = s.validatePageSize(req.Size, 10, 100)
 	if req.Page <= 0 {
 		req.Page = 1
@@ -204,7 +192,6 @@ func (s *auditService) SearchAuditLogs(ctx context.Context, req *model.SearchAud
 	}, nil
 }
 
-// 获取审计统计信息
 func (s *auditService) GetAuditStatistics(ctx context.Context) (*model.AuditStatistics, error) {
 	stats, err := s.dao.GetAuditStatistics(ctx)
 	if err != nil {
@@ -214,7 +201,6 @@ func (s *auditService) GetAuditStatistics(ctx context.Context) (*model.AuditStat
 	return stats, nil
 }
 
-// 获取审计类型列表
 func (s *auditService) GetAuditTypes(ctx context.Context) ([]model.AuditTypeInfo, error) {
 	auditTypes := []model.AuditTypeInfo{
 		{Type: "CREATE", Description: "创建操作", Category: "数据操作"},
@@ -232,7 +218,6 @@ func (s *auditService) GetAuditTypes(ctx context.Context) ([]model.AuditTypeInfo
 	return auditTypes, nil
 }
 
-// 删除审计日志
 func (s *auditService) DeleteAuditLog(ctx context.Context, id int) error {
 	if err := s.dao.DeleteAuditLog(ctx, id); err != nil {
 		s.logger.Error("删除审计日志失败", zap.Error(err), zap.Int("ID", id))
@@ -241,13 +226,11 @@ func (s *auditService) DeleteAuditLog(ctx context.Context, id int) error {
 	return nil
 }
 
-// 批量删除审计日志
 func (s *auditService) BatchDeleteAuditLogs(ctx context.Context, ids []int) error {
 	if len(ids) == 0 {
 		return nil
 	}
 
-	// 限制批量删除数量
 	if len(ids) > 1000 {
 		s.logger.Warn("批量删除审计日志数量过多，已限制为最大值",
 			zap.Int("原始数量", len(ids)), zap.Int("最大数量", 1000))
@@ -278,7 +261,6 @@ func (s *auditService) Close() error {
 	return nil
 }
 
-// 工具方法：校验分页大小
 func (s *auditService) validatePageSize(size, defaultSize, maxSize int) int {
 	if size <= 0 {
 		return defaultSize

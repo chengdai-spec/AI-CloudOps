@@ -334,7 +334,6 @@ func FilterStatefulSetsByStatus(statefulSets []appsv1.StatefulSet, status string
 	var filtered []appsv1.StatefulSet
 	for _, statefulSet := range statefulSets {
 		statefulSetStatus := getStatefulSetStatus(statefulSet)
-		// 正确转换状态为字符串
 		var statusStr string
 		switch statefulSetStatus {
 		case model.K8sStatefulSetStatusRunning:

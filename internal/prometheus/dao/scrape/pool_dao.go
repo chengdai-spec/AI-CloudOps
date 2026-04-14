@@ -60,7 +60,6 @@ func NewScrapePoolDAO(db *gorm.DB, l *zap.Logger, userDao userDao.UserDAO) Scrap
 	}
 }
 
-// GetMonitorScrapePoolList 获取监控采集池列表
 func (d *scrapePoolDAO) GetMonitorScrapePoolList(ctx context.Context, req *model.GetMonitorScrapePoolListReq) ([]*model.MonitorScrapePool, int64, error) {
 	var pools []*model.MonitorScrapePool
 	var count int64
@@ -80,13 +79,11 @@ func (d *scrapePoolDAO) GetMonitorScrapePoolList(ctx context.Context, req *model
 		query = query.Where("support_record = ?", *req.SupportRecord)
 	}
 
-	// 获取总数
 	if err := query.Count(&count).Error; err != nil {
 		d.l.Error("获取 MonitorScrapePool 总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 分页查询
 	if err := query.Offset((req.Page - 1) * req.Size).Limit(req.Size).Find(&pools).Error; err != nil {
 		d.l.Error("获取 MonitorScrapePool 记录失败", zap.Error(err))
 		return nil, 0, err
@@ -95,7 +92,6 @@ func (d *scrapePoolDAO) GetMonitorScrapePoolList(ctx context.Context, req *model
 	return pools, count, nil
 }
 
-// CreateMonitorScrapePool 创建监控采集池
 func (d *scrapePoolDAO) CreateMonitorScrapePool(ctx context.Context, pool *model.MonitorScrapePool) error {
 	// 检查是否已存在相同名称的pool
 	var count int64
@@ -135,7 +131,6 @@ func (d *scrapePoolDAO) GetMonitorScrapePoolById(ctx context.Context, id int) (*
 	return &pool, nil
 }
 
-// UpdateMonitorScrapePool 更新监控采集池
 func (d *scrapePoolDAO) UpdateMonitorScrapePool(ctx context.Context, req *model.UpdateMonitorScrapePoolReq) error {
 	if req.ID <= 0 {
 		d.l.Error("UpdateMonitorScrapePool 失败: ID 为 0", zap.Any("pool", req))
@@ -168,7 +163,6 @@ func (d *scrapePoolDAO) UpdateMonitorScrapePool(ctx context.Context, req *model.
 	return nil
 }
 
-// DeleteMonitorScrapePool 删除监控采集池
 func (d *scrapePoolDAO) DeleteMonitorScrapePool(ctx context.Context, poolId int) error {
 	if poolId <= 0 {
 		d.l.Error("DeleteMonitorScrapePool 失败: 无效的 poolId", zap.Int("poolId", poolId))
@@ -191,7 +185,6 @@ func (d *scrapePoolDAO) DeleteMonitorScrapePool(ctx context.Context, poolId int)
 	return nil
 }
 
-// GetMonitorScrapePoolSupportedAlert 获取支持警报的监控采集池
 func (d *scrapePoolDAO) GetMonitorScrapePoolSupportedAlert(ctx context.Context) ([]*model.MonitorScrapePool, int64, error) {
 	var pools []*model.MonitorScrapePool
 	var count int64
@@ -237,7 +230,6 @@ func (d *scrapePoolDAO) GetMonitorScrapePoolSupportedRecord(ctx context.Context)
 	return pools, count, nil
 }
 
-// CheckMonitorScrapePoolExists 检查监控采集池是否存在
 func (d *scrapePoolDAO) CheckMonitorScrapePoolExists(ctx context.Context, scrapePool *model.MonitorScrapePool) (bool, error) {
 	if scrapePool.Name == "" {
 		return false, fmt.Errorf("scrapePool 或 name 不能为空")

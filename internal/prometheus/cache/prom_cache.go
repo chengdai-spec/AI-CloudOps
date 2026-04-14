@@ -119,21 +119,18 @@ func (p *prometheusConfigCache) GetConfigByIP(ip string) string {
 	return val
 }
 
-// recordCacheHit 记录缓存命中
 func (p *prometheusConfigCache) recordCacheHit() {
 	p.cacheStats.mu.Lock()
 	defer p.cacheStats.mu.Unlock()
 	p.cacheStats.hits++
 }
 
-// recordCacheMiss 记录缓存未命中
 func (p *prometheusConfigCache) recordCacheMiss() {
 	p.cacheStats.mu.Lock()
 	defer p.cacheStats.mu.Unlock()
 	p.cacheStats.misses++
 }
 
-// GetCacheStats 获取缓存统计信息
 func (p *prometheusConfigCache) GetCacheStats() (hits, misses int64) {
 	p.cacheStats.mu.RLock()
 	defer p.cacheStats.mu.RUnlock()
@@ -236,7 +233,6 @@ func (p *prometheusConfigCache) GenerateMainConfig(ctx context.Context) error {
 					configName := fmt.Sprintf(ConfigNamePrometheus, pool.ID, ip)
 					validIPs[ip] = struct{}{}
 
-					// 保存到数据库（批量）
 					allConfigsToSave[ip] = ConfigData{
 						Name:       configName,
 						PoolID:     pool.ID,
@@ -264,7 +260,6 @@ func (p *prometheusConfigCache) GenerateMainConfig(ctx context.Context) error {
 					p.logger.Debug(LogModuleMonitor+"删除无效IP配置", zap.String("ip", staleIP))
 				}
 
-				// 更新池哈希
 				_ = p.redis.Set(ctx, hashKey, currentHash, 0).Err()
 			}
 		}
@@ -276,7 +271,6 @@ func (p *prometheusConfigCache) GenerateMainConfig(ctx context.Context) error {
 		page++
 	}
 
-	// 批量保存所有配置到数据库
 	if len(allConfigsToSave) > 0 {
 		if err := batchSaveConfigsToDatabase(ctx, p.batchManager, allConfigsToSave); err != nil {
 			p.logger.Error(LogModuleMonitor+"批量保存Prometheus配置失败", zap.Error(err))

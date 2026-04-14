@@ -65,9 +65,7 @@ func NewTemplateDAO(db *gorm.DB, logger *zap.Logger) WorkorderTemplateDAO {
 	}
 }
 
-// CreateTemplate 创建模板
 func (d *templateDAO) CreateTemplate(ctx context.Context, template *model.WorkorderTemplate) error {
-	// 设置默认值
 	if len(template.DefaultValues) == 0 {
 		template.DefaultValues = model.JSONMap{}
 	}
@@ -83,18 +81,15 @@ func (d *templateDAO) CreateTemplate(ctx context.Context, template *model.Workor
 	return nil
 }
 
-// UpdateTemplate 更新模板
 func (d *templateDAO) UpdateTemplate(ctx context.Context, template *model.WorkorderTemplate) error {
 	if template.ID <= 0 {
 		return ErrInvalidID
 	}
 
-	// 设置默认值
 	if len(template.DefaultValues) == 0 {
 		template.DefaultValues = model.JSONMap{}
 	}
 
-	// 明确指定要更新的字段
 	updates := map[string]any{
 		"name":           template.Name,
 		"description":    template.Description,
@@ -123,7 +118,6 @@ func (d *templateDAO) UpdateTemplate(ctx context.Context, template *model.Workor
 	return nil
 }
 
-// DeleteTemplate 删除模板
 func (d *templateDAO) DeleteTemplate(ctx context.Context, id int) error {
 	if id <= 0 {
 		return ErrInvalidID
@@ -142,7 +136,6 @@ func (d *templateDAO) DeleteTemplate(ctx context.Context, id int) error {
 	return nil
 }
 
-// GetTemplate 获取单个模板
 func (d *templateDAO) GetTemplate(ctx context.Context, id int) (*model.WorkorderTemplate, error) {
 	if id <= 0 {
 		return nil, ErrInvalidID
@@ -172,13 +165,11 @@ func (d *templateDAO) GetTemplate(ctx context.Context, id int) (*model.Workorder
 	return &template, nil
 }
 
-// ListTemplate 列表查询模板
 func (d *templateDAO) ListTemplate(ctx context.Context, req *model.ListWorkorderTemplateReq) ([]*model.WorkorderTemplate, int64, error) {
 	if req == nil {
 		return nil, 0, fmt.Errorf("请求参数不能为空")
 	}
 
-	// 验证分页参数
 	req.Page, req.Size = ValidatePagination(req.Page, req.Size)
 
 	var templates []*model.WorkorderTemplate
@@ -186,16 +177,13 @@ func (d *templateDAO) ListTemplate(ctx context.Context, req *model.ListWorkorder
 
 	db := d.db.WithContext(ctx).Model(&model.WorkorderTemplate{})
 
-	// 构建查询条件
 	db = d.buildListQuery(db, req)
 
-	// 获取总数
 	if err := db.Count(&total).Error; err != nil {
 		d.logger.Error("获取模板总数失败", zap.Error(err))
 		return nil, 0, fmt.Errorf("获取模板总数失败: %w", err)
 	}
 
-	// 分页查询
 	offset := (req.Page - 1) * req.Size
 	err := db.Offset(offset).
 		Preload("Process").
@@ -220,7 +208,6 @@ func (d *templateDAO) ListTemplate(ctx context.Context, req *model.ListWorkorder
 	return templates, total, nil
 }
 
-// UpdateTemplateStatus 更新模板状态
 func (d *templateDAO) UpdateTemplateStatus(ctx context.Context, id int, status int8) error {
 	if id <= 0 {
 		return ErrInvalidID
@@ -246,7 +233,6 @@ func (d *templateDAO) UpdateTemplateStatus(ctx context.Context, id int, status i
 	return nil
 }
 
-// IsTemplateNameExists 检查模板名称是否存在
 func (d *templateDAO) IsTemplateNameExists(ctx context.Context, name string, excludeID int) (bool, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -269,7 +255,6 @@ func (d *templateDAO) IsTemplateNameExists(ctx context.Context, name string, exc
 	return count > 0, nil
 }
 
-// buildListQuery 构建列表查询条件
 func (d *templateDAO) buildListQuery(db *gorm.DB, req *model.ListWorkorderTemplateReq) *gorm.DB {
 	// 通用搜索
 	if req.Search != "" {
@@ -277,7 +262,6 @@ func (d *templateDAO) buildListQuery(db *gorm.DB, req *model.ListWorkorderTempla
 		db = db.Where("name LIKE ? OR description LIKE ?", searchTerm, searchTerm)
 	}
 
-	// 状态筛选
 	if req.Status != nil {
 		db = db.Where("status = ?", *req.Status)
 	}
@@ -312,7 +296,6 @@ func (d *templateDAO) isDuplicateKeyError(err error) bool {
 		strings.Contains(errStr, "unique constraint")
 }
 
-// isValidStatus 验证状态值是否有效
 func (d *templateDAO) isValidStatus(status int8) bool {
 	return status == model.TemplateStatusEnabled || status == model.TemplateStatusDisabled
 }

@@ -70,7 +70,6 @@ func NewAlertManagerRuleService(
 	}
 }
 
-// GetMonitorAlertRuleList 获取告警规则列表
 func (s *alertManagerRuleService) GetMonitorAlertRuleList(ctx context.Context, req *model.GetMonitorAlertRuleListReq) (model.ListResp[*model.MonitorAlertRule], error) {
 	rules, count, err := s.ruleDAO.GetMonitorAlertRuleList(ctx, req)
 	if err != nil {
@@ -78,9 +77,7 @@ func (s *alertManagerRuleService) GetMonitorAlertRuleList(ctx context.Context, r
 		return model.ListResp[*model.MonitorAlertRule]{}, err
 	}
 
-	// 补充额外信息
 	for i := range rules {
-		// 获取发送组名称
 		sendGroup, err := s.sendGroupDAO.GetMonitorSendGroupByID(ctx, rules[i].SendGroupID)
 		if err == nil && sendGroup != nil {
 			rules[i].SendGroupName = sendGroup.NameZh
@@ -99,7 +96,6 @@ func (s *alertManagerRuleService) GetMonitorAlertRuleList(ctx context.Context, r
 	}, nil
 }
 
-// CreateMonitorAlertRule 创建告警规则
 func (s *alertManagerRuleService) CreateMonitorAlertRule(ctx context.Context, req *model.CreateMonitorAlertRuleReq) error {
 	// 验证PromQL表达式
 	_, err := s.PromqlExprCheck(ctx, &model.PromqlAlertRuleExprCheckReq{
@@ -128,7 +124,6 @@ func (s *alertManagerRuleService) CreateMonitorAlertRule(ctx context.Context, re
 		return err
 	}
 
-	// 创建告警规则
 	rule := &model.MonitorAlertRule{
 		Name:           req.Name,
 		UserID:         req.UserID,
@@ -160,7 +155,6 @@ func (s *alertManagerRuleService) CreateMonitorAlertRule(ctx context.Context, re
 	return nil
 }
 
-// UpdateMonitorAlertRule 更新告警规则
 func (s *alertManagerRuleService) UpdateMonitorAlertRule(ctx context.Context, req *model.UpdateMonitorAlertRuleReq) error {
 	// 验证PromQL表达式
 	_, err := s.PromqlExprCheck(ctx, &model.PromqlAlertRuleExprCheckReq{
@@ -170,7 +164,6 @@ func (s *alertManagerRuleService) UpdateMonitorAlertRule(ctx context.Context, re
 		return err
 	}
 
-	// 检查规则是否存在
 	_, err = s.ruleDAO.GetMonitorAlertRuleByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -197,7 +190,6 @@ func (s *alertManagerRuleService) UpdateMonitorAlertRule(ctx context.Context, re
 		return err
 	}
 
-	// 更新规则
 	err = s.ruleDAO.UpdateMonitorAlertRule(ctx, req)
 	if err != nil {
 		s.logger.Error("更新告警规则失败", zap.Error(err))
@@ -213,9 +205,7 @@ func (s *alertManagerRuleService) UpdateMonitorAlertRule(ctx context.Context, re
 	return nil
 }
 
-// DeleteMonitorAlertRule 删除告警规则
 func (s *alertManagerRuleService) DeleteMonitorAlertRule(ctx context.Context, req *model.DeleteMonitorAlertRuleReq) error {
-	// 检查规则是否存在
 	_, err := s.ruleDAO.GetMonitorAlertRuleByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -224,7 +214,6 @@ func (s *alertManagerRuleService) DeleteMonitorAlertRule(ctx context.Context, re
 		return err
 	}
 
-	// 删除规则
 	err = s.ruleDAO.DeleteMonitorAlertRule(ctx, req.ID)
 	if err != nil {
 		s.logger.Error("删除告警规则失败", zap.Error(err))

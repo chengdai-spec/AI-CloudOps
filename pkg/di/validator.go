@@ -39,7 +39,6 @@ import (
 
 var trans ut.Translator
 
-// InitTrans 初始化中文翻译器
 func InitTrans() error {
 	// 从 gin 中获取 validator 实例
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
@@ -50,11 +49,9 @@ func InitTrans() error {
 		// 注册结构体字段 JSON tag 名称到验证器中
 		v.RegisterTagNameFunc(extractJSONTag)
 
-		// 初始化中文翻译器
 		zhT := zh.New()
 		uni := ut.New(zhT, zhT)
 
-		// 获取中文翻译器
 		var found bool
 		trans, found = uni.GetTranslator("zh")
 		if !found {

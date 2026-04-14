@@ -145,7 +145,6 @@ func (k *k8sClient) GetRestConfig(clusterID int) (*rest.Config, error) {
 	k.mu.RUnlock()
 
 	if exists && clients.config != nil {
-		// 复制配置以避免并发修改
 		config := rest.CopyConfig(clients.config)
 		config.QPS = 50
 		config.Burst = 100
@@ -274,7 +273,6 @@ func (k *k8sClient) initClusterClients(clusterID int) (*kubernetes.Clientset, er
 		return nil, fmt.Errorf("创建kubernetes client失败: %w", err)
 	}
 
-	// 创建其他客户端（可选）
 	clients.kruise, _ = versioned.NewForConfig(config)
 	clients.metrics, _ = metricsClient.NewForConfig(config)
 	clients.dynamic, _ = dynamic.NewForConfig(config)

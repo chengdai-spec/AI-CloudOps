@@ -28,22 +28,38 @@ package di
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/GoSimplicity/AI-CloudOps/internal/config"
 	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
-func InitRedis() redis.Cmdable {
+func InitRedis(cfg *config.Config, logger *zap.Logger) (*redis.Client, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("配置不能为空")
+	}
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+
 	// 初始化 Redis 客户端
 	client := redis.NewClient(&redis.Options{
-		Addr:     viper.GetString("redis.addr"),
-		Password: viper.GetString("redis.password"),
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
 	})
 
 	// 测试连接
-	if err := client.Ping(context.Background()).Err(); err != nil {
-		panic(fmt.Sprintf("Redis 连接失败，请检查密码和主机地址:redis.addr:%v,redis.password:%v,err:%v", viper.GetString("redis.addr"), viper.GetString("redis.password"), err))
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := client.Ping(ctx).Err(); err != nil {
+		logger.Error("Redis连接失败",
+			zap.String("addr", cfg.Redis.Addr),
+			zap.Error(err),
+		)
+		return nil, fmt.Errorf("Redis连接失败: %w", err)
 	}
 
-	return client
+	logger.Info("Redis初始化成功", zap.String("addr", cfg.Redis.Addr))
+	return client, nil
 }

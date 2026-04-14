@@ -26,17 +26,18 @@
 package di
 
 import (
+	"fmt"
+
+	"github.com/GoSimplicity/AI-CloudOps/internal/config"
 	"github.com/GoSimplicity/AI-CloudOps/internal/workorder/notification"
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 )
 
-// NotificationConfigAdapter 通知配置适配器
 type NotificationConfigAdapter struct {
-	config *NotificationConfig
+	config *config.NotificationConfig
 }
 
-// GetEmail 获取邮箱配置
 func (a *NotificationConfigAdapter) GetEmail() notification.EmailConfig {
 	emailConfig := a.config.GetEmail()
 	if emailConfig == nil {
@@ -45,7 +46,6 @@ func (a *NotificationConfigAdapter) GetEmail() notification.EmailConfig {
 	return emailConfig
 }
 
-// GetFeishu 获取飞书配置
 func (a *NotificationConfigAdapter) GetFeishu() notification.FeishuConfig {
 	feishuConfig := a.config.GetFeishu()
 	if feishuConfig == nil {
@@ -54,18 +54,19 @@ func (a *NotificationConfigAdapter) GetFeishu() notification.FeishuConfig {
 	return feishuConfig
 }
 
-// InitNotificationConfig 初始化通知配置
-func InitNotificationConfig() notification.NotificationConfig {
-	return &NotificationConfigAdapter{
-		config: &GlobalConfig.Notification,
+func InitNotificationConfig(cfg *config.Config) (notification.NotificationConfig, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("配置不能为空")
 	}
+	return &NotificationConfigAdapter{
+		config: &cfg.Notification,
+	}, nil
 }
 
-// InitNotificationManager 初始化通知管理器
-func InitNotificationManager(config notification.NotificationConfig, asynqClient *asynq.Client, logger *zap.Logger) *notification.Manager {
+func InitNotificationManager(config notification.NotificationConfig, asynqClient *asynq.Client, logger *zap.Logger) (*notification.Manager, error) {
 	manager, err := notification.NewManager(config, asynqClient, logger)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("初始化通知管理器失败: %w", err)
 	}
-	return manager
+	return manager, nil
 }

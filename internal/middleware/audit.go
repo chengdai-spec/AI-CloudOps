@@ -50,7 +50,6 @@ const (
 	OperationQuery  = "VIEW"
 	Unknown         = "UNKNOWN"
 
-	// 请求体大小限制
 	maxBodySize = 1024 * 1024 // 1MB
 )
 
@@ -107,7 +106,6 @@ func NewAuditLogMiddleware(auditSvc service.AuditService, l *zap.Logger) *AuditL
 
 func (m *AuditLogMiddleware) AuditLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 快速检查是否需要跳过审计
 		if skipAuditPaths[c.Request.URL.Path] {
 			c.Next()
 			return
@@ -163,13 +161,11 @@ func (m *AuditLogMiddleware) AuditLog() gin.HandlerFunc {
 			userID = int(user.Uid)
 		}
 
-		// 获取错误信息
 		var errorMsg string
 		if len(c.Errors) > 0 {
 			errorMsg = c.Errors.String()
 		}
 
-		// 处理响应体
 		var responseBody datatypes.JSON
 		if blw.body.Len() > 0 {
 			var jsonData interface{}
@@ -180,7 +176,6 @@ func (m *AuditLogMiddleware) AuditLog() gin.HandlerFunc {
 			}
 		}
 
-		// 构建审计日志请求
 		auditLogReq := &model.CreateAuditLogRequest{
 			UserID:        userID,
 			TraceID:       traceID,
@@ -231,12 +226,10 @@ func parseTargetID(c *gin.Context, reqBody datatypes.JSON) string {
 		return id
 	}
 
-	// 从查询参数获取
 	if id := c.Query("id"); id != "" {
 		return id
 	}
 
-	// 从请求体获取
 	if len(reqBody) > 0 {
 		// 尝试解析为通用结构
 		var body map[string]interface{}

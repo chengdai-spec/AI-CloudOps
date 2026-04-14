@@ -98,7 +98,6 @@ func (d *alertManagerRecordDAO) GetMonitorRecordRuleList(ctx context.Context, re
 		req.Size = 10
 	}
 
-	// 计算分页参数
 	offset := (req.Page - 1) * req.Size
 	limit := req.Size
 
@@ -119,13 +118,11 @@ func (d *alertManagerRecordDAO) GetMonitorRecordRuleList(ctx context.Context, re
 	var recordRules []*model.MonitorRecordRule
 	var count int64
 
-	// 先获取总数
 	if err := query.Count(&count).Error; err != nil {
 		d.l.Error("获取 MonitorRecordRule 总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 再获取分页数据
 	if err := query.Order("created_at DESC").Offset(offset).Limit(limit).Find(&recordRules).Error; err != nil {
 		d.l.Error("获取 MonitorRecordRule 列表失败", zap.Error(err))
 		return nil, 0, err
@@ -186,7 +183,6 @@ func (d *alertManagerRecordDAO) DeleteMonitorRecordRule(ctx context.Context, rul
 		return fmt.Errorf("无效的 ruleID: %d", ruleID)
 	}
 
-	// 执行删除操作
 	if err := d.db.WithContext(ctx).
 		Where("id = ?", ruleID).
 		Delete(&model.MonitorRecordRule{}).Error; err != nil {

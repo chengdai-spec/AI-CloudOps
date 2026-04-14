@@ -50,18 +50,14 @@ func (h *InstanceFlowHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// ListInstanceFlows 获取工单流转记录列表
-// 获取工单流转记录列表
 func (h *InstanceFlowHandler) ListInstanceFlows(ctx *gin.Context) {
 	var req model.ListWorkorderInstanceFlowReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.flowService.ListInstanceFlows(ctx, &req)
+		return h.flowService.ListInstanceFlows(ctx.Request.Context(), &req)
 	})
 }
 
-// DetailInstanceFlow 获取工单流转记录详情
-// 获取工单流转记录详情
 func (h *InstanceFlowHandler) DetailInstanceFlow(ctx *gin.Context) {
 	var req model.DetailWorkorderInstanceFlowReq
 
@@ -73,6 +69,6 @@ func (h *InstanceFlowHandler) DetailInstanceFlow(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.flowService.DetailInstanceFlow(ctx, req.ID)
+		return h.flowService.DetailInstanceFlow(ctx.Request.Context(), req.ID)
 	})
 }

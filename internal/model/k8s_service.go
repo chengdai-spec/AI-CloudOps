@@ -61,7 +61,6 @@ type K8sService struct {
 	Endpoints      []K8sServiceEndpoint `json:"endpoints"`                                  // 服务端点，前端使用
 }
 
-// ServicePort 服务端口配置
 type ServicePort struct {
 	Name        string             `json:"name"`                   // 端口名称
 	Protocol    corev1.Protocol    `json:"protocol"`               // 协议类型
@@ -79,7 +78,6 @@ type K8sServiceEndpoint struct {
 	Ready    bool   `json:"ready"`    // 端点是否就绪
 }
 
-// ServiceEndpoint 服务端点详细信息
 type ServiceEndpoint struct {
 	Addresses  []string            `json:"addresses"`   // 端点地址列表
 	Ports      []EndpointPort      `json:"ports"`       // 端点端口列表
@@ -90,7 +88,6 @@ type ServiceEndpoint struct {
 	LastChange time.Time           `json:"last_change"` // 最后变更时间
 }
 
-// EndpointPort 端点端口信息
 type EndpointPort struct {
 	Name        string          `json:"name"`         // 端口名称
 	Port        int32           `json:"port"`         // 端口号

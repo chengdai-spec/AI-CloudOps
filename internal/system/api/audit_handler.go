@@ -48,12 +48,10 @@ func NewAuditHandler(svc service.AuditService, logger *zap.Logger) *AuditHandler
 func (h *AuditHandler) RegisterRouters(server *gin.Engine) {
 	auditGroup := server.Group("/api/audit")
 
-	// 查询相关接口
 	auditGroup.GET("/list", h.ListAuditLogs)
 	auditGroup.GET("/detail/:id", h.GetAuditLogDetail)
 	auditGroup.GET("/search", h.SearchAuditLogs)
 
-	// 统计和分析接口
 	auditGroup.GET("/statistics", h.GetAuditStatistics)
 	auditGroup.GET("/types", h.GetAuditTypes)
 
@@ -67,12 +65,11 @@ func (h *AuditHandler) RegisterRouters(server *gin.Engine) {
 	auditGroup.POST("/batch-create", h.BatchCreateAuditLogs)
 }
 
-// CreateAuditLog 创建单个审计日志
 func (h *AuditHandler) CreateAuditLog(ctx *gin.Context) {
 	var req model.CreateAuditLogRequest
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.CreateAuditLog(ctx, &req)
+		return nil, h.svc.CreateAuditLog(ctx.Request.Context(), &req)
 	})
 }
 
@@ -81,20 +78,18 @@ func (h *AuditHandler) BatchCreateAuditLogs(ctx *gin.Context) {
 	var req model.AuditLogBatch
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.BatchCreateAuditLogs(ctx, req.Logs)
+		return nil, h.svc.BatchCreateAuditLogs(ctx.Request.Context(), req.Logs)
 	})
 }
 
-// ListAuditLogs 获取审计日志列表
 func (h *AuditHandler) ListAuditLogs(ctx *gin.Context) {
 	var req model.ListAuditLogsRequest
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.ListAuditLogs(ctx, &req)
+		return h.svc.ListAuditLogs(ctx.Request.Context(), &req)
 	})
 }
 
-// GetAuditLogDetail 获取审计日志详情
 func (h *AuditHandler) GetAuditLogDetail(ctx *gin.Context) {
 	var req model.GetAuditLogDetailRequest
 
@@ -107,7 +102,7 @@ func (h *AuditHandler) GetAuditLogDetail(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetAuditLogDetail(ctx, req.ID)
+		return h.svc.GetAuditLogDetail(ctx.Request.Context(), req.ID)
 	})
 }
 
@@ -116,25 +111,22 @@ func (h *AuditHandler) SearchAuditLogs(ctx *gin.Context) {
 	var req model.SearchAuditLogsRequest
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.SearchAuditLogs(ctx, &req)
+		return h.svc.SearchAuditLogs(ctx.Request.Context(), &req)
 	})
 }
 
-// GetAuditStatistics 获取审计统计信息
 func (h *AuditHandler) GetAuditStatistics(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return h.svc.GetAuditStatistics(ctx)
+		return h.svc.GetAuditStatistics(ctx.Request.Context())
 	})
 }
 
-// GetAuditTypes 获取审计类型列表
 func (h *AuditHandler) GetAuditTypes(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return h.svc.GetAuditTypes(ctx)
+		return h.svc.GetAuditTypes(ctx.Request.Context())
 	})
 }
 
-// DeleteAuditLog 删除审计日志
 func (h *AuditHandler) DeleteAuditLog(ctx *gin.Context) {
 	var req model.DeleteAuditLogRequest
 
@@ -147,16 +139,15 @@ func (h *AuditHandler) DeleteAuditLog(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.DeleteAuditLog(ctx, req.ID)
+		return nil, h.svc.DeleteAuditLog(ctx.Request.Context(), req.ID)
 	})
 }
 
-// BatchDeleteLogs 批量删除审计日志
 func (h *AuditHandler) BatchDeleteLogs(ctx *gin.Context) {
 	var req model.BatchDeleteRequest
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.BatchDeleteAuditLogs(ctx, req.IDs)
+		return nil, h.svc.BatchDeleteAuditLogs(ctx.Request.Context(), req.IDs)
 	})
 }
 
@@ -165,6 +156,6 @@ func (h *AuditHandler) ArchiveAuditLogs(ctx *gin.Context) {
 	var req model.ArchiveAuditLogsRequest
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.ArchiveAuditLogs(ctx, &req)
+		return nil, h.svc.ArchiveAuditLogs(ctx.Request.Context(), &req)
 	})
 }

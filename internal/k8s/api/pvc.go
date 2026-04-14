@@ -70,7 +70,7 @@ func (h *K8sPVCHandler) GetPVCList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.pvcService.GetPVCList(ctx, &req)
+		return h.pvcService.GetPVCList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -100,7 +100,7 @@ func (h *K8sPVCHandler) GetPVCDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.pvcService.GetPVCDetails(ctx, &req)
+		return h.pvcService.GetPVCDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -130,7 +130,7 @@ func (h *K8sPVCHandler) GetPVCYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.pvcService.GetPVCYaml(ctx, &req)
+		return h.pvcService.GetPVCYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -146,7 +146,7 @@ func (h *K8sPVCHandler) CreatePVC(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvcService.CreatePVC(ctx, &req)
+		return nil, h.pvcService.CreatePVC(ctx.Request.Context(), &req)
 	})
 }
 
@@ -176,7 +176,7 @@ func (h *K8sPVCHandler) UpdatePVC(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvcService.UpdatePVC(ctx, &req)
+		return nil, h.pvcService.UpdatePVC(ctx.Request.Context(), &req)
 	})
 }
 
@@ -206,7 +206,7 @@ func (h *K8sPVCHandler) DeletePVC(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvcService.DeletePVC(ctx, &req)
+		return nil, h.pvcService.DeletePVC(ctx.Request.Context(), &req)
 	})
 }
 
@@ -222,7 +222,7 @@ func (h *K8sPVCHandler) CreatePVCByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvcService.CreatePVCByYaml(ctx, &req)
+		return nil, h.pvcService.CreatePVCByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -252,7 +252,7 @@ func (h *K8sPVCHandler) UpdatePVCByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvcService.UpdatePVCByYaml(ctx, &req)
+		return nil, h.pvcService.UpdatePVCByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -282,7 +282,7 @@ func (h *K8sPVCHandler) ExpandPVC(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvcService.ExpandPVC(ctx, &req)
+		return nil, h.pvcService.ExpandPVC(ctx.Request.Context(), &req)
 	})
 }
 
@@ -312,6 +312,6 @@ func (h *K8sPVCHandler) GetPVCPods(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.pvcService.GetPVCPods(ctx, &req)
+		return h.pvcService.GetPVCPods(ctx.Request.Context(), &req)
 	})
 }

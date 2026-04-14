@@ -7,6 +7,8 @@
 package di
 
 import (
+	"github.com/GoSimplicity/AI-CloudOps/internal/app"
+	"github.com/GoSimplicity/AI-CloudOps/internal/config"
 	"github.com/GoSimplicity/AI-CloudOps/internal/cron"
 	api7 "github.com/GoSimplicity/AI-CloudOps/internal/cron/api"
 	dao5 "github.com/GoSimplicity/AI-CloudOps/internal/cron/dao"
@@ -23,10 +25,10 @@ import (
 	api4 "github.com/GoSimplicity/AI-CloudOps/internal/prometheus/api"
 	"github.com/GoSimplicity/AI-CloudOps/internal/prometheus/cache"
 	"github.com/GoSimplicity/AI-CloudOps/internal/prometheus/dao/alert"
-	"github.com/GoSimplicity/AI-CloudOps/internal/prometheus/dao/config"
+	config2 "github.com/GoSimplicity/AI-CloudOps/internal/prometheus/dao/config"
 	"github.com/GoSimplicity/AI-CloudOps/internal/prometheus/dao/scrape"
 	alert2 "github.com/GoSimplicity/AI-CloudOps/internal/prometheus/service/alert"
-	config2 "github.com/GoSimplicity/AI-CloudOps/internal/prometheus/service/config"
+	config3 "github.com/GoSimplicity/AI-CloudOps/internal/prometheus/service/config"
 	scrape2 "github.com/GoSimplicity/AI-CloudOps/internal/prometheus/service/scrape"
 	"github.com/GoSimplicity/AI-CloudOps/internal/startup"
 	"github.com/GoSimplicity/AI-CloudOps/internal/system/api"
@@ -42,9 +44,7 @@ import (
 	"github.com/GoSimplicity/AI-CloudOps/pkg/sse"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/ssh"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/terminal"
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
-	"github.com/hibiken/asynq"
 )
 
 import (
@@ -53,11 +53,22 @@ import (
 
 // Injectors from wire.go:
 
-func ProvideCmd() *Cmd {
-	cmdable := InitRedis()
-	jwtHandler := jwt.NewJWTHandler(cmdable)
-	logger := InitLogger()
-	db := InitDB()
+func ProvideApp(cfg *config.Config) (*app.App, error) {
+	logger, err := InitLogger(cfg)
+	if err != nil {
+		return nil, err
+	}
+	db, err := InitDB(cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+	redisClient, err := InitRedis(cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+	cmdable := ProvideRedisCmdable(redisClient)
+	jwtConfig := InitJWTConfig(cfg)
+	jwtHandler := jwt.NewJWTHandler(cmdable, jwtConfig)
 	roleDAO := dao.NewRoleDAO(db)
 	roleService := service.NewRoleService(roleDAO, logger)
 	auditDAO := dao.NewAuditDAO(db)
@@ -133,7 +144,7 @@ func ProvideCmd() *Cmd {
 	alertManagerEventDAO := alert.NewAlertManagerEventDAO(db, logger, userDAO)
 	scrapePoolDAO := scrape.NewScrapePoolDAO(db, logger, userDAO)
 	scrapeJobDAO := scrape.NewScrapeJobDAO(db, logger)
-	monitorConfigDAO := config.NewMonitorConfigDAO(logger, db)
+	monitorConfigDAO := config2.NewMonitorConfigDAO(logger, db)
 	batchConfigManager := cache.NewBatchConfigManager(monitorConfigDAO, logger)
 	prometheusConfigCache := cache.NewPrometheusConfigCache(logger, scrapePoolDAO, scrapeJobDAO, monitorConfigDAO, batchConfigManager, cmdable)
 	alertManagerPoolDAO := alert.NewAlertManagerPoolDAO(db, logger)
@@ -150,7 +161,7 @@ func ProvideCmd() *Cmd {
 	alertPoolHandler := api4.NewAlertPoolHandler(alertManagerPoolService)
 	alertManagerRuleService := alert2.NewAlertManagerRuleService(logger, alertManagerRuleDAO, alertManagerPoolDAO, alertManagerSendDAO, monitorCache)
 	alertRuleHandler := api4.NewAlertRuleHandler(alertManagerRuleService)
-	monitorConfigService := config2.NewMonitorConfigService(logger, monitorConfigDAO)
+	monitorConfigService := config3.NewMonitorConfigService(logger, monitorConfigDAO)
 	monitorConfigHandler := api4.NewMonitorConfigHandler(monitorConfigService)
 	alertManagerOnDutyDAO := alert.NewAlertManagerOnDutyDAO(db, logger, userDAO)
 	alertManagerOnDutyService := alert2.NewAlertManagerOnDutyService(alertManagerOnDutyDAO, alertManagerSendDAO, monitorCache, logger, userDAO)
@@ -179,9 +190,15 @@ func ProvideCmd() *Cmd {
 	workorderInstanceTimelineDAO := dao3.NewInstanceTimeLineDAO(db, logger)
 	workorderInstanceCommentDAO := dao3.NewWorkorderInstanceCommentDAO(db, logger)
 	workorderNotificationDAO := dao3.NewNotificationDAO(db, logger)
-	notificationConfig := InitNotificationConfig()
-	asynqClient := InitAsynqClient()
-	notificationManager := InitNotificationManager(notificationConfig, asynqClient, logger)
+	notificationConfig, err := InitNotificationConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	asynqClient := InitAsynqClient(cfg)
+	notificationManager, err := InitNotificationManager(notificationConfig, asynqClient, logger)
+	if err != nil {
+		return nil, err
+	}
 	workorderNotificationService := service4.NewWorkorderNotificationService(workorderNotificationDAO, notificationManager, logger, workorderInstanceDAO, userDAO)
 	instanceService := service4.NewInstanceService(workorderInstanceDAO, workorderInstanceFlowDAO, workorderInstanceTimelineDAO, workorderInstanceCommentDAO, workorderProcessDAO, workorderFormDesignDAO, workorderTemplateDAO, workorderNotificationService, logger)
 	instanceHandler := api5.NewInstanceHandler(instanceService)
@@ -199,11 +216,12 @@ func ProvideCmd() *Cmd {
 	treeLocalDAO := dao4.NewTreeLocalDAO(db, logger)
 	treeLocalService := service5.NewTreeLocalService(logger, treeLocalDAO)
 	sshClient := ssh.NewClient(logger)
-	treeLocalHandler := api6.NewTreeLocalHandler(treeLocalService, sshClient)
+	upgrader := InitWebSocketUpgrader()
+	treeLocalHandler := api6.NewTreeLocalHandler(treeLocalService, sshClient, upgrader, logger)
 	treeCloudDAO := dao4.NewTreeCloudDAO(db, logger)
 	cloudAccountDAO := dao4.NewCloudAccountDAO(db, logger)
 	treeCloudService := service5.NewTreeCloudService(logger, treeCloudDAO, cloudAccountDAO)
-	treeCloudHandler := api6.NewTreeCloudHandler(treeCloudService, sshClient)
+	treeCloudHandler := api6.NewTreeCloudHandler(treeCloudService, sshClient, upgrader, logger)
 	cloudAccountService := service5.NewCloudAccountService(logger, cloudAccountDAO)
 	cloudAccountHandler := api6.NewCloudAccountHandler(cloudAccountService)
 	cloudAccountRegionDAO := dao4.NewCloudAccountRegionDAO(db, logger)
@@ -214,9 +232,9 @@ func ProvideCmd() *Cmd {
 	ingressService := service3.NewIngressService(ingressManager, logger)
 	k8sIngressHandler := api3.NewK8sIngressHandler(ingressService)
 	podManager := manager.NewPodManager(k8sClient, logger)
+	podService := service3.NewPodService(podManager, logger)
 	sseHandler := sse.NewHandler(logger)
-	podService := service3.NewPodService(podManager, sseHandler, logger)
-	k8sPodHandler := api3.NewK8sPodHandler(podService)
+	k8sPodHandler := api3.NewK8sPodHandler(podService, sseHandler, logger, upgrader)
 	pvManager := manager.NewPVManager(logger, k8sClient)
 	pvService := service3.NewPVService(clusterDAO, k8sClient, pvManager, logger)
 	k8sPVHandler := api3.NewK8sPVHandler(pvService)
@@ -224,7 +242,7 @@ func ProvideCmd() *Cmd {
 	pvcService := service3.NewPVCService(clusterDAO, k8sClient, pvcManager, logger)
 	k8sPVCHandler := api3.NewK8sPVCHandler(pvcService)
 	cronJobDAO := dao5.NewCronJobDAO(logger, db)
-	asynqScheduler := InitScheduler()
+	asynqScheduler := InitScheduler(cfg)
 	cronScheduler := scheduler.NewCronScheduler(logger, cronJobDAO, asynqScheduler, asynqClient)
 	cronService := service6.NewCronService(logger, cronJobDAO, userDAO, asynqClient, cronScheduler)
 	cronJobHandler := api7.NewCronJobHandler(logger, cronService)
@@ -232,41 +250,29 @@ func ProvideCmd() *Cmd {
 	applicationBootstrap := startup.NewApplicationBootstrap(clusterManager, logger)
 	builtinTaskManager := cron.NewBuiltinTaskManager(logger, cronJobDAO)
 	cronManager := cron.NewUnifiedCronManager(logger, alertManagerOnDutyDAO, clusterDAO, k8sClient, clusterManager, monitorCache, cronScheduler, builtinTaskManager)
-	server := InitAsynqServer()
+	server := InitAsynqServer(cfg)
 	cronHandlers := handler.NewCronHandlers(logger, cronJobDAO, treeLocalDAO, alertManagerOnDutyDAO, clusterDAO, k8sClient, clusterManager, monitorCache)
-	cmd := &Cmd{
-		Server:       engine,
-		Bootstrap:    applicationBootstrap,
-		CronManager:  cronManager,
-		AsynqServer:  server,
-		AsynqClient:  asynqClient,
-		Scheduler:    asynqScheduler,
-		CronHandlers: cronHandlers,
+	appApp, err := app.NewApp(cfg, logger, db, engine, applicationBootstrap, cronManager, server, asynqScheduler, cronHandlers)
+	if err != nil {
+		return nil, err
 	}
-	return cmd
+	return appApp, nil
 }
 
 // wire.go:
 
-type Cmd struct {
-	Server       *gin.Engine
-	Bootstrap    startup.ApplicationBootstrap
-	CronManager  cron.CronManager
-	AsynqServer  *asynq.Server
-	AsynqClient  *asynq.Client
-	Scheduler    *asynq.Scheduler
-	CronHandlers *handler.CronHandlers
-}
-
 var HandlerSet = wire.NewSet(api.NewRoleHandler, api.NewApiHandler, api.NewAuditHandler, api.NewSystemHandler, api.NewUserHandler, api2.NewNotAuthHandler, api3.NewK8sNodeHandler, api3.NewK8sClusterHandler, api3.NewK8sDeploymentHandler, api3.NewK8sNamespaceHandler, api3.NewK8sSvcHandler, api3.NewK8sYamlTaskHandler, api3.NewK8sYamlTemplateHandler, api3.NewK8sDaemonSetHandler, api3.NewK8sEventHandler, api3.NewK8sStatefulSetHandler, api3.NewK8sServiceAccountHandler, api3.NewK8sRoleHandler, api3.NewK8sClusterRoleHandler, api3.NewK8sRoleBindingHandler, api3.NewK8sClusterRoleBindingHandler, api3.NewK8sRBACHandler, api3.NewK8sIngressHandler, api3.NewK8sPodHandler, api3.NewK8sConfigMapHandler, api3.NewK8sSecretHandler, api3.NewK8sPVHandler, api3.NewK8sPVCHandler, api4.NewAlertPoolHandler, api4.NewMonitorConfigHandler, api4.NewOnDutyGroupHandler, api4.NewRecordRuleHandler, api4.NewAlertRuleHandler, api4.NewSendGroupHandler, api4.NewScrapeJobHandler, api4.NewScrapePoolHandler, api4.NewAlertEventHandler, api5.NewFormDesignHandler, api5.NewInstanceHandler, api5.NewInstanceFlowHandler, api5.NewInstanceCommentHandler, api5.NewInstanceTimeLineHandler, api5.NewTemplateHandler, api5.NewWorkorderProcessHandler, api5.NewCategoryGroupHandler, api5.NewNotificationHandler, api6.NewTreeNodeHandler, api6.NewTreeLocalHandler, api6.NewTreeCloudHandler, api6.NewCloudAccountHandler, api6.NewCloudAccountRegionHandler, terminal.NewTerminalHandler, api7.NewCronJobHandler)
 
-var ServiceSet = wire.NewSet(service3.NewClusterService, service3.NewDeploymentService, service3.NewNamespaceService, service3.NewSvcService, service3.NewNodeService, service3.NewTaintService, service3.NewYamlTaskService, service3.NewYamlTemplateService, service3.NewDaemonSetService, service3.NewEventService, service3.NewStatefulSetService, service3.NewServiceAccountService, service3.NewRoleService, service3.NewClusterRoleService, service3.NewRoleBindingService, service3.NewClusterRoleBindingService, service3.NewRBACService, service3.NewIngressService, service3.NewPodService, service3.NewConfigMapService, service3.NewSecretService, service3.NewPVService, service3.NewPVCService, service.NewUserService, service.NewApiService, service.NewRoleService, service.NewAuditService, service.NewSystemService, alert2.NewAlertManagerEventService, alert2.NewAlertManagerOnDutyService, alert2.NewAlertManagerPoolService, alert2.NewAlertManagerRecordService, alert2.NewAlertManagerRuleService, alert2.NewAlertManagerSendService, scrape2.NewPrometheusScrapeService, scrape2.NewPrometheusPoolService, config2.NewMonitorConfigService, service2.NewNotAuthService, service4.NewFormDesignService, service4.NewInstanceService, service4.NewInstanceFlowService, service4.NewInstanceCommentService, service4.NewWorkorderInstanceTimeLineService, service4.NewWorkorderTemplateService, service4.NewWorkorderProcessService, service4.NewCategoryGroupService, service4.NewWorkorderNotificationService, service5.NewTreeNodeService, service5.NewTreeLocalService, service5.NewTreeCloudService, service5.NewCloudAccountService, service5.NewCloudAccountRegionService, service6.NewCronService)
+var ServiceSet = wire.NewSet(service3.NewClusterService, service3.NewDeploymentService, service3.NewNamespaceService, service3.NewSvcService, service3.NewNodeService, service3.NewTaintService, service3.NewYamlTaskService, service3.NewYamlTemplateService, service3.NewDaemonSetService, service3.NewEventService, service3.NewStatefulSetService, service3.NewServiceAccountService, service3.NewRoleService, service3.NewClusterRoleService, service3.NewRoleBindingService, service3.NewClusterRoleBindingService, service3.NewRBACService, service3.NewIngressService, service3.NewPodService, service3.NewConfigMapService, service3.NewSecretService, service3.NewPVService, service3.NewPVCService, service.NewUserService, service.NewApiService, service.NewRoleService, service.NewAuditService, service.NewSystemService, alert2.NewAlertManagerEventService, alert2.NewAlertManagerOnDutyService, alert2.NewAlertManagerPoolService, alert2.NewAlertManagerRecordService, alert2.NewAlertManagerRuleService, alert2.NewAlertManagerSendService, scrape2.NewPrometheusScrapeService, scrape2.NewPrometheusPoolService, config3.NewMonitorConfigService, service2.NewNotAuthService, service4.NewFormDesignService, service4.NewInstanceService, service4.NewInstanceFlowService, service4.NewInstanceCommentService, service4.NewWorkorderInstanceTimeLineService, service4.NewWorkorderTemplateService, service4.NewWorkorderProcessService, service4.NewCategoryGroupService, service4.NewWorkorderNotificationService, service5.NewTreeNodeService, service5.NewTreeLocalService, service5.NewTreeCloudService, service5.NewCloudAccountService, service5.NewCloudAccountRegionService, service6.NewCronService)
 
-var DaoSet = wire.NewSet(alert.NewAlertManagerEventDAO, alert.NewAlertManagerOnDutyDAO, alert.NewAlertManagerPoolDAO, alert.NewAlertManagerRecordDAO, alert.NewAlertManagerRuleDAO, alert.NewAlertManagerSendDAO, scrape.NewScrapeJobDAO, scrape.NewScrapePoolDAO, config.NewMonitorConfigDAO, dao.NewUserDAO, dao.NewRoleDAO, dao.NewApiDAO, dao.NewAuditDAO, dao2.NewClusterDAO, dao2.NewYamlTaskDAO, dao2.NewYamlTemplateDAO, dao3.NewWorkorderFormDesignDAO, dao3.NewTemplateDAO, dao3.NewWorkorderInstanceDAO, dao3.NewProcessDAO, dao3.NewWorkorderCategoryDAO, dao3.NewWorkorderInstanceCommentDAO, dao3.NewInstanceFlowDAO, dao3.NewInstanceTimeLineDAO, dao3.NewNotificationDAO, dao4.NewTreeNodeDAO, dao4.NewTreeLocalDAO, dao4.NewTreeCloudDAO, dao4.NewCloudAccountDAO, dao4.NewCloudAccountRegionDAO, dao5.NewCronJobDAO)
+var DaoSet = wire.NewSet(alert.NewAlertManagerEventDAO, alert.NewAlertManagerOnDutyDAO, alert.NewAlertManagerPoolDAO, alert.NewAlertManagerRecordDAO, alert.NewAlertManagerRuleDAO, alert.NewAlertManagerSendDAO, scrape.NewScrapeJobDAO, scrape.NewScrapePoolDAO, config2.NewMonitorConfigDAO, dao.NewUserDAO, dao.NewRoleDAO, dao.NewApiDAO, dao.NewAuditDAO, dao2.NewClusterDAO, dao2.NewYamlTaskDAO, dao2.NewYamlTemplateDAO, dao3.NewWorkorderFormDesignDAO, dao3.NewTemplateDAO, dao3.NewWorkorderInstanceDAO, dao3.NewProcessDAO, dao3.NewWorkorderCategoryDAO, dao3.NewWorkorderInstanceCommentDAO, dao3.NewInstanceFlowDAO, dao3.NewInstanceTimeLineDAO, dao3.NewNotificationDAO, dao4.NewTreeNodeDAO, dao4.NewTreeLocalDAO, dao4.NewTreeCloudDAO, dao4.NewCloudAccountDAO, dao4.NewCloudAccountRegionDAO, dao5.NewCronJobDAO)
 
 var SSHSet = wire.NewSet(ssh.NewClient)
 
-var UtilSet = wire.NewSet(jwt.NewJWTHandler, sse.NewHandler)
+var UtilSet = wire.NewSet(
+	InitJWTConfig,
+	InitWebSocketUpgrader, jwt.NewJWTHandler, sse.NewHandler,
+)
 
 var ManagerSet = wire.NewSet(manager.NewClusterManager, manager.NewDeploymentManager, manager.NewNamespaceManager, manager.NewServiceManager, manager.NewNodeManager, manager.NewEventManager, manager.NewStatefulSetManager, manager.NewDaemonSetManager, manager.NewServiceAccountManager, manager.NewTaintManager, manager.NewYamlManager, manager.NewConfigMapManager, manager.NewSecretManager, manager.NewPVManager, manager.NewPVCManager, manager.NewClusterRoleManager, manager.NewClusterRoleBindingManager, manager.NewRoleManager, manager.NewRoleBindingManager, manager.NewIngressManager, manager.NewPodManager)
 
@@ -279,8 +285,9 @@ var Injector = wire.NewSet(
 	InitGinServer,
 	InitLogger,
 	InitRedis,
+	ProvideRedisCmdable,
 	InitDB,
-	CronSet, wire.Struct(new(Cmd), "*"),
+	CronSet,
 )
 
 var CacheSet = wire.NewSet(cache.NewMonitorCache, cache.NewAlertManagerConfigCache, cache.NewAlertRuleConfigCache, cache.NewRecordRuleConfigCache, cache.NewPrometheusConfigCache, cache.NewBatchConfigManager)

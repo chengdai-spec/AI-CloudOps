@@ -27,34 +27,45 @@ package di
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/GoSimplicity/AI-CloudOps/internal/config"
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-func InitDB() *gorm.DB {
-	addr := viper.GetString("mysql.addr")
+func InitDB(cfg *config.Config, logger *zap.Logger) (*gorm.DB, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("配置不能为空")
+	}
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+
+	addr := cfg.MySQL.Addr
 	db, err := gorm.Open(mysql.Open(addr), &gorm.Config{})
 	if err != nil {
-		log.Printf("数据库连接失败: %v", err)
-		return nil
+		logger.Error("数据库连接失败", zap.Error(err))
+		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Printf("获取sql.DB失败: %v", err)
-		return nil
+		logger.Error("获取sql.DB失败", zap.Error(err))
+		return nil, fmt.Errorf("获取sql.DB失败: %w", err)
 	}
 	if err := sqlDB.Ping(); err != nil {
-		log.Printf("数据库ping失败: %v", err)
-		return nil
+		logger.Error("数据库ping失败", zap.Error(err))
+		return nil, fmt.Errorf("数据库ping失败: %w", err)
 	}
+
 	if err := InitTables(db); err != nil {
-		log.Printf("初始化数据库表失败: %v", err)
+		logger.Error("初始化数据库表失败", zap.Error(err))
+		return nil, fmt.Errorf("初始化数据库表失败: %w", err)
 	}
-	return db
+
+	logger.Info("数据库初始化成功")
+	return db, nil
 }
 
 func CheckDBHealth(db *gorm.DB) error {
@@ -73,7 +84,6 @@ func CheckDBHealth(db *gorm.DB) error {
 			return nil
 		}
 		if i < 2 { // 只在前两次失败后等待
-			log.Printf("数据库ping失败，5秒后重试: %v", pingErr)
 			time.Sleep(10 * time.Second)
 		}
 	}

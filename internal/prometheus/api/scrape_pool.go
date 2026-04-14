@@ -57,16 +57,14 @@ func (h *ScrapePoolHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetMonitorScrapePoolList 获取监控采集池列表
 func (h *ScrapePoolHandler) GetMonitorScrapePoolList(ctx *gin.Context) {
 	var req model.GetMonitorScrapePoolListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.scrapePoolService.GetMonitorScrapePoolList(ctx, &req)
+		return h.scrapePoolService.GetMonitorScrapePoolList(ctx.Request.Context(), &req)
 	})
 }
 
-// CreateMonitorScrapePool 创建监控采集池
 func (h *ScrapePoolHandler) CreateMonitorScrapePool(ctx *gin.Context) {
 	var req model.CreateMonitorScrapePoolReq
 
@@ -75,11 +73,10 @@ func (h *ScrapePoolHandler) CreateMonitorScrapePool(ctx *gin.Context) {
 	req.CreateUserName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.scrapePoolService.CreateMonitorScrapePool(ctx, &req)
+		return nil, h.scrapePoolService.CreateMonitorScrapePool(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateMonitorScrapePool 更新监控采集池
 func (h *ScrapePoolHandler) UpdateMonitorScrapePool(ctx *gin.Context) {
 	var req model.UpdateMonitorScrapePoolReq
 
@@ -91,11 +88,10 @@ func (h *ScrapePoolHandler) UpdateMonitorScrapePool(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.scrapePoolService.UpdateMonitorScrapePool(ctx, &req)
+		return nil, h.scrapePoolService.UpdateMonitorScrapePool(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteMonitorScrapePool 删除监控采集池
 func (h *ScrapePoolHandler) DeleteMonitorScrapePool(ctx *gin.Context) {
 	var req model.DeleteMonitorScrapePoolReq
 
@@ -108,11 +104,10 @@ func (h *ScrapePoolHandler) DeleteMonitorScrapePool(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.scrapePoolService.DeleteMonitorScrapePool(ctx, &req)
+		return nil, h.scrapePoolService.DeleteMonitorScrapePool(ctx.Request.Context(), &req)
 	})
 }
 
-// GetMonitorScrapePoolDetail 获取监控采集池详情
 func (h *ScrapePoolHandler) GetMonitorScrapePoolDetail(ctx *gin.Context) {
 	var req model.GetMonitorScrapePoolDetailReq
 
@@ -125,6 +120,6 @@ func (h *ScrapePoolHandler) GetMonitorScrapePoolDetail(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.scrapePoolService.GetMonitorScrapePoolDetail(ctx, &req)
+		return h.scrapePoolService.GetMonitorScrapePoolDetail(ctx.Request.Context(), &req)
 	})
 }

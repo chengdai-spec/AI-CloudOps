@@ -41,7 +41,6 @@ const (
 	// 日志模块标识
 	LogModuleMonitor = "[监控模块]"
 
-	// 配置文件名模板
 	ConfigNameAlertManager = "alertmanager_pool_%d_%s.yaml"
 	ConfigNamePrometheus   = "prometheus_scrape_pool_%d_%s.yaml"
 	ConfigNameAlertRule    = "prometheus_alert_rule_%d_%s.yaml"
@@ -69,7 +68,6 @@ const (
 	redisHashRecordRulePoolFmt   = redisPrefix + ":hash:record_rule:%s"
 )
 
-// calculateConfigHash 计算配置内容的哈希值
 func calculateConfigHash(content string) string {
 	hash := sha256.Sum256([]byte(content))
 	return hex.EncodeToString(hash[:])
@@ -97,7 +95,6 @@ func batchSaveConfigsToDatabase(
 	return batchManager.BatchSaveConfigs(ctx, configMap)
 }
 
-// logCacheOperation 统一的缓存操作日志记录
 func logCacheOperation(logger *zap.Logger, operation string, poolName string, startTime time.Time, err error) {
 	duration := time.Since(startTime)
 
@@ -113,7 +110,6 @@ func logCacheOperation(logger *zap.Logger, operation string, poolName string, st
 	}
 }
 
-// logBatchOperation 批量操作日志记录
 func logBatchOperation(logger *zap.Logger, operation string, processed, total int, startTime time.Time) {
 	logger.Info(LogModuleMonitor+operation+"批量处理完成",
 		zap.Int("processed", processed),

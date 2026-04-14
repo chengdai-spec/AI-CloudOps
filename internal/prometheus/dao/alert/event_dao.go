@@ -67,7 +67,6 @@ func NewAlertManagerEventDAO(db *gorm.DB, l *zap.Logger, userDao userDao.UserDAO
 	}
 }
 
-// GetMonitorAlertEventById 获取告警事件
 func (d *alertManagerEventDAO) GetMonitorAlertEventById(ctx context.Context, id int) (*model.MonitorAlertEvent, error) {
 	if id <= 0 {
 		d.l.Error("GetMonitorAlertEventById 失败: 无效的 ID", zap.Int("id", id))
@@ -96,7 +95,6 @@ func (d *alertManagerEventDAO) SearchMonitorAlertEventByName(ctx context.Context
 	var alertEvents []*model.MonitorAlertEvent
 	var total int64
 
-	// 先获取符合条件的记录总数
 	if err := d.db.WithContext(ctx).
 		Model(&model.MonitorAlertEvent{}).
 		Where("alert_name LIKE ?", "%"+name+"%").
@@ -105,7 +103,6 @@ func (d *alertManagerEventDAO) SearchMonitorAlertEventByName(ctx context.Context
 		return nil, 0, err
 	}
 
-	// 获取符合条件的记录列表
 	if err := d.db.WithContext(ctx).
 		Where("alert_name LIKE ?", "%"+name+"%").
 		Find(&alertEvents).Error; err != nil {
@@ -116,16 +113,13 @@ func (d *alertManagerEventDAO) SearchMonitorAlertEventByName(ctx context.Context
 	return alertEvents, total, nil
 }
 
-// GetMonitorAlertEventList 获取告警事件列表
 func (d *alertManagerEventDAO) GetMonitorAlertEventList(ctx context.Context, req *model.GetMonitorAlertEventListReq) ([]*model.MonitorAlertEvent, int64, error) {
 	var alertEvents []*model.MonitorAlertEvent
 	var total int64
 
-	// 计算分页参数
 	offset := (req.Page - 1) * req.Size
 	limit := req.Size
 
-	// 构建查询条件
 	query := d.db.WithContext(ctx).Model(&model.MonitorAlertEvent{})
 
 	// 添加搜索条件
@@ -133,7 +127,6 @@ func (d *alertManagerEventDAO) GetMonitorAlertEventList(ctx context.Context, req
 		query = query.Where("alert_name LIKE ?", "%"+req.Search+"%")
 	}
 
-	// 添加状态过滤条件
 	if req.Status != 0 {
 		query = query.Where("status = ?", req.Status)
 	}
@@ -147,13 +140,11 @@ func (d *alertManagerEventDAO) GetMonitorAlertEventList(ctx context.Context, req
 		query = query.Where("created_at <= ?", req.EndTime)
 	}
 
-	// 先获取总数
 	if err := query.Count(&total).Error; err != nil {
 		d.l.Error("获取 MonitorAlertEvent 总数失败", zap.Error(err))
 		return nil, 0, err
 	}
 
-	// 获取分页数据
 	if err := query.Order("created_at DESC").
 		Offset(offset).
 		Limit(limit).
@@ -208,7 +199,6 @@ func (d *alertManagerEventDAO) GetAlertEventByID(ctx context.Context, id int) (*
 	return &alertEvent, nil
 }
 
-// UpdateAlertEvent 更新告警事件
 func (d *alertManagerEventDAO) UpdateAlertEvent(ctx context.Context, alertEvent *model.MonitorAlertEvent) error {
 	if alertEvent.ID <= 0 {
 		return fmt.Errorf("无效的事件ID")
@@ -249,7 +239,6 @@ func (d *alertManagerEventDAO) SendMessageToGroup(ctx context.Context, url strin
 		return fmt.Errorf("message不能为空")
 	}
 
-	// 拼接发送内容
 	content := fmt.Sprintf(`{"msg_type":"text","content":{"text":"%s"}}`, message)
 
 	// 发送消息到群组
@@ -273,7 +262,6 @@ func (d *alertManagerEventDAO) SendMessageToGroup(ctx context.Context, url strin
 	return nil
 }
 
-// GetMonitorAlertEventTotal 获取监控告警事件总数
 func (d *alertManagerEventDAO) GetMonitorAlertEventTotal(ctx context.Context) (int, error) {
 	var count int64
 

@@ -300,7 +300,6 @@ func (s *svcService) GetServiceList(ctx context.Context, req *model.GetServiceLi
 		return svc.CreationTimestamp.Time
 	})
 
-	// 分页处理
 	pagedServices, total := utils.BuildServiceListPagination(filteredServices, req.Page, req.Size)
 
 	items := make([]*model.K8sService, 0, len(pagedServices))

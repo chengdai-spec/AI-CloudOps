@@ -62,7 +62,6 @@ func (r *UserRole) TableName() string {
 	return "cl_system_user_roles"
 }
 
-// CreateRoleRequest 创建角色请求结构体
 type CreateRoleRequest struct {
 	Name        string `json:"name" binding:"required,max=50"` // 角色名称
 	Code        string `json:"code" binding:"required,max=50"` // 角色编码
@@ -71,7 +70,6 @@ type CreateRoleRequest struct {
 	ApiIds      []int  `json:"api_ids"`                        // 关联的API ID列表
 }
 
-// UpdateRoleRequest 更新角色请求结构体
 type UpdateRoleRequest struct {
 	ID          int    `json:"id" form:"id" binding:"required,gt=0"` // 角色ID
 	Name        string `json:"name" binding:"required,max=50"`       // 角色名称
@@ -81,7 +79,6 @@ type UpdateRoleRequest struct {
 	ApiIds      []int  `json:"api_ids"`                              // 关联的API ID列表
 }
 
-// GetRoleRequest 获取角色请求结构体
 type GetRoleRequest struct {
 	ID int `json:"id"` // 角色ID
 }
@@ -123,13 +120,11 @@ type ListRolesRequest struct {
 	Status *int `json:"status" form:"status" binding:"omitempty,oneof=0 1"` // 状态筛选，可选
 }
 
-// AssignRoleRequest 分配角色请求结构体
 type AssignRoleRequest struct {
 	UserID  int   `json:"user_id" binding:"required,gt=0"`       // 用户ID
 	RoleIds []int `json:"role_ids" binding:"required,dive,gt=0"` // 角色ID列表
 }
 
-// RevokeRoleRequest 撤销角色请求结构体
 type RevokeRoleRequest struct {
 	UserID  int   `json:"user_id" binding:"required,gt=0"`       // 用户ID
 	RoleIds []int `json:"role_ids" binding:"required,dive,gt=0"` // 角色ID列表
@@ -145,7 +140,6 @@ type RevokeRoleApiRequest struct {
 	ApiIds []int `json:"api_ids" binding:"required,dive,gt=0"`
 }
 
-// DeleteRoleRequest 删除角色请求结构体
 type DeleteRoleRequest struct {
 	ID int `json:"id" form:"id" binding:"required,gt=0"` // 角色ID
 }

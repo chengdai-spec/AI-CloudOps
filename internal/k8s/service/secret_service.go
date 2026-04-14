@@ -169,7 +169,6 @@ func (s *secretService) GetSecret(ctx context.Context, req *model.GetSecretDetai
 
 // convertToK8sSecret 将Kubernetes Secret转换为模型对象
 func (s *secretService) convertToK8sSecret(secret *corev1.Secret, clusterID int) *model.K8sSecret {
-	// 计算数据大小
 	var totalSize int64
 	for _, v := range secret.Data {
 		totalSize += int64(len(v))
@@ -181,7 +180,6 @@ func (s *secretService) convertToK8sSecret(secret *corev1.Secret, clusterID int)
 	// 格式化大小
 	size := k8sutils.FormatBytes(totalSize)
 
-	// 计算数据条目数量
 	dataCount := len(secret.Data) + len(secret.StringData)
 
 	// 判断是否不可变
@@ -232,7 +230,6 @@ func (s *secretService) CreateSecret(ctx context.Context, req *model.CreateSecre
 		secret.Type = corev1.SecretTypeOpaque
 	}
 
-	// 设置不可变标志
 	if req.Immutable {
 		secret.Immutable = &req.Immutable
 	}
@@ -276,10 +273,8 @@ func (s *secretService) UpdateSecret(ctx context.Context, req *model.UpdateSecre
 		return fmt.Errorf("获取Secret失败: %w", err)
 	}
 
-	// 只保留必要的元数据字段
 	updatedSecret := existingSecret.DeepCopy()
 
-	// 完全覆盖数据字段
 	updatedSecret.Data = map[string][]byte(req.Data)
 	updatedSecret.StringData = req.StringData
 	updatedSecret.Labels = req.Labels
@@ -434,7 +429,6 @@ func (s *secretService) UpdateSecretByYaml(ctx context.Context, req *model.Updat
 	sec.ResourceVersion = existing.ResourceVersion
 	sec.UID = existing.UID
 
-	// 执行完全覆盖式更新
 	_, err = s.secretManager.UpdateSecret(ctx, req.ClusterID, sec)
 	if err != nil {
 		s.logger.Error("通过YAML更新Secret失败", zap.Error(err),

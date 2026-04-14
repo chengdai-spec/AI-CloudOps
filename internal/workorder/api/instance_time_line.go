@@ -52,19 +52,15 @@ func (h *InstanceTimeLineHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateInstanceTimeLine 创建工单时间线记录
-// CreateInstanceTimeLine 创建工单时间线记录
 func (h *InstanceTimeLineHandler) CreateInstanceTimeLine(ctx *gin.Context) {
 	var req model.CreateWorkorderInstanceTimelineReq
 	user := ctx.MustGet("user").(jwt.UserClaims)
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return h.service.CreateInstanceTimeLine(ctx, &req, user.Uid, user.Username)
+		return h.service.CreateInstanceTimeLine(ctx.Request.Context(), &req, user.Uid, user.Username)
 	})
 }
 
-// DetailInstanceTimeLine 获取工单时间线记录详情
-// DetailInstanceTimeLine 获取工单时间线记录详情
 func (h *InstanceTimeLineHandler) DetailInstanceTimeLine(ctx *gin.Context) {
 	var req model.DetailWorkorderInstanceTimelineReq
 
@@ -76,16 +72,14 @@ func (h *InstanceTimeLineHandler) DetailInstanceTimeLine(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return h.service.GetInstanceTimeLine(ctx, req.ID)
+		return h.service.GetInstanceTimeLine(ctx.Request.Context(), req.ID)
 	})
 }
 
-// ListInstanceTimeLine 获取工单时间线记录列表
-// ListInstanceTimeLine 获取工单时间线记录列表
 func (h *InstanceTimeLineHandler) ListInstanceTimeLine(ctx *gin.Context) {
 	var req model.ListWorkorderInstanceTimelineReq
 
 	base.HandleRequest(ctx, &req, func() (any, error) {
-		return h.service.ListInstanceTimeLine(ctx, &req)
+		return h.service.ListInstanceTimeLine(ctx.Request.Context(), &req)
 	})
 }

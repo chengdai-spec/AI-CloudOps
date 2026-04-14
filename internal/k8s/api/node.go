@@ -72,7 +72,7 @@ func (h *K8sNodeHandler) GetNodeList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.nodeService.GetNodeList(ctx, &req)
+		return h.nodeService.GetNodeList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -95,7 +95,7 @@ func (h *K8sNodeHandler) GetNodeDetail(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.nodeService.GetNodeDetail(ctx, &req)
+		return h.nodeService.GetNodeDetail(ctx.Request.Context(), &req)
 	})
 }
 
@@ -118,7 +118,7 @@ func (h *K8sNodeHandler) UpdateNodeLabels(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.nodeService.UpdateNodeLabels(ctx, &req)
+		return nil, h.nodeService.UpdateNodeLabels(ctx.Request.Context(), &req)
 	})
 }
 
@@ -141,7 +141,7 @@ func (h *K8sNodeHandler) DrainNode(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.nodeService.DrainNode(ctx, &req)
+		return nil, h.nodeService.DrainNode(ctx.Request.Context(), &req)
 	})
 }
 
@@ -164,7 +164,7 @@ func (h *K8sNodeHandler) CordonNode(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.nodeService.CordonNode(ctx, &req)
+		return nil, h.nodeService.CordonNode(ctx.Request.Context(), &req)
 	})
 }
 
@@ -187,7 +187,7 @@ func (h *K8sNodeHandler) UncordonNode(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.nodeService.UncordonNode(ctx, &req)
+		return nil, h.nodeService.UncordonNode(ctx.Request.Context(), &req)
 	})
 }
 
@@ -210,7 +210,7 @@ func (h *K8sNodeHandler) GetNodeTaints(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.nodeService.GetNodeTaints(ctx, &req)
+		return h.nodeService.GetNodeTaints(ctx.Request.Context(), &req)
 	})
 }
 
@@ -233,7 +233,7 @@ func (h *K8sNodeHandler) AddNodeTaints(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.taintService.AddNodeTaint(ctx, &req)
+		return nil, h.taintService.AddNodeTaint(ctx.Request.Context(), &req)
 	})
 }
 
@@ -256,7 +256,7 @@ func (h *K8sNodeHandler) DeleteNodeTaints(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.taintService.DeleteNodeTaint(ctx, &req)
+		return nil, h.taintService.DeleteNodeTaint(ctx.Request.Context(), &req)
 	})
 }
 
@@ -279,6 +279,6 @@ func (h *K8sNodeHandler) CheckTaintYaml(ctx *gin.Context) {
 	req.NodeName = nodeName
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.taintService.CheckTaintYaml(ctx, &req)
+		return nil, h.taintService.CheckTaintYaml(ctx.Request.Context(), &req)
 	})
 }

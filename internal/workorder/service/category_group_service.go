@@ -59,9 +59,7 @@ func NewCategoryGroupService(categoryDAO dao.WorkorderCategoryDAO, userDAO userd
 	}
 }
 
-// CreateCategory 创建分类
 func (s *categoryGroupService) CreateCategory(ctx context.Context, req *model.CreateWorkorderCategoryReq) error {
-	// 检查分类是否存在
 	existingCategory, err := s.categoryDAO.GetCategoryByName(ctx, req.Name)
 	if err != nil {
 		// 仅处理非「记录未找到」的错误
@@ -96,9 +94,7 @@ func (s *categoryGroupService) CreateCategory(ctx context.Context, req *model.Cr
 	return nil
 }
 
-// UpdateCategory 更新分类
 func (s *categoryGroupService) UpdateCategory(ctx context.Context, req *model.UpdateWorkorderCategoryReq) error {
-	// 检查分类是否存在
 	existingCategory, err := s.categoryDAO.GetCategory(ctx, req.ID)
 	if err != nil {
 		s.logger.Error("更新分类失败：获取分类信息失败", zap.Error(err), zap.Int("id", req.ID))
@@ -109,7 +105,6 @@ func (s *categoryGroupService) UpdateCategory(ctx context.Context, req *model.Up
 		return fmt.Errorf("分类 (ID: %d) 不存在", req.ID)
 	}
 
-	// 构建更新的分类对象
 	category := &model.WorkorderCategory{
 		Model: model.Model{
 			ID: req.ID,
@@ -128,9 +123,7 @@ func (s *categoryGroupService) UpdateCategory(ctx context.Context, req *model.Up
 	return nil
 }
 
-// DeleteCategory 删除分类
 func (s *categoryGroupService) DeleteCategory(ctx context.Context, id int) error {
-	// 检查分类是否存在
 	existingCategory, err := s.categoryDAO.GetCategory(ctx, id)
 	if err != nil {
 		s.logger.Error("删除分类失败：获取分类信息失败", zap.Error(err), zap.Int("id", id))
@@ -151,7 +144,6 @@ func (s *categoryGroupService) DeleteCategory(ctx context.Context, id int) error
 	return nil
 }
 
-// ListCategory 获取分类列表
 func (s *categoryGroupService) ListCategory(ctx context.Context, req model.ListWorkorderCategoryReq) (*model.ListResp[*model.WorkorderCategory], error) {
 	categories, total, err := s.categoryDAO.ListCategory(ctx, req)
 	if err != nil {
@@ -165,7 +157,6 @@ func (s *categoryGroupService) ListCategory(ctx context.Context, req model.ListW
 	}, nil
 }
 
-// GetCategory 获取分类详情
 func (s *categoryGroupService) GetCategory(ctx context.Context, id int) (*model.WorkorderCategory, error) {
 	category, err := s.categoryDAO.GetCategory(ctx, id)
 	if err != nil {

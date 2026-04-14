@@ -63,12 +63,9 @@ func NewCloudAccountService(logger *zap.Logger, dao dao.CloudAccountDAO) CloudAc
 	}
 }
 
-// GetCloudAccountList 获取云账户列表
 func (s *cloudAccountService) GetCloudAccountList(ctx context.Context, req *model.GetCloudAccountListReq) (model.ListResp[*model.CloudAccount], error) {
-	// 兜底分页参数
 	treeUtils.ValidateAndSetPaginationDefaults(&req.Page, &req.Size)
 
-	// 设置默认排序
 	if req.OrderBy == "" {
 		req.OrderBy = "created_at"
 	}
@@ -76,7 +73,6 @@ func (s *cloudAccountService) GetCloudAccountList(ctx context.Context, req *mode
 		req.Order = "desc"
 	}
 
-	// 记录查询参数
 	s.logger.Debug("获取云账户列表",
 		zap.Int("page", req.Page),
 		zap.Int("size", req.Size),
@@ -98,7 +94,6 @@ func (s *cloudAccountService) GetCloudAccountList(ctx context.Context, req *mode
 	// 清理敏感信息（双重保险，虽然json:"-"标签已经防止序列化）
 	treeUtils.SanitizeCloudAccounts(accounts)
 
-	// 记录成功日志
 	s.logger.Info("成功获取云账户列表",
 		zap.Int64("total", total),
 		zap.Int("returned", len(accounts)),
@@ -111,7 +106,6 @@ func (s *cloudAccountService) GetCloudAccountList(ctx context.Context, req *mode
 	}, nil
 }
 
-// GetCloudAccountDetail 获取云账户详情
 func (s *cloudAccountService) GetCloudAccountDetail(ctx context.Context, req *model.GetCloudAccountDetailReq) (*model.CloudAccount, error) {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return nil, fmt.Errorf("无效的云账户ID: %w", err)
@@ -145,9 +139,7 @@ func (s *cloudAccountService) GetCloudAccountDetail(ctx context.Context, req *mo
 	return account, nil
 }
 
-// CreateCloudAccount 创建云账户（支持多区域）
 func (s *cloudAccountService) CreateCloudAccount(ctx context.Context, req *model.CreateCloudAccountReq, createUserID int, createUserName string) error {
-	// 验证和规范化区域列表
 	normalizedRegions, err := treeUtils.ValidateAndNormalizeRegions(req.Regions)
 	if err != nil {
 		return fmt.Errorf("区域验证失败: %w", err)
@@ -179,7 +171,6 @@ func (s *cloudAccountService) CreateCloudAccount(ctx context.Context, req *model
 
 	// 使用事务创建云账户和区域关联
 	if err := s.dao.CreateWithTransaction(ctx, func(tx interface{}) error {
-		// 创建云账户对象
 		account := &model.CloudAccount{
 			Name:           req.Name,
 			Provider:       req.Provider,
@@ -243,7 +234,6 @@ func (s *cloudAccountService) UpdateCloudAccount(ctx context.Context, req *model
 		return fmt.Errorf("无效的云账户ID: %w", err)
 	}
 
-	// 检查云账户是否存在
 	account, err := s.dao.GetByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -274,15 +264,12 @@ func (s *cloudAccountService) UpdateCloudAccount(ctx context.Context, req *model
 		}
 	}
 
-	// 使用事务更新云账户和区域
 	if err := s.dao.CreateWithTransaction(ctx, func(tx interface{}) error {
-		// 构建更新对象和字段列表
 		updateAccount := &model.CloudAccount{
 			Model: model.Model{ID: req.ID},
 		}
 		updateFields := make([]string, 0)
 
-		// 基本信息字段
 		if req.Name != "" {
 			updateAccount.Name = req.Name
 			updateFields = append(updateFields, "name")
@@ -339,7 +326,6 @@ func (s *cloudAccountService) UpdateCloudAccount(ctx context.Context, req *model
 
 		// 如果需要更新区域，先删除旧的区域关联，再创建新的
 		if len(normalizedRegions) > 0 {
-			// 删除旧的区域关联
 			if err := s.dao.DeleteRegionsByAccountIDInTransaction(ctx, req.ID, tx); err != nil {
 				s.logger.Error("删除旧区域关联失败",
 					zap.Int("account_id", req.ID),
@@ -347,7 +333,6 @@ func (s *cloudAccountService) UpdateCloudAccount(ctx context.Context, req *model
 				return fmt.Errorf("删除旧区域关联失败: %w", err)
 			}
 
-			// 创建新的区域关联
 			for _, regionItem := range normalizedRegions {
 				region := &model.CloudAccountRegion{
 					CloudAccountID: req.ID,
@@ -388,13 +373,11 @@ func (s *cloudAccountService) UpdateCloudAccount(ctx context.Context, req *model
 	return nil
 }
 
-// DeleteCloudAccount 删除云账户
 func (s *cloudAccountService) DeleteCloudAccount(ctx context.Context, req *model.DeleteCloudAccountReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云账户ID: %w", err)
 	}
 
-	// 检查云账户是否存在
 	account, err := s.dao.GetByID(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -403,7 +386,6 @@ func (s *cloudAccountService) DeleteCloudAccount(ctx context.Context, req *model
 		return err
 	}
 
-	// 检查是否有关联的云资源
 	if len(account.CloudResources) > 0 {
 		return fmt.Errorf("云账户下还有 %d 个云资源，请先删除相关资源", len(account.CloudResources))
 	}
@@ -416,7 +398,6 @@ func (s *cloudAccountService) DeleteCloudAccount(ctx context.Context, req *model
 	return nil
 }
 
-// UpdateCloudAccountStatus 更新云账户状态
 func (s *cloudAccountService) UpdateCloudAccountStatus(ctx context.Context, req *model.UpdateCloudAccountStatusReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云账户ID: %w", err)
@@ -430,7 +411,6 @@ func (s *cloudAccountService) UpdateCloudAccountStatus(ctx context.Context, req 
 	return nil
 }
 
-// VerifyCloudAccount 验证云账户凭证
 func (s *cloudAccountService) VerifyCloudAccount(ctx context.Context, req *model.VerifyCloudAccountReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的云账户ID: %w", err)
@@ -457,7 +437,6 @@ func (s *cloudAccountService) VerifyCloudAccount(ctx context.Context, req *model
 		return fmt.Errorf("解密SecretKey失败: %w", err)
 	}
 
-	// 获取默认区域用于验证凭证
 	defaultRegion, err := treeUtils.GetDefaultRegion(account.Regions)
 	if err != nil {
 		return fmt.Errorf("获取默认区域失败: %w", err)
@@ -514,7 +493,6 @@ func (s *cloudAccountService) VerifyCloudAccount(ctx context.Context, req *model
 	return nil
 }
 
-// BatchDeleteCloudAccount 批量删除云账户
 func (s *cloudAccountService) BatchDeleteCloudAccount(ctx context.Context, req *model.BatchDeleteCloudAccountReq) error {
 	if len(req.IDs) == 0 {
 		return errors.New("批量删除ID列表不能为空")
@@ -530,14 +508,12 @@ func (s *cloudAccountService) BatchDeleteCloudAccount(ctx context.Context, req *
 		return errors.New("部分云账户不存在")
 	}
 
-	// 检查是否有关联的云资源
 	for _, account := range accounts {
 		if len(account.CloudResources) > 0 {
 			return fmt.Errorf("云账户 %s 下还有 %d 个云资源，无法删除", account.Name, len(account.CloudResources))
 		}
 	}
 
-	// 执行批量删除
 	if err := s.dao.BatchDelete(ctx, req.IDs); err != nil {
 		s.logger.Error("批量删除云账户失败", zap.Error(err))
 		return err
@@ -547,13 +523,11 @@ func (s *cloudAccountService) BatchDeleteCloudAccount(ctx context.Context, req *
 	return nil
 }
 
-// BatchUpdateCloudAccountStatus 批量更新云账户状态
 func (s *cloudAccountService) BatchUpdateCloudAccountStatus(ctx context.Context, req *model.BatchUpdateCloudAccountStatusReq) error {
 	if len(req.IDs) == 0 {
 		return errors.New("批量更新ID列表不能为空")
 	}
 
-	// 检查所有云账户是否存在
 	accounts, err := s.dao.GetByIDs(ctx, req.IDs)
 	if err != nil {
 		return err
@@ -563,7 +537,6 @@ func (s *cloudAccountService) BatchUpdateCloudAccountStatus(ctx context.Context,
 		return errors.New("部分云账户不存在")
 	}
 
-	// 执行批量更新状态
 	if err := s.dao.BatchUpdateStatus(ctx, req.IDs, req.Status); err != nil {
 		s.logger.Error("批量更新云账户状态失败", zap.Error(err))
 		return err
@@ -589,7 +562,6 @@ func (s *cloudAccountService) ImportCloudAccount(ctx context.Context, req *model
 
 	// 逐个导入云账户
 	for _, accountReq := range req.Accounts {
-		// 检查账户名称是否已存在
 		exists, err := s.dao.CheckNameExists(ctx, accountReq.Name, accountReq.Provider, 0)
 		if err != nil {
 			s.logger.Error("检查账户名称是否存在失败", zap.Error(err))
@@ -605,7 +577,6 @@ func (s *cloudAccountService) ImportCloudAccount(ctx context.Context, req *model
 			continue
 		}
 
-		// 创建云账户
 		if err := s.CreateCloudAccount(ctx, &accountReq, createUserID, createUserName); err != nil {
 			s.logger.Error("导入云账户失败",
 				zap.String("name", accountReq.Name),
@@ -618,7 +589,6 @@ func (s *cloudAccountService) ImportCloudAccount(ctx context.Context, req *model
 		resp.SuccessCount++
 	}
 
-	// 生成提示信息
 	if resp.FailedCount == 0 {
 		resp.Message = fmt.Sprintf("成功导入 %d 个云账户", resp.SuccessCount)
 	} else {
@@ -637,7 +607,6 @@ func (s *cloudAccountService) ExportCloudAccount(ctx context.Context, req *model
 	var accounts []*model.CloudAccount
 	var err error
 
-	// 根据条件获取云账户列表
 	if len(req.IDs) > 0 {
 		// 导出指定的云账户
 		accounts, err = s.dao.GetByIDs(ctx, req.IDs)
@@ -658,7 +627,6 @@ func (s *cloudAccountService) ExportCloudAccount(ctx context.Context, req *model
 		return nil, errors.New("没有可导出的云账户")
 	}
 
-	// 根据导出格式处理数据
 	format := req.Format
 	if format == "" {
 		format = "json"

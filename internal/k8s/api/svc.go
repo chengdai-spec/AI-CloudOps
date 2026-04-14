@@ -69,7 +69,7 @@ func (h *K8sSvcHandler) GetServiceList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svcService.GetServiceList(ctx, &req)
+		return h.svcService.GetServiceList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -99,7 +99,7 @@ func (h *K8sSvcHandler) GetServiceDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svcService.GetServiceDetails(ctx, &req)
+		return h.svcService.GetServiceDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -129,7 +129,7 @@ func (h *K8sSvcHandler) GetServiceYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svcService.GetServiceYaml(ctx, &req)
+		return h.svcService.GetServiceYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -145,7 +145,7 @@ func (h *K8sSvcHandler) CreateService(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svcService.CreateService(ctx, &req)
+		return nil, h.svcService.CreateService(ctx.Request.Context(), &req)
 	})
 }
 
@@ -175,7 +175,7 @@ func (h *K8sSvcHandler) UpdateService(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svcService.UpdateService(ctx, &req)
+		return nil, h.svcService.UpdateService(ctx.Request.Context(), &req)
 	})
 }
 
@@ -205,7 +205,7 @@ func (h *K8sSvcHandler) DeleteService(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svcService.DeleteService(ctx, &req)
+		return nil, h.svcService.DeleteService(ctx.Request.Context(), &req)
 	})
 }
 
@@ -235,7 +235,7 @@ func (h *K8sSvcHandler) GetServiceEndpoints(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svcService.GetServiceEndpoints(ctx, &req)
+		return h.svcService.GetServiceEndpoints(ctx.Request.Context(), &req)
 	})
 }
 func (h *K8sSvcHandler) CreateServiceByYaml(ctx *gin.Context) {
@@ -250,7 +250,7 @@ func (h *K8sSvcHandler) CreateServiceByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svcService.CreateServiceByYaml(ctx, &req)
+		return nil, h.svcService.CreateServiceByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -280,6 +280,6 @@ func (h *K8sSvcHandler) UpdateServiceByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svcService.UpdateServiceByYaml(ctx, &req)
+		return nil, h.svcService.UpdateServiceByYaml(ctx.Request.Context(), &req)
 	})
 }

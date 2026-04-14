@@ -47,19 +47,16 @@ func (u *User) TableName() string {
 	return "cl_system_users"
 }
 
-// UserStatistics 用户统计
 type UserStatistics struct {
 	AdminCount      int64 `json:"admin_count"`       // 管理员数量
 	ActiveUserCount int64 `json:"active_user_count"` // 活跃用户数量
 }
 
-// UserLoginReq 用户登录请求
 type UserLoginReq struct {
 	Username string `json:"username" binding:"required"` // 用户名
 	Password string `json:"password" binding:"required"` // 密码
 }
 
-// UserSignUpReq 用户注册请求
 type UserSignUpReq struct {
 	Username     string `json:"username" binding:"required"`                      // 用户名
 	Password     string `json:"password" binding:"required,min=6"`                // 密码，至少6位
@@ -74,7 +71,6 @@ type UserSignUpReq struct {
 	Enable       int8   `json:"enable" binding:"omitempty,oneof=1 2" default:"1"` // 用户状态 1正常 2冻结
 }
 
-// TokenRequest 刷新令牌请求
 type TokenRequest struct {
 	RefreshToken string `json:"refreshToken" binding:"required"` // 刷新令牌
 	UserID       int    `json:"-"`                               // 服务器侧注入
@@ -83,17 +79,14 @@ type TokenRequest struct {
 	AccountType  int8   `json:"-"`                               // 服务器侧注入
 }
 
-// ProfileReq 获取用户信息请求
 type ProfileReq struct {
 	ID int `json:"id" binding:"required"` // 用户ID
 }
 
-// GetPermCodeReq 获取权限码请求
 type GetPermCodeReq struct {
 	ID int `json:"id" binding:"required"` // 用户ID
 }
 
-// ChangePasswordReq 修改密码请求
 type ChangePasswordReq struct {
 	UserID          int    `json:"user_id" form:"user_id" binding:"required"`                                       // 用户ID
 	Username        string `json:"username" form:"username" binding:"required"`                                     // 用户名
@@ -102,19 +95,16 @@ type ChangePasswordReq struct {
 	ConfirmPassword string `json:"confirm_password" form:"confirm_password" binding:"required,eqfield=NewPassword"` // 确认密码，必须与新密码相同
 }
 
-// GetUserListReq 获取用户列表请求
 type GetUserListReq struct {
 	ListReq
 	Enable      *int8 `json:"enable" form:"enable" binding:"omitempty"`             // 用户状态 1正常 2冻结
 	AccountType *int8 `json:"account_type" form:"account_type" binding:"omitempty"` // 账号类型 1普通用户 2服务账号
 }
 
-// WriteOffReq 注销账号请求
 type WriteOffReq struct {
 	Password string `json:"password" binding:"required"` // 密码
 }
 
-// UpdateProfileReq 更新用户信息请求
 type UpdateProfileReq struct {
 	ID           int    `json:"id" form:"id" binding:"required"`                  // 用户ID
 	RealName     string `json:"real_name" binding:"required"`                     // 真实姓名
@@ -128,12 +118,10 @@ type UpdateProfileReq struct {
 	Enable       int8   `json:"enable" binding:"omitempty,oneof=1 2" default:"1"` // 用户状态
 }
 
-// DeleteUserReq 删除用户请求
 type DeleteUserReq struct {
 	ID int `json:"id" form:"id" binding:"required"` // 用户ID
 }
 
-// GetUserDetailReq 获取用户详情请求
 type GetUserDetailReq struct {
 	ID int `json:"id" form:"id" binding:"required"`
 }

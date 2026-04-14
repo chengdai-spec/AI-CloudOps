@@ -271,7 +271,6 @@ func (m *statefulSetManager) ScaleStatefulSet(ctx context.Context, clusterID int
 		return fmt.Errorf("获取 StatefulSet Scale 失败: %w", err)
 	}
 
-	// 更新副本数
 	scale.Spec.Replicas = replicas
 
 	// 执行扩缩容
@@ -583,7 +582,6 @@ func (m *statefulSetManager) RollbackStatefulSet(ctx context.Context, clusterID 
 	currentStatefulSet.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().Format(time.RFC3339)
 	currentStatefulSet.Annotations["rollback.statefulset.kubernetes.io/revision"] = fmt.Sprintf("%d", revision)
 
-	// 执行更新
 	_, err = kubeClient.AppsV1().StatefulSets(namespace).Update(ctx, currentStatefulSet, metav1.UpdateOptions{})
 	if err != nil {
 		m.logger.Error("回滚 StatefulSet 失败",

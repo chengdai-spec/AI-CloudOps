@@ -54,16 +54,14 @@ func (h *RecordRuleHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetMonitorRecordRuleList 获取预聚合规则列表
 func (h *RecordRuleHandler) GetMonitorRecordRuleList(ctx *gin.Context) {
 	var req model.GetMonitorRecordRuleListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.alertRecordService.GetMonitorRecordRuleList(ctx, &req)
+		return h.alertRecordService.GetMonitorRecordRuleList(ctx.Request.Context(), &req)
 	})
 }
 
-// CreateMonitorRecordRule 创建新的预聚合规则
 func (h *RecordRuleHandler) CreateMonitorRecordRule(ctx *gin.Context) {
 	var req model.CreateMonitorRecordRuleReq
 
@@ -72,11 +70,10 @@ func (h *RecordRuleHandler) CreateMonitorRecordRule(ctx *gin.Context) {
 	req.CreateUserName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.alertRecordService.CreateMonitorRecordRule(ctx, &req)
+		return nil, h.alertRecordService.CreateMonitorRecordRule(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateMonitorRecordRule 更新现有的预聚合规则
 func (h *RecordRuleHandler) UpdateMonitorRecordRule(ctx *gin.Context) {
 	var req model.UpdateMonitorRecordRuleReq
 
@@ -89,11 +86,10 @@ func (h *RecordRuleHandler) UpdateMonitorRecordRule(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.alertRecordService.UpdateMonitorRecordRule(ctx, &req)
+		return nil, h.alertRecordService.UpdateMonitorRecordRule(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteMonitorRecordRule 删除指定的预聚合规则
 func (h *RecordRuleHandler) DeleteMonitorRecordRule(ctx *gin.Context) {
 	var req model.DeleteMonitorRecordRuleReq
 
@@ -106,11 +102,10 @@ func (h *RecordRuleHandler) DeleteMonitorRecordRule(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.alertRecordService.DeleteMonitorRecordRule(ctx, &req)
+		return nil, h.alertRecordService.DeleteMonitorRecordRule(ctx.Request.Context(), &req)
 	})
 }
 
-// GetMonitorRecordRule 获取指定的预聚合规则详情
 func (h *RecordRuleHandler) GetMonitorRecordRule(ctx *gin.Context) {
 	var req model.GetMonitorRecordRuleReq
 
@@ -123,6 +118,6 @@ func (h *RecordRuleHandler) GetMonitorRecordRule(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.alertRecordService.GetMonitorRecordRule(ctx, &req)
+		return h.alertRecordService.GetMonitorRecordRule(ctx.Request.Context(), &req)
 	})
 }

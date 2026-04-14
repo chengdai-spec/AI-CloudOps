@@ -35,6 +35,14 @@ lint:
 	@go vet ./...
 	@echo "✅ 代码检查完成"
 
+# 清理本地构建/运行产物
+clean:
+	@./scripts/clean-local.sh
+
+# 深度清理（包含本地数据卷）
+clean-data:
+	@./scripts/clean-local.sh --data
+
 # 安装开发工具
 install-dev-tools:
 	@echo "安装开发工具..."

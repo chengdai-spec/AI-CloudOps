@@ -90,28 +90,23 @@ func ValidateNamespace(namespace string) error {
 	return nil
 }
 
-// LogAndWrapError 记录错误并包装
 func LogAndWrapError(logger *zap.Logger, err error, operation string, fields ...zap.Field) error {
 	logger.Error(operation+" failed", append(fields, zap.Error(err))...)
 	return fmt.Errorf("%s failed: %w", operation, err)
 }
 
-// IsNotFoundError 检查是否为资源不存在错误
 func IsNotFoundError(err error) bool {
 	return errors.IsNotFound(err)
 }
 
-// IsAlreadyExistsError 检查是否为资源已存在错误
 func IsAlreadyExistsError(err error) bool {
 	return errors.IsAlreadyExists(err)
 }
 
-// IsConflictError 检查是否为冲突错误
 func IsConflictError(err error) bool {
 	return errors.IsConflict(err)
 }
 
-// IsForbiddenError 检查是否为权限不足错误
 func IsForbiddenError(err error) bool {
 	return errors.IsForbidden(err)
 }

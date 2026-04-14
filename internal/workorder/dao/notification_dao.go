@@ -62,7 +62,6 @@ func NewNotificationDAO(db *gorm.DB, logger *zap.Logger) WorkorderNotificationDA
 	}
 }
 
-// CreateNotification 创建通知配置
 func (d *notificationDAO) CreateNotification(ctx context.Context, req *model.CreateWorkorderNotificationReq) error {
 	notification := &model.WorkorderNotification{
 		Name:             req.Name,
@@ -99,7 +98,6 @@ func (d *notificationDAO) CreateNotification(ctx context.Context, req *model.Cre
 	return nil
 }
 
-// UpdateNotification 更新通知配置
 func (d *notificationDAO) UpdateNotification(ctx context.Context, req *model.UpdateWorkorderNotificationReq) error {
 	updateData := map[string]any{}
 
@@ -187,7 +185,6 @@ func (d *notificationDAO) UpdateNotification(ctx context.Context, req *model.Upd
 	return nil
 }
 
-// DeleteNotification 删除通知配置
 func (d *notificationDAO) DeleteNotification(ctx context.Context, req *model.DeleteWorkorderNotificationReq) error {
 	result := d.db.WithContext(ctx).Delete(&model.WorkorderNotification{}, req.ID)
 	if result.Error != nil {
@@ -202,7 +199,6 @@ func (d *notificationDAO) DeleteNotification(ctx context.Context, req *model.Del
 	return nil
 }
 
-// ListNotification 获取通知配置列表
 func (d *notificationDAO) ListNotification(ctx context.Context, req *model.ListWorkorderNotificationReq) (*model.ListResp[*model.WorkorderNotification], error) {
 	var notifications []*model.WorkorderNotification
 	var total int64
@@ -249,7 +245,6 @@ func (d *notificationDAO) ListNotification(ctx context.Context, req *model.ListW
 	}, nil
 }
 
-// DetailNotification 获取通知配置详情
 func (d *notificationDAO) DetailNotification(ctx context.Context, req *model.DetailWorkorderNotificationReq) (*model.WorkorderNotification, error) {
 	var notification model.WorkorderNotification
 	err := d.db.WithContext(ctx).First(&notification, req.ID).Error
@@ -286,7 +281,6 @@ func (d *notificationDAO) AddSendLog(ctx context.Context, log *model.WorkorderNo
 	return nil
 }
 
-// GetSendLogs 获取发送日志列表
 func (d *notificationDAO) GetSendLogs(ctx context.Context, req *model.ListWorkorderNotificationLogReq) (*model.ListResp[*model.WorkorderNotificationLog], error) {
 	var logs []*model.WorkorderNotificationLog
 	var total int64
@@ -351,7 +345,6 @@ func (d *notificationDAO) IncrementSentCount(ctx context.Context, id int) error 
 func (d *notificationDAO) GetActiveNotificationsByEventType(ctx context.Context, eventType string, processID int) ([]*model.WorkorderNotification, error) {
 	var notifications []*model.WorkorderNotification
 
-	// 构建查询条件
 	db := d.db.WithContext(ctx).Model(&model.WorkorderNotification{}).
 		Where("status = ?", 1) // 1-启用状态
 

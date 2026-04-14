@@ -76,7 +76,6 @@ func (r *TerminalReader) Read(p []byte) (n int, err error) {
 
 // Write 向WebSocket发送终端输出数据
 func (w *TerminalWriter) Write(p []byte) (n int, err error) {
-	// 空数据直接返回
 	if len(p) == 0 {
 		return 0, nil
 	}
@@ -115,7 +114,6 @@ func (c *client) WebTerminal(userID int, conn *websocket.Conn) error {
 	// 获取或创建SSH会话
 	session := c.GetSession(userID)
 	if session == nil {
-		// 尝试创建新会话
 		if err := c.CreateSession(userID); err != nil {
 			errMsg := "创建SSH会话失败"
 			c.logger.Error(errMsg, zap.Int("用户ID", userID), zap.Error(err))
@@ -136,7 +134,6 @@ func (c *client) WebTerminal(userID int, conn *websocket.Conn) error {
 		return fmt.Errorf("%s", errMsg)
 	}
 
-	// 配置伪终端模式
 	modes := ssh.TerminalModes{
 		ssh.ECHO:          0,     // 禁用回显（避免重复显示用户输入）
 		ssh.TTY_OP_ISPEED: 14400, // 输入波特率
@@ -153,7 +150,6 @@ func (c *client) WebTerminal(userID int, conn *websocket.Conn) error {
 		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	// 创建终端读写器
 	reader := &TerminalReader{conn: conn, logger: c.logger}
 	writer := &TerminalWriter{conn: conn, logger: c.logger}
 

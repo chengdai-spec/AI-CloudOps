@@ -54,7 +54,6 @@ type webhookCache struct {
 	cacheHasSynced chan struct{}  // 用于通知缓存已同步完成
 	initWG         sync.WaitGroup // 用于等待所有缓存初次同步完成
 
-	// 各类缓存数据及其读写锁
 	SendGroupMap    map[int]*model.MonitorSendGroup
 	SendGroupLock   sync.RWMutex
 	UserMap         map[int]*model.User
@@ -112,7 +111,6 @@ func (wc *webhookCache) RenewAllCaches(ctx context.Context) error {
 	return ctx.Err()
 }
 
-// startCacheRefresh 启动缓存刷新任务
 func (wc *webhookCache) startCacheRefresh(ctx context.Context, renewFunc func(context.Context), interval time.Duration) {
 	go func() {
 		defer func() {
@@ -240,7 +238,6 @@ func (wc *webhookCache) GetUserById(id int) *model.User {
 	return wc.UserMap[id]
 }
 
-// logCacheRefreshResult 记录缓存刷新结果日志
 func (wc *webhookCache) logCacheRefreshResult(cacheName string, count int) {
 	wc.l.Info("缓存刷新完成",
 		zap.String("缓存名称", cacheName),

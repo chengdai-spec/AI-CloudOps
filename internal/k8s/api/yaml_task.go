@@ -67,7 +67,7 @@ func (h *K8sYamlTaskHandler) GetYamlTaskList(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.yamlTaskService.GetYamlTaskList(ctx, &req)
+		return h.yamlTaskService.GetYamlTaskList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -85,7 +85,7 @@ func (h *K8sYamlTaskHandler) CreateYamlTask(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.yamlTaskService.CreateYamlTask(ctx, &req)
+		return nil, h.yamlTaskService.CreateYamlTask(ctx.Request.Context(), &req)
 	})
 }
 
@@ -110,7 +110,7 @@ func (h *K8sYamlTaskHandler) UpdateYamlTask(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.yamlTaskService.UpdateYamlTask(ctx, &req)
+		return nil, h.yamlTaskService.UpdateYamlTask(ctx.Request.Context(), &req)
 	})
 }
 
@@ -133,7 +133,7 @@ func (h *K8sYamlTaskHandler) ApplyYamlTask(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.yamlTaskService.ApplyYamlTask(ctx, &req)
+		return nil, h.yamlTaskService.ApplyYamlTask(ctx.Request.Context(), &req)
 	})
 }
 
@@ -156,7 +156,7 @@ func (h *K8sYamlTaskHandler) DeleteYamlTask(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.yamlTaskService.DeleteYamlTask(ctx, &req)
+		return nil, h.yamlTaskService.DeleteYamlTask(ctx.Request.Context(), &req)
 	})
 }
 
@@ -179,6 +179,6 @@ func (h *K8sYamlTaskHandler) GetYamlTaskDetail(ctx *gin.Context) {
 	req.ClusterID = clusterId
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.yamlTaskService.GetYamlTaskDetail(ctx, &req)
+		return h.yamlTaskService.GetYamlTaskDetail(ctx.Request.Context(), &req)
 	})
 }

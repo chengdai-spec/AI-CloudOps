@@ -54,7 +54,6 @@ func (h *WorkorderProcessHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateWorkorderProcess 创建工单流程
 func (h *WorkorderProcessHandler) CreateWorkorderProcess(ctx *gin.Context) {
 	var req model.CreateWorkorderProcessReq
 
@@ -63,11 +62,10 @@ func (h *WorkorderProcessHandler) CreateWorkorderProcess(ctx *gin.Context) {
 	req.OperatorName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.CreateWorkorderProcess(ctx, &req)
+		return nil, h.service.CreateWorkorderProcess(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateWorkorderProcess 更新工单流程
 func (h *WorkorderProcessHandler) UpdateWorkorderProcess(ctx *gin.Context) {
 	var req model.UpdateWorkorderProcessReq
 
@@ -78,11 +76,10 @@ func (h *WorkorderProcessHandler) UpdateWorkorderProcess(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateWorkorderProcess(ctx, &req)
+		return nil, h.service.UpdateWorkorderProcess(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteWorkorderProcess 删除工单流程
 func (h *WorkorderProcessHandler) DeleteWorkorderProcess(ctx *gin.Context) {
 	var req model.DeleteWorkorderProcessReq
 
@@ -93,20 +90,18 @@ func (h *WorkorderProcessHandler) DeleteWorkorderProcess(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteWorkorderProcess(ctx, req.ID)
+		return nil, h.service.DeleteWorkorderProcess(ctx.Request.Context(), req.ID)
 	})
 }
 
-// ListWorkorderProcess 获取工单流程列表
 func (h *WorkorderProcessHandler) ListWorkorderProcess(ctx *gin.Context) {
 	var req model.ListWorkorderProcessReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.ListWorkorderProcess(ctx, &req)
+		return h.service.ListWorkorderProcess(ctx.Request.Context(), &req)
 	})
 }
 
-// DetailWorkorderProcess 获取工单流程详情
 func (h *WorkorderProcessHandler) DetailWorkorderProcess(ctx *gin.Context) {
 	var req model.DetailWorkorderProcessReq
 
@@ -117,6 +112,6 @@ func (h *WorkorderProcessHandler) DetailWorkorderProcess(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.DetailWorkorderProcess(ctx, req.ID)
+		return h.service.DetailWorkorderProcess(ctx.Request.Context(), req.ID)
 	})
 }

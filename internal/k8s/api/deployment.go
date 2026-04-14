@@ -75,7 +75,7 @@ func (h *K8sDeploymentHandler) GetDeploymentList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.deploymentService.GetDeploymentList(ctx, &req)
+		return h.deploymentService.GetDeploymentList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -105,7 +105,7 @@ func (h *K8sDeploymentHandler) GetDeploymentDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.deploymentService.GetDeploymentDetails(ctx, &req)
+		return h.deploymentService.GetDeploymentDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -135,7 +135,7 @@ func (h *K8sDeploymentHandler) GetDeploymentYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.deploymentService.GetDeploymentYaml(ctx, &req)
+		return h.deploymentService.GetDeploymentYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -151,7 +151,7 @@ func (h *K8sDeploymentHandler) CreateDeployment(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.CreateDeployment(ctx, &req)
+		return nil, h.deploymentService.CreateDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -181,7 +181,7 @@ func (h *K8sDeploymentHandler) UpdateDeployment(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.UpdateDeployment(ctx, &req)
+		return nil, h.deploymentService.UpdateDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -211,7 +211,7 @@ func (h *K8sDeploymentHandler) DeleteDeployment(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.DeleteDeployment(ctx, &req)
+		return nil, h.deploymentService.DeleteDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -241,7 +241,7 @@ func (h *K8sDeploymentHandler) RestartDeployment(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.RestartDeployment(ctx, &req)
+		return nil, h.deploymentService.RestartDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -271,7 +271,7 @@ func (h *K8sDeploymentHandler) ScaleDeployment(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.ScaleDeployment(ctx, &req)
+		return nil, h.deploymentService.ScaleDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -301,7 +301,7 @@ func (h *K8sDeploymentHandler) GetDeploymentPods(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.deploymentService.GetDeploymentPods(ctx, &req)
+		return h.deploymentService.GetDeploymentPods(ctx.Request.Context(), &req)
 	})
 }
 
@@ -331,7 +331,7 @@ func (h *K8sDeploymentHandler) GetDeploymentHistory(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.deploymentService.GetDeploymentHistory(ctx, &req)
+		return h.deploymentService.GetDeploymentHistory(ctx.Request.Context(), &req)
 	})
 }
 
@@ -361,7 +361,7 @@ func (h *K8sDeploymentHandler) RollbackDeployment(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.RollbackDeployment(ctx, &req)
+		return nil, h.deploymentService.RollbackDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -391,7 +391,7 @@ func (h *K8sDeploymentHandler) PauseDeployment(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.PauseDeployment(ctx, &req)
+		return nil, h.deploymentService.PauseDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -421,7 +421,7 @@ func (h *K8sDeploymentHandler) ResumeDeployment(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.ResumeDeployment(ctx, &req)
+		return nil, h.deploymentService.ResumeDeployment(ctx.Request.Context(), &req)
 	})
 }
 
@@ -437,7 +437,7 @@ func (h *K8sDeploymentHandler) CreateDeploymentByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.CreateDeploymentByYaml(ctx, &req)
+		return nil, h.deploymentService.CreateDeploymentByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -467,6 +467,6 @@ func (h *K8sDeploymentHandler) UpdateDeploymentByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.deploymentService.UpdateDeploymentByYaml(ctx, &req)
+		return nil, h.deploymentService.UpdateDeploymentByYaml(ctx.Request.Context(), &req)
 	})
 }

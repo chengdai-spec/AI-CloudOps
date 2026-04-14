@@ -80,7 +80,6 @@ type FormSchema struct {
 	Fields []FormField `json:"fields" binding:"required"` // 字段列表
 }
 
-// CreateWorkorderFormDesignReq 创建工单表单设计请求
 type CreateWorkorderFormDesignReq struct {
 	Name         string     `json:"name" binding:"required,min=1,max=200"`
 	Description  string     `json:"description" binding:"omitempty,max=1000"`
@@ -93,7 +92,6 @@ type CreateWorkorderFormDesignReq struct {
 	IsTemplate   int8       `json:"is_template" binding:"required,oneof=1 2"`
 }
 
-// UpdateWorkorderFormDesignReq 更新工单表单设计请求
 type UpdateWorkorderFormDesignReq struct {
 	ID          int        `json:"id" binding:"required,min=1"`
 	Name        string     `json:"name" binding:"omitempty,min=1,max=200"`
@@ -105,17 +103,14 @@ type UpdateWorkorderFormDesignReq struct {
 	IsTemplate  int8       `json:"is_template" binding:"omitempty,oneof=1 2"`
 }
 
-// DeleteWorkorderFormDesignReq 删除工单表单设计请求
 type DeleteWorkorderFormDesignReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// DetailWorkorderFormDesignReq 获取工单表单设计详情请求
 type DetailWorkorderFormDesignReq struct {
 	ID int `json:"id" form:"id" binding:"required,min=1"`
 }
 
-// ListWorkorderFormDesignReq 获取工单表单设计列表请求
 type ListWorkorderFormDesignReq struct {
 	ListReq
 	CategoryID *int  `json:"category_id" form:"category_id" binding:"omitempty,min=1"`

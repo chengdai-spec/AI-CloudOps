@@ -255,11 +255,9 @@ func (a *alertManagerConfigCache) processPoolBatch(ctx context.Context, pools []
 			a.logger.Debug(LogModuleMonitor+"删除无效IP配置", zap.String("ip", staleIP))
 		}
 
-		// 更新池哈希
 		_ = a.redis.Set(ctx, hashKey, currentHash, 0).Err()
 	}
 
-	// 批量保存所有配置到数据库
 	if len(allConfigsToSave) > 0 {
 		if err := batchSaveConfigsToDatabase(ctx, a.batchManager, allConfigsToSave); err != nil {
 			a.logger.Error(LogModuleMonitor+"批量保存AlertManager配置失败", zap.Error(err))
@@ -370,7 +368,6 @@ func (a *alertManagerConfigCache) GenerateRouteConfigForPool(ctx context.Context
 		a.logger.Error(LogModuleMonitor+"生成webhook file配置失败",
 			zap.Error(err),
 			zap.String("pool_name", pool.Name))
-		// 继续执行，不返回错误
 	}
 
 	for _, sendGroup := range sendGroups {

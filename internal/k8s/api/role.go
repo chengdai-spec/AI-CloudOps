@@ -68,7 +68,7 @@ func (h *K8sRoleHandler) GetRoleList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.roleService.GetRoleList(ctx, &req)
+		return h.roleService.GetRoleList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -98,7 +98,7 @@ func (h *K8sRoleHandler) GetRoleDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.roleService.GetRoleDetails(ctx, &req)
+		return h.roleService.GetRoleDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -128,7 +128,7 @@ func (h *K8sRoleHandler) GetRoleYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.roleService.GetRoleYaml(ctx, &req)
+		return h.roleService.GetRoleYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -144,7 +144,7 @@ func (h *K8sRoleHandler) CreateRole(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleService.CreateRole(ctx, &req)
+		return nil, h.roleService.CreateRole(ctx.Request.Context(), &req)
 	})
 }
 
@@ -160,7 +160,7 @@ func (h *K8sRoleHandler) CreateRoleByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleService.CreateRoleByYaml(ctx, &req)
+		return nil, h.roleService.CreateRoleByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -190,7 +190,7 @@ func (h *K8sRoleHandler) UpdateRole(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleService.UpdateRole(ctx, &req)
+		return nil, h.roleService.UpdateRole(ctx.Request.Context(), &req)
 	})
 }
 
@@ -220,7 +220,7 @@ func (h *K8sRoleHandler) UpdateRoleByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleService.UpdateRoleYaml(ctx, &req)
+		return nil, h.roleService.UpdateRoleYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -250,6 +250,6 @@ func (h *K8sRoleHandler) DeleteRole(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.roleService.DeleteRole(ctx, &req)
+		return nil, h.roleService.DeleteRole(ctx.Request.Context(), &req)
 	})
 }

@@ -70,13 +70,11 @@ func (d *yamlTemplateDAO) ListAllYamlTemplates(ctx context.Context, req *model.Y
 		query = query.Where("name LIKE ?", "%"+req.Search+"%")
 	}
 
-	// 分页处理
 	if req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
 		query = query.Offset(offset).Limit(req.Size)
 	}
 
-	// 按创建时间倒序排列
 	query = query.Order("created_at DESC")
 
 	if err := query.Find(&yamls).Error; err != nil {

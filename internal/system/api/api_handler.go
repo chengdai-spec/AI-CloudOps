@@ -58,7 +58,7 @@ func (h *ApiHandler) ListApis(ctx *gin.Context) {
 	var req model.ListApisRequest
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.ListApis(ctx, &req)
+		return h.svc.ListApis(ctx.Request.Context(), &req)
 	})
 }
 
@@ -67,7 +67,7 @@ func (h *ApiHandler) CreateAPI(ctx *gin.Context) {
 	var req model.CreateApiRequest
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.CreateApi(ctx, &req)
+		return nil, h.svc.CreateApi(ctx.Request.Context(), &req)
 	})
 }
 
@@ -84,7 +84,7 @@ func (h *ApiHandler) UpdateAPI(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.UpdateApi(ctx, &req)
+		return nil, h.svc.UpdateApi(ctx.Request.Context(), &req)
 	})
 }
 
@@ -101,7 +101,7 @@ func (h *ApiHandler) DeleteAPI(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.DeleteApi(ctx, req.ID)
+		return nil, h.svc.DeleteApi(ctx.Request.Context(), req.ID)
 	})
 }
 
@@ -118,13 +118,13 @@ func (h *ApiHandler) DetailAPI(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetApiById(ctx, id)
+		return h.svc.GetApiById(ctx.Request.Context(), id)
 	})
 }
 
 // GetApiStatistics 获取API统计
 func (h *ApiHandler) GetApiStatistics(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		return h.svc.GetApiStatistics(ctx)
+		return h.svc.GetApiStatistics(ctx.Request.Context())
 	})
 }

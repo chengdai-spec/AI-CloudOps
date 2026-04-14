@@ -298,7 +298,6 @@ func (s *statefulSetService) GetStatefulSetList(ctx context.Context, req *model.
 	// 应用过滤条件
 	var filteredStatefulSets []*model.K8sStatefulSet
 	for _, k8sStatefulSet := range k8sStatefulSets {
-		// 状态过滤
 		if req.Status != "" {
 			var statusStr string
 			switch k8sStatefulSet.Status {
@@ -329,7 +328,6 @@ func (s *statefulSetService) GetStatefulSetList(ctx context.Context, req *model.
 		return sts.CreatedAt
 	})
 
-	// 分页处理
 	pagedItems, total := utils.Paginate(filteredStatefulSets, req.Page, req.Size)
 
 	return model.ListResp[*model.K8sStatefulSet]{
@@ -614,7 +612,6 @@ func (s *statefulSetService) UpdateStatefulSet(ctx context.Context, req *model.U
 		updatedStatefulSet.Labels = yamlStatefulSet.Labels
 		updatedStatefulSet.Annotations = yamlStatefulSet.Annotations
 	} else {
-		// 更新基本字段
 		if req.Replicas != nil {
 			updatedStatefulSet.Spec.Replicas = req.Replicas
 		}

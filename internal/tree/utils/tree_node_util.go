@@ -39,7 +39,6 @@ func ValidateParentID(parentID int) error {
 	return nil
 }
 
-// ValidateNodeMove 验证节点移动操作
 func ValidateNodeMove(nodeID, newParentID int) error {
 	if nodeID == newParentID {
 		return errors.New("节点不能移动到自己")
@@ -47,7 +46,6 @@ func ValidateNodeMove(nodeID, newParentID int) error {
 	return nil
 }
 
-// ValidateMemberType 验证成员类型
 func ValidateMemberType(memberType string) error {
 	if memberType != "" && memberType != "admin" && memberType != "member" && memberType != "all" {
 		return errors.New("成员类型只能是admin、member或all")
@@ -63,7 +61,6 @@ func ValidateResourceIDs(resourceIDs []int) error {
 	return nil
 }
 
-// BuildTreeStructure 构建树形结构
 func BuildTreeStructure(nodes []*model.TreeNode) []*model.TreeNode {
 	// 创建节点映射表，用于快速查找节点
 	nodeMap := make(map[int]*model.TreeNode)

@@ -69,7 +69,7 @@ func (h *K8sPVHandler) GetPVList(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.pvService.GetPVList(ctx, &req)
+		return h.pvService.GetPVList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -92,7 +92,7 @@ func (h *K8sPVHandler) GetPVDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.pvService.GetPVDetails(ctx, &req)
+		return h.pvService.GetPVDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -115,7 +115,7 @@ func (h *K8sPVHandler) GetPVYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.pvService.GetPVYaml(ctx, &req)
+		return h.pvService.GetPVYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -131,7 +131,7 @@ func (h *K8sPVHandler) CreatePV(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvService.CreatePV(ctx, &req)
+		return nil, h.pvService.CreatePV(ctx.Request.Context(), &req)
 	})
 }
 
@@ -147,7 +147,7 @@ func (h *K8sPVHandler) CreatePVByYaml(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvService.CreatePVByYaml(ctx, &req)
+		return nil, h.pvService.CreatePVByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -170,7 +170,7 @@ func (h *K8sPVHandler) UpdatePV(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvService.UpdatePV(ctx, &req)
+		return nil, h.pvService.UpdatePV(ctx.Request.Context(), &req)
 	})
 }
 
@@ -193,7 +193,7 @@ func (h *K8sPVHandler) UpdatePVByYaml(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvService.UpdatePVByYaml(ctx, &req)
+		return nil, h.pvService.UpdatePVByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -216,7 +216,7 @@ func (h *K8sPVHandler) DeletePV(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvService.DeletePV(ctx, &req)
+		return nil, h.pvService.DeletePV(ctx.Request.Context(), &req)
 	})
 }
 
@@ -239,6 +239,6 @@ func (h *K8sPVHandler) ReclaimPV(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.pvService.ReclaimPV(ctx, &req)
+		return nil, h.pvService.ReclaimPV(ctx.Request.Context(), &req)
 	})
 }

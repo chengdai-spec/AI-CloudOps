@@ -59,7 +59,7 @@ func (h *AlertPoolHandler) GetMonitorAlertManagerPoolList(ctx *gin.Context) {
 	var req model.GetMonitorAlertManagerPoolListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetMonitorAlertManagerPoolList(ctx, &req)
+		return h.svc.GetMonitorAlertManagerPoolList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -72,7 +72,7 @@ func (h *AlertPoolHandler) CreateMonitorAlertManagerPool(ctx *gin.Context) {
 	req.CreateUserName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.CreateMonitorAlertManagerPool(ctx, &req)
+		return nil, h.svc.CreateMonitorAlertManagerPool(ctx.Request.Context(), &req)
 	})
 }
 
@@ -81,7 +81,7 @@ func (h *AlertPoolHandler) UpdateMonitorAlertManagerPool(ctx *gin.Context) {
 	var req model.UpdateMonitorAlertManagerPoolReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.UpdateMonitorAlertManagerPool(ctx, &req)
+		return nil, h.svc.UpdateMonitorAlertManagerPool(ctx.Request.Context(), &req)
 	})
 }
 
@@ -98,7 +98,7 @@ func (h *AlertPoolHandler) DeleteMonitorAlertManagerPool(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.svc.DeleteMonitorAlertManagerPool(ctx, &req)
+		return nil, h.svc.DeleteMonitorAlertManagerPool(ctx.Request.Context(), &req)
 	})
 }
 
@@ -115,6 +115,6 @@ func (h *AlertPoolHandler) GetMonitorAlertManagerPool(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.svc.GetMonitorAlertManagerPool(ctx, &req)
+		return h.svc.GetMonitorAlertManagerPool(ctx.Request.Context(), &req)
 	})
 }

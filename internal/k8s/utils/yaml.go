@@ -55,7 +55,6 @@ func ValidateYamlContent(content string) error {
 func ParseYamlTemplate(templateContent string, variables []string) (string, error) {
 	yamlContent := templateContent
 
-	// 变量替换处理
 	for _, variable := range variables {
 		parts := strings.SplitN(variable, "=", 2)
 		if len(parts) == 2 {
@@ -138,10 +137,8 @@ func ApplySingleDocument(ctx context.Context, document string, restMapper meta.R
 		updateOpts.DryRun = []string{metav1.DryRunAll}
 	}
 
-	// 尝试创建资源
 	_, err = dr.Create(ctx, obj, createOpts)
 	if err != nil {
-		// 如果创建失败，尝试更新
 		_, updateErr := dr.Update(ctx, obj, updateOpts)
 		if updateErr != nil {
 			return fmt.Errorf("创建或更新资源失败: create error: %v, update error: %v", err, updateErr)
@@ -152,7 +149,6 @@ func ApplySingleDocument(ctx context.Context, document string, restMapper meta.R
 }
 
 func ValidateYamlWithCluster(ctx context.Context, discoveryClient discovery.DiscoveryInterface, dynamicClient dynamic.Interface, yamlContent string) error {
-	// 基础格式验证
 	if err := ValidateYamlContent(yamlContent); err != nil {
 		return err
 	}
@@ -180,7 +176,6 @@ func ValidateYamlWithCluster(ctx context.Context, discoveryClient discovery.Disc
 
 	restMapper := restmapper.NewDiscoveryRESTMapper(apiGroupResources)
 
-	// 获取资源映射
 	mapping, err := restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
 		return fmt.Errorf("无法找到对应的资源: %w", err)

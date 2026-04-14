@@ -33,7 +33,6 @@ const (
 	ServiceDiscoveryTypeStatic
 )
 
-// MonitorScrapeJob 监控采集任务的配置
 type MonitorScrapeJob struct {
 	Model
 	Name                     string               `json:"name" binding:"required,min=1,max=50" gorm:"size:100;comment:采集任务名称"`

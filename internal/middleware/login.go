@@ -30,9 +30,6 @@ import (
 
 	ijwt "github.com/GoSimplicity/AI-CloudOps/pkg/jwt"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	_ "github.com/golang-jwt/jwt/v5"
-	"github.com/spf13/viper"
 )
 
 type JWTMiddleware struct {
@@ -74,22 +71,12 @@ func (m *JWTMiddleware) CheckLogin() gin.HandlerFunc {
 			tokenStr = m.ExtractToken(ctx)
 		}
 
-		key := []byte(viper.GetString("jwt.key1"))
-		token, err := jwt.ParseWithClaims(tokenStr, &uc, func(token *jwt.Token) (interface{}, error) {
-			return key, nil
-		})
-
-		if err != nil {
-			// token解析错误
+		parsed, err := m.ParseUserClaims(tokenStr)
+		if err != nil || parsed == nil {
 			ctx.AbortWithStatus(401)
 			return
 		}
-
-		if token == nil || !token.Valid {
-			// token无效或过期
-			ctx.AbortWithStatus(401)
-			return
-		}
+		uc = *parsed
 
 		// 检查UserAgent
 		if uc.UserAgent == "" {
@@ -97,7 +84,6 @@ func (m *JWTMiddleware) CheckLogin() gin.HandlerFunc {
 			return
 		}
 
-		// 验证会话
 		err = m.CheckSession(ctx, uc.Ssid)
 
 		if err != nil {
@@ -106,5 +92,6 @@ func (m *JWTMiddleware) CheckLogin() gin.HandlerFunc {
 		}
 
 		ctx.Set("user", uc)
+		ctx.Next()
 	}
 }

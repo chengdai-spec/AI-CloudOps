@@ -33,14 +33,12 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// CleanClusterSensitiveInfo 清理集群敏感信息
 func CleanClusterSensitiveInfo(cluster *model.K8sCluster) {
 	if cluster != nil {
 		cluster.KubeConfigContent = ""
 	}
 }
 
-// CleanClusterSensitiveInfoList 清理集群列表中的敏感信息
 func CleanClusterSensitiveInfoList(clusters []*model.K8sCluster) {
 	for _, cluster := range clusters {
 		CleanClusterSensitiveInfo(cluster)

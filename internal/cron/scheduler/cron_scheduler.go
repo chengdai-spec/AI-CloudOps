@@ -32,13 +32,12 @@ import (
 	"time"
 
 	"github.com/GoSimplicity/AI-CloudOps/internal/cron/dao"
-	"github.com/GoSimplicity/AI-CloudOps/internal/cron/handler"
+	"github.com/GoSimplicity/AI-CloudOps/internal/cron/task"
 	"github.com/GoSimplicity/AI-CloudOps/internal/model"
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 )
 
-// CronScheduler 定时任务调度器
 type CronScheduler struct {
 	logger    *zap.Logger
 	cronDAO   dao.CronJobDAO
@@ -46,7 +45,6 @@ type CronScheduler struct {
 	client    *asynq.Client
 }
 
-// NewCronScheduler 创建调度器
 func NewCronScheduler(
 	logger *zap.Logger,
 	cronDAO dao.CronJobDAO,
@@ -65,7 +63,6 @@ func NewCronScheduler(
 func (cs *CronScheduler) StartScheduler(ctx context.Context) error {
 	cs.logger.Info("启动Cron任务调度器")
 
-	// 加载并注册所有启用的任务
 	if err := cs.loadAndScheduleJobs(ctx); err != nil {
 		cs.logger.Error("加载任务失败", zap.Error(err))
 		return err
@@ -91,9 +88,7 @@ func (cs *CronScheduler) StartScheduler(ctx context.Context) error {
 	}
 }
 
-// loadAndScheduleJobs 加载并调度任务
 func (cs *CronScheduler) loadAndScheduleJobs(ctx context.Context) error {
-	// 获取所有启用的任务
 	enabledStatus := model.CronJobStatusEnabled
 	jobs, _, err := cs.cronDAO.GetCronJobList(ctx, &model.GetCronJobListReq{
 		ListReq: model.ListReq{Page: 1, Size: 1000}, // 获取所有任务
@@ -104,16 +99,13 @@ func (cs *CronScheduler) loadAndScheduleJobs(ctx context.Context) error {
 		return err
 	}
 
-	// 清除现有的调度任务
 	cs.scheduler.Unregister("*")
 	cs.logger.Debug("已清除所有现有调度任务")
 
-	// 统计调度成功的任务数量
 	scheduledCount := 0
 	skippedCount := 0
 	failedCount := 0
 
-	// 为每个任务注册调度
 	for _, job := range jobs {
 		// 跳过系统内置任务，这些任务由统一Cron管理器直接管理
 		if job.JobType == model.CronJobTypeSystem {
@@ -149,10 +141,8 @@ func (cs *CronScheduler) loadAndScheduleJobs(ctx context.Context) error {
 	return nil
 }
 
-// scheduleJob 调度单个任务
 func (cs *CronScheduler) scheduleJob(job *model.CronJob) error {
-	// 创建任务载荷
-	payload := handler.CronTaskPayload{
+	payload := task.CronTaskPayload{
 		JobID:    job.ID,
 		JobName:  job.Name,
 		TaskType: job.JobType,
@@ -182,7 +172,6 @@ func (cs *CronScheduler) scheduleJob(job *model.CronJob) error {
 func (cs *CronScheduler) RemoveScheduledJob(jobID int) error {
 	entryID := generateEntryID(jobID)
 
-	// 从调度器中取消注册任务
 	err := cs.scheduler.Unregister(entryID)
 	if err != nil {
 		cs.logger.Warn("从调度器移除任务失败，可能任务不存在",

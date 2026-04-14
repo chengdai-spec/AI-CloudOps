@@ -28,230 +28,44 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/GoSimplicity/AI-CloudOps/mock"
-	"github.com/GoSimplicity/AI-CloudOps/pkg/base"
+	"github.com/GoSimplicity/AI-CloudOps/internal/config"
 	"github.com/GoSimplicity/AI-CloudOps/pkg/di"
-	"github.com/fatih/color"
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-gonic/gin"
-	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
-	"github.com/spf13/viper"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatalf("启动失败: %v", err)
+		_, _ = fmt.Fprintf(os.Stderr, "启动失败: %v\n", err)
+		os.Exit(1)
 	}
 }
 
 func run() error {
-	// 加载配置
-	if err := di.InitViper(); err != nil {
-		return fmt.Errorf("配置加载失败: %v", err)
-	}
-	_ = godotenv.Load()
-
-	// 初始化依赖
-	cmd := di.ProvideCmd()
-	db := di.InitDB()
-
-	// 数据库健康检查
-	if db != nil && di.CheckDBHealth(db) == nil {
-		log.Printf("数据库健康检查通过")
-	} else {
-		log.Printf("数据库不可用，降级模式")
+	if err := godotenv.Load(); err != nil {
+		// 允许不提供 .env，但不允许静默忽略
+		_, _ = fmt.Fprintf(os.Stderr, "加载.env失败，将继续使用环境变量/配置文件: %v\n", err)
 	}
 
-	// 初始化K8s客户端
-	if di.IsDBAvailable(db) {
-		if err := cmd.Bootstrap.InitializeK8sClients(context.Background()); err != nil {
-			log.Printf("K8s客户端初始化失败: %v", err)
-		}
-	}
-
-	// 中间件 (依赖注入系统已经配置了CORS，这里只添加gzip)
-	cmd.Server.Use(gzip.Gzip(gzip.BestCompression))
-
-	cmd.Server.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "AI-CloudOps API 服务运行中",
-			"status":  "running",
-		})
-	})
-
-	// 添加测试路由
-	cmd.Server.POST("/api/v1/debug/test", func(c *gin.Context) {
-		log.Printf("DEBUG: 收到测试请求 - Method: %s, Path: %s", c.Request.Method, c.Request.URL.Path)
-		c.JSON(http.StatusOK, gin.H{
-			"message": "测试请求收到",
-			"method":  c.Request.Method,
-			"path":    c.Request.URL.Path,
-			"time":    time.Now(),
-		})
-	})
-
-	// mock数据
-	if viper.GetBool("mock.enabled") && di.IsDBAvailable(db) {
-		if err := initMock(); err != nil {
-			log.Printf("Mock数据初始化失败: %v", err)
-		}
-	} else if viper.GetBool("mock.enabled") {
-		log.Printf("数据库不可用，跳过Mock数据初始化")
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// 启动统一Cron管理器（包含系统内置任务和用户自定义任务）
-	if di.IsDBAvailable(db) {
-		// 启动Asynq服务器
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Printf("Asynq Server panic: %v", r)
-				}
-			}()
-
-			// 注册任务处理器
-			mux := asynq.NewServeMux()
-			mux.Handle("cron:task", cmd.CronHandlers)
-
-			log.Printf("启动Asynq服务器...")
-			if err := cmd.AsynqServer.Run(mux); err != nil {
-				log.Printf("Asynq服务器运行失败: %v", err)
-			}
-		}()
-
-		// 启动Asynq调度器
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Printf("Asynq Scheduler panic: %v", r)
-				}
-			}()
-
-			log.Printf("启动Asynq调度器...")
-			if err := cmd.Scheduler.Run(); err != nil {
-				log.Printf("Asynq调度器运行失败: %v", err)
-			}
-		}()
-
-		// 启动统一Cron管理器
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Printf("Unified Cron Manager panic: %v", r)
-				}
-			}()
-
-			log.Printf("启动统一Cron管理器...")
-			if err := cmd.CronManager.Start(ctx); err != nil {
-				log.Printf("统一Cron管理器启动失败: %v", err)
-			}
-		}()
-
-		log.Printf("系统启动完成 - 包含Asynq任务队列和统一Cron管理器")
-	} else {
-		log.Printf("降级模式运行")
-	}
-
-	srv := &http.Server{
-		Addr:    ":" + viper.GetString("server.port"),
-		Handler: cmd.Server,
-	}
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
-	go func() {
-		showBootInfo(viper.GetString("server.port"))
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("服务器启动失败: %v", err)
-		}
-	}()
-
-	<-quit
-	log.Println("正在关闭服务器...")
-
-	// 关闭统一Cron管理器和Asynq服务
-	if di.IsDBAvailable(db) {
-		log.Println("正在关闭Cron管理器和Asynq服务...")
-
-		// 停止统一Cron管理器
-		stopCtx, stopCancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer stopCancel()
-		if err := cmd.CronManager.Stop(stopCtx); err != nil {
-			log.Printf("Cron管理器停止超时: %v", err)
-		}
-
-		// 停止Asynq服务
-		cmd.AsynqServer.Shutdown()
-		cmd.Scheduler.Shutdown()
-	}
-
-	cancel()
-
-	shutdownCtx, shutdownCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer shutdownCancel()
-	_ = srv.Shutdown(shutdownCtx)
-	time.Sleep(2 * time.Second)
-	log.Println("服务器已关闭")
-	return nil
-}
-
-func initMock() error {
-	addr := viper.GetString("mysql.addr")
-	var db *gorm.DB
-	var err error
-	for i := 0; i < 5; i++ {
-		db, err = gorm.Open(mysql.Open(addr), &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
-		})
-		if err == nil {
-			break
-		}
-		time.Sleep(5 * time.Second)
-	}
-
+	cfg, _, err := config.Load()
 	if err != nil {
-		return fmt.Errorf("数据库连接失败: %v", err)
+		if config.IsNonFatal(err) {
+			_, _ = fmt.Fprintf(os.Stderr, "配置加载告警，将继续使用环境变量/默认值: %v\n", err)
+		} else {
+			return err
+		}
 	}
 
-	sqlDB, err := db.DB()
+	application, err := di.ProvideApp(cfg)
 	if err != nil {
-		return fmt.Errorf("获取sql.DB失败: %v", err)
+		return err
 	}
-	defer sqlDB.Close()
-	if err := mock.NewApiMock(db).InitApi(); err != nil {
-		return fmt.Errorf("初始化API失败: %v", err)
-	}
-	if err := mock.NewUserMock(db).CreateUserAdmin(); err != nil {
-		return fmt.Errorf("创建管理员用户失败: %v", err)
-	}
-	log.Printf("Mock数据初始化完成")
-	return nil
-}
 
-func showBootInfo(port string) {
-	ips, _ := base.GetLocalIPs()
-	color.Green("AI-CloudOps API 服务启动成功")
-	fmt.Printf("%s  ", color.GreenString("➜"))
-	fmt.Printf("%s    ", color.New(color.Bold).Sprint("Local:"))
-	fmt.Printf("%s\n", color.MagentaString("http://localhost:%s/", port))
-	for _, ip := range ips {
-		fmt.Printf("%s  ", color.GreenString("➜"))
-		fmt.Printf("%s  ", color.New(color.Bold).Sprint("Network:"))
-		fmt.Printf("%s\n", color.MagentaString("http://%s:%s/", ip, port))
-	}
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	defer stop()
+
+	return application.Run(ctx)
 }

@@ -95,7 +95,6 @@ func (s *roleBindingService) GetRoleBindingList(ctx context.Context, req *model.
 		return t
 	})
 
-	// 分页处理
 	paginatedRoleBindings, total := k8sutils.Paginate(filteredRoleBindings, req.Page, req.Size)
 
 	return model.ListResp[*model.K8sRoleBinding]{

@@ -69,7 +69,6 @@ func NewWebhookDao(l *zap.Logger, db *gorm.DB) WebhookDao {
 func (wd *webhookDao) GetOnDutyGroupById(ctx context.Context, id int) (*model.MonitorOnDutyGroup, error) {
 	var onDutyGroup model.MonitorOnDutyGroup
 
-	// 执行查询
 	if err := wd.db.WithContext(ctx).Where("id = ?", id).Preload("Users").First(&onDutyGroup).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			wd.l.Warn("MonitorOnDutyGroup 未找到", zap.Int("id", id))
@@ -86,7 +85,6 @@ func (wd *webhookDao) GetOnDutyGroupById(ctx context.Context, id int) (*model.Mo
 func (wd *webhookDao) GetRuleById(ctx context.Context, id int) (*model.MonitorAlertRule, error) {
 	var rule model.MonitorAlertRule
 
-	// 执行查询
 	if err := wd.db.WithContext(ctx).Where("id = ?", id).First(&rule).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			wd.l.Warn("MonitorAlertRule 未找到", zap.Int("id", id))
@@ -103,7 +101,6 @@ func (wd *webhookDao) GetRuleById(ctx context.Context, id int) (*model.MonitorAl
 func (wd *webhookDao) GetSendGroupById(ctx context.Context, id int) (*model.MonitorSendGroup, error) {
 	var sendGroup model.MonitorSendGroup
 
-	// 执行查询
 	if err := wd.db.WithContext(ctx).Where("id = ?", id).Preload("FirstUpgradeUsers").First(&sendGroup).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			wd.l.Warn("MonitorSendGroup 未找到", zap.Int("id", id))
@@ -120,7 +117,6 @@ func (wd *webhookDao) GetSendGroupById(ctx context.Context, id int) (*model.Moni
 func (wd *webhookDao) GetUserById(ctx context.Context, id int) (*model.User, error) {
 	var user model.User
 
-	// 执行查询
 	if err := wd.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			wd.l.Warn("User 未找到", zap.Int("id", id))
@@ -144,7 +140,6 @@ func (wd *webhookDao) CreateOrUpdateEvent(ctx context.Context, event *model.Moni
 
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// 记录不存在，创建新事件
 				if err := tx.Create(event).Error; err != nil {
 					wd.l.Error("创建 MonitorAlertEvent 失败",
 						zap.Error(err),
@@ -165,7 +160,6 @@ func (wd *webhookDao) CreateOrUpdateEvent(ctx context.Context, event *model.Moni
 			return fmt.Errorf("failed to query MonitorAlertEvent by fingerprint %s: %w", event.Fingerprint, err)
 		}
 
-		// 记录存在，执行更新
 		if err := tx.Model(&existingEvent).Updates(event).Error; err != nil {
 			wd.l.Error("更新 MonitorAlertEvent 失败",
 				zap.Error(err),
@@ -185,7 +179,6 @@ func (wd *webhookDao) CreateOrUpdateEvent(ctx context.Context, event *model.Moni
 func (wd *webhookDao) GetMonitorAlertEventByFingerprintId(ctx context.Context, fingerprintId string) (*model.MonitorAlertEvent, error) {
 	var alertEvent model.MonitorAlertEvent
 
-	// 执行查询
 	if err := wd.db.WithContext(ctx).Where("fingerprint = ?", fingerprintId).First(&alertEvent).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			wd.l.Warn("MonitorAlertEvent 未找到", zap.String("fingerprintId", fingerprintId))
@@ -203,14 +196,12 @@ func (wd *webhookDao) FillTodayOnDutyUser(ctx context.Context, onDutyGroup *mode
 	// 获取当前日期的字符串表示，格式为 "YYYY-MM-DD"
 	today := time.Now().Format("2006-01-02")
 
-	// 查询当天的值班历史记录
 	history, err := wd.getTodayOnDutyHistory(ctx, today, onDutyGroup.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// 如果当天没有值班历史记录，分配默认值班用户
 			return wd.assignDefaultDutyUser(ctx, onDutyGroup, today)
 		}
-		// 其他错误，记录并返回
 		wd.l.Error("获取值班历史失败",
 			zap.Error(err),
 			zap.String("dateString", today),
@@ -219,7 +210,6 @@ func (wd *webhookDao) FillTodayOnDutyUser(ctx context.Context, onDutyGroup *mode
 		return nil, err
 	}
 
-	// 查询对应的值班用户
 	user, err := wd.getUserByID(ctx, history.OnDutyUserID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -230,7 +220,6 @@ func (wd *webhookDao) FillTodayOnDutyUser(ctx context.Context, onDutyGroup *mode
 			)
 			return wd.assignDefaultDutyUser(ctx, onDutyGroup, today)
 		}
-		// 其他错误，记录并返回
 		wd.l.Error("获取值班人员失败",
 			zap.Error(err),
 			zap.Int("onDutyUserID", history.OnDutyUserID),
@@ -238,7 +227,6 @@ func (wd *webhookDao) FillTodayOnDutyUser(ctx context.Context, onDutyGroup *mode
 		return nil, err
 	}
 
-	// 设置今天的值班用户
 	if user.ID > 0 {
 		// 转换为 MonitorOnDutyUser 类型
 		onDutyUser := &model.User{
@@ -259,7 +247,6 @@ func (wd *webhookDao) FillTodayOnDutyUser(ctx context.Context, onDutyGroup *mode
 	return onDutyGroup, nil
 }
 
-// getTodayOnDutyHistory 查询当天的值班历史记录
 func (wd *webhookDao) getTodayOnDutyHistory(ctx context.Context, dateStr string, groupID int) (*model.MonitorOnDutyHistory, error) {
 	var history model.MonitorOnDutyHistory
 	err := wd.db.WithContext(ctx).
@@ -349,7 +336,6 @@ func (wd *webhookDao) GetMonitorSendGroupList(ctx context.Context) ([]*model.Mon
 	return sendGroups, nil
 }
 
-// GetUserList 获取所有用户
 func (wd *webhookDao) GetUserList(ctx context.Context) ([]*model.User, error) {
 	var users []*model.User
 

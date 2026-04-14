@@ -100,7 +100,6 @@ func NewInstanceService(
 	}
 }
 
-// CreateInstance 创建工单实例
 func (s *instanceService) CreateInstance(ctx context.Context, req *model.CreateWorkorderInstanceReq) error {
 	if req.Status < model.InstanceStatusDraft || req.Status > model.InstanceStatusCancelled {
 		return fmt.Errorf("工单状态无效")
@@ -119,19 +118,16 @@ func (s *instanceService) CreateInstance(ctx context.Context, req *model.CreateW
 		return fmt.Errorf("工单实例名称已存在")
 	}
 
-	// 验证流程并获取表单设计
 	process, err := s.processDao.GetProcessByID(ctx, req.ProcessID)
 	if err != nil {
 		s.logger.Error("获取流程定义失败", zap.Error(err), zap.Int("processID", req.ProcessID))
 		return fmt.Errorf("流程不存在或已停用")
 	}
 
-	// 验证流程状态
 	if process.Status != model.ProcessStatusPublished {
 		return fmt.Errorf("只能使用已发布的流程创建工单")
 	}
 
-	// 验证表单数据
 	if err := s.validateFormData(ctx, process.FormDesignID, req.FormData); err != nil {
 		s.logger.Error("表单数据验证失败", zap.Error(err), zap.Int("formDesignID", process.FormDesignID))
 		return fmt.Errorf("表单数据验证失败: %w", err)
@@ -191,14 +187,11 @@ func (s *instanceService) CreateInstance(ctx context.Context, req *model.CreateW
 		return fmt.Errorf("创建工单实例失败: %w", err)
 	}
 
-	// 创建初始流转记录
 	s.createFlowRecord(ctx, instance.ID, model.FlowActionSubmit, req.OperatorID, req.OperatorName,
 		model.InstanceStatusDraft, req.Status, "", model.FlowRecordTypeSystem)
 
-	// 创建时间线记录
 	s.createTimelineRecord(ctx, instance.ID, model.TimelineActionCreate, req.OperatorID, req.OperatorName, "工单创建")
 
-	// 发送工单创建通知
 	if s.notificationService != nil {
 		go func() {
 			// 异步发送通知，避免阻塞主流程
@@ -213,20 +206,17 @@ func (s *instanceService) CreateInstance(ctx context.Context, req *model.CreateW
 	return nil
 }
 
-// CreateInstanceFromTemplate 从模板创建
 func (s *instanceService) CreateInstanceFromTemplate(ctx context.Context, templateID int, req *model.CreateWorkorderInstanceFromTemplateReq) error {
 	if req.Priority < model.PriorityHigh || req.Priority > model.PriorityLow {
 		return fmt.Errorf("优先级无效")
 	}
 
-	// 获取模板信息
 	template, err := s.templateDao.GetTemplate(ctx, templateID)
 	if err != nil {
 		s.logger.Error("获取工单模板失败", zap.Error(err), zap.Int("templateID", templateID))
 		return fmt.Errorf("工单模板不存在或已禁用")
 	}
 
-	// 验证模板状态
 	if template.Status != model.TemplateStatusEnabled {
 		return fmt.Errorf("只能使用启用状态的模板创建工单")
 	}
@@ -241,26 +231,22 @@ func (s *instanceService) CreateInstanceFromTemplate(ctx context.Context, templa
 		}
 	}
 
-	// 用户提交的数据覆盖默认值
 	if req.FormData != nil {
 		for key, value := range req.FormData {
 			formData[key] = value
 		}
 	}
 
-	// 验证流程并获取表单设计
 	process, err := s.processDao.GetProcessByID(ctx, template.ProcessID)
 	if err != nil {
 		s.logger.Error("获取流程定义失败", zap.Error(err), zap.Int("processID", template.ProcessID))
 		return fmt.Errorf("流程不存在或已停用")
 	}
 
-	// 验证流程状态
 	if process.Status != model.ProcessStatusPublished {
 		return fmt.Errorf("只能使用已发布的流程创建工单")
 	}
 
-	// 验证表单数据
 	if err := s.validateFormData(ctx, process.FormDesignID, formData); err != nil {
 		s.logger.Error("表单数据验证失败", zap.Error(err), zap.Int("formDesignID", process.FormDesignID))
 		return fmt.Errorf("表单数据验证失败: %w", err)
@@ -283,7 +269,6 @@ func (s *instanceService) CreateInstanceFromTemplate(ctx context.Context, templa
 		return err
 	}
 
-	// 创建工单实例
 	instance := &model.WorkorderInstance{
 		Title:        req.Title,
 		SerialNumber: serialNumber,
@@ -304,14 +289,11 @@ func (s *instanceService) CreateInstanceFromTemplate(ctx context.Context, templa
 		return fmt.Errorf("创建工单实例失败: %w", err)
 	}
 
-	// 创建初始流转记录
 	s.createFlowRecord(ctx, instance.ID, model.FlowActionSubmit, req.OperatorID, req.OperatorName,
 		model.InstanceStatusDraft, model.InstanceStatusDraft, "", model.FlowRecordTypeSystem)
 
-	// 创建时间线记录
 	s.createTimelineRecord(ctx, instance.ID, model.TimelineActionCreate, req.OperatorID, req.OperatorName, fmt.Sprintf("从模板 %s 创建工单", template.Name))
 
-	// 发送工单创建通知
 	if s.notificationService != nil {
 		go func() {
 			// 异步发送通知，避免阻塞主流程
@@ -326,7 +308,6 @@ func (s *instanceService) CreateInstanceFromTemplate(ctx context.Context, templa
 	return nil
 }
 
-// UpdateInstance 更新工单实例
 func (s *instanceService) UpdateInstance(ctx context.Context, req *model.UpdateWorkorderInstanceReq) error {
 	ins, err := s.dao.GetInstanceByID(ctx, req.ID)
 	if err != nil {
@@ -367,7 +348,6 @@ func (s *instanceService) UpdateInstance(ctx context.Context, req *model.UpdateW
 		return err
 	}
 
-	// 发送工单更新通知
 	if s.notificationService != nil {
 		go func() {
 			// 异步发送通知，避免阻塞主流程
@@ -382,7 +362,6 @@ func (s *instanceService) UpdateInstance(ctx context.Context, req *model.UpdateW
 	return nil
 }
 
-// DeleteInstance 删除工单实例
 func (s *instanceService) DeleteInstance(ctx context.Context, id int) error {
 	if id <= 0 {
 		return ErrInvalidRequest
@@ -406,7 +385,6 @@ func (s *instanceService) DeleteInstance(ctx context.Context, id int) error {
 		return err
 	}
 
-	// 发送工单删除通知
 	if s.notificationService != nil {
 		go func() {
 			// 异步发送通知，避免阻塞主流程
@@ -421,7 +399,6 @@ func (s *instanceService) DeleteInstance(ctx context.Context, id int) error {
 	return nil
 }
 
-// GetInstance 获取工单实例详情
 func (s *instanceService) GetInstance(ctx context.Context, id int) (*model.WorkorderInstance, error) {
 	instance, err := s.dao.GetInstanceByID(ctx, id)
 	if err != nil {
@@ -432,7 +409,6 @@ func (s *instanceService) GetInstance(ctx context.Context, id int) (*model.Worko
 	return instance, nil
 }
 
-// ListInstance 获取工单实例列表
 func (s *instanceService) ListInstance(ctx context.Context, req *model.ListWorkorderInstanceReq) (*model.ListResp[*model.WorkorderInstance], error) {
 	result, total, err := s.dao.ListInstance(ctx, req)
 	if err != nil {
@@ -453,12 +429,10 @@ func (s *instanceService) SubmitInstance(ctx context.Context, id int, operatorID
 		return err
 	}
 
-	// 验证当前状态是否允许提交
 	if instance.Status != model.InstanceStatusDraft {
 		return fmt.Errorf("只有草稿状态的工单可以提交")
 	}
 
-	// 检查操作权限
 	availableActions, err := s.GetAvailableActions(ctx, id, operatorID)
 	if err != nil {
 		return fmt.Errorf("获取可用动作失败: %w", err)
@@ -504,16 +478,13 @@ func (s *instanceService) SubmitInstance(ctx context.Context, id int, operatorID
 		}
 	}
 
-	// 更新状态和当前步骤
 	instance.Status = toStatus
 	if err := s.dao.UpdateInstance(ctx, instance); err != nil {
 		return err
 	}
 
-	// 创建流转记录
 	s.createFlowRecord(ctx, id, model.FlowActionSubmit, operatorID, operatorName, fromStatus, toStatus, "", 2)
 
-	// 创建时间线记录
 	s.createTimelineRecord(ctx, id, model.TimelineActionSubmit, operatorID, operatorName, "工单提交")
 
 	// 发送工单提交通知
@@ -538,12 +509,10 @@ func (s *instanceService) AssignInstance(ctx context.Context, id int, assigneeID
 		return err
 	}
 
-	// 验证当前状态是否允许指派
 	if instance.Status != model.InstanceStatusPending {
 		return fmt.Errorf("只有待处理状态的工单可以指派")
 	}
 
-	// 检查操作权限
 	availableActions, err := s.GetAvailableActions(ctx, id, operatorID)
 	if err != nil {
 		return fmt.Errorf("获取可用动作失败: %w", err)
@@ -561,7 +530,6 @@ func (s *instanceService) AssignInstance(ctx context.Context, id int, assigneeID
 		return fmt.Errorf("当前用户无权限指派此工单")
 	}
 
-	// 验证受理人是否有效
 	if assigneeID <= 0 {
 		return fmt.Errorf("无效的受理人ID")
 	}
@@ -569,7 +537,6 @@ func (s *instanceService) AssignInstance(ctx context.Context, id int, assigneeID
 	fromStatus := instance.Status
 	toStatus := model.InstanceStatusProcessing
 
-	// 更新指派人和状态
 	if err := s.dao.UpdateInstanceAssignee(ctx, id, &assigneeID); err != nil {
 		return err
 	}
@@ -577,10 +544,8 @@ func (s *instanceService) AssignInstance(ctx context.Context, id int, assigneeID
 		return err
 	}
 
-	// 创建流转记录
 	s.createFlowRecord(ctx, id, model.FlowActionAssign, operatorID, operatorName, fromStatus, toStatus, "", 2)
 
-	// 创建时间线记录
 	s.createTimelineRecord(ctx, id, model.TimelineActionAssign, operatorID, operatorName, fmt.Sprintf("工单指派给用户ID: %d", assigneeID))
 
 	// 发送工单指派通知
@@ -605,12 +570,10 @@ func (s *instanceService) ApproveInstance(ctx context.Context, id int, operatorI
 		return err
 	}
 
-	// 验证当前状态是否允许审批
 	if instance.Status != model.InstanceStatusPending && instance.Status != model.InstanceStatusProcessing {
 		return fmt.Errorf("只有待处理或处理中状态的工单可以审批")
 	}
 
-	// 检查操作权限
 	availableActions, err := s.GetAvailableActions(ctx, id, operatorID)
 	if err != nil {
 		return fmt.Errorf("获取可用动作失败: %w", err)
@@ -628,7 +591,6 @@ func (s *instanceService) ApproveInstance(ctx context.Context, id int, operatorI
 		return fmt.Errorf("当前用户无权限审批此工单")
 	}
 
-	// 获取当前步骤
 	currentStep, err := s.GetCurrentStep(ctx, id)
 	if err != nil {
 		s.logger.Error("获取当前步骤失败", zap.Error(err), zap.Int("instanceID", id))
@@ -655,7 +617,6 @@ func (s *instanceService) ApproveInstance(ctx context.Context, id int, operatorI
 		return fmt.Errorf("流程定义解析失败: %w", err)
 	}
 
-	// 获取下一个步骤
 	nextStep := s.getNextStep(currentStep, definition)
 
 	fromStatus := instance.Status
@@ -678,7 +639,6 @@ func (s *instanceService) ApproveInstance(ctx context.Context, id int, operatorI
 			zap.Int8("nextStatus", toStatus))
 	}
 
-	// 更新工单状态和当前步骤
 	instance.Status = toStatus
 	if completedAt != nil {
 		instance.CompletedAt = completedAt
@@ -701,10 +661,8 @@ func (s *instanceService) ApproveInstance(ctx context.Context, id int, operatorI
 		return err
 	}
 
-	// 创建流转记录
 	s.createFlowRecord(ctx, id, model.FlowActionApprove, operatorID, operatorName, fromStatus, toStatus, comment, 2)
 
-	// 创建时间线记录
 	timelineComment := fmt.Sprintf("工单审批通过: %s", comment)
 	if nextStep != nil && nextStep.Type != model.ProcessStepTypeEnd {
 		timelineComment += fmt.Sprintf("，进入步骤: %s", nextStep.Name)
@@ -756,12 +714,10 @@ func (s *instanceService) RejectInstance(ctx context.Context, id int, operatorID
 		return err
 	}
 
-	// 验证当前状态是否允许拒绝
 	if instance.Status != model.InstanceStatusPending && instance.Status != model.InstanceStatusProcessing {
 		return fmt.Errorf("只有待处理或处理中状态的工单可以拒绝")
 	}
 
-	// 检查操作权限
 	availableActions, err := s.GetAvailableActions(ctx, id, operatorID)
 	if err != nil {
 		return fmt.Errorf("获取可用动作失败: %w", err)
@@ -779,7 +735,6 @@ func (s *instanceService) RejectInstance(ctx context.Context, id int, operatorID
 		return fmt.Errorf("当前用户无权限拒绝此工单")
 	}
 
-	// 验证拒绝理由
 	if comment == "" {
 		return fmt.Errorf("拒绝工单必须提供理由")
 	}
@@ -787,16 +742,13 @@ func (s *instanceService) RejectInstance(ctx context.Context, id int, operatorID
 	fromStatus := instance.Status
 	toStatus := model.InstanceStatusRejected
 
-	// 更新工单状态为已拒绝
 	if err := s.dao.UpdateInstanceStatus(ctx, id, toStatus); err != nil {
 		s.logger.Error("更新工单状态失败", zap.Error(err), zap.Int("instanceID", id))
 		return err
 	}
 
-	// 创建流转记录
 	s.createFlowRecord(ctx, id, model.FlowActionReject, operatorID, operatorName, fromStatus, toStatus, comment, 2)
 
-	// 创建时间线记录
 	s.createTimelineRecord(ctx, id, model.TimelineActionReject, operatorID, operatorName, fmt.Sprintf("工单审批拒绝: %s", comment))
 
 	// 添加拒绝原因的系统评论
@@ -829,7 +781,6 @@ func (s *instanceService) RejectInstance(ctx context.Context, id int, operatorID
 	return nil
 }
 
-// 私有方法：创建流转记录
 func (s *instanceService) createFlowRecord(ctx context.Context, instanceID int, action string, operatorID int, operatorName string, fromStatus, toStatus int8, comment string, isSystem int8) {
 	flow := &model.WorkorderInstanceFlow{
 		InstanceID:     instanceID,
@@ -847,7 +798,6 @@ func (s *instanceService) createFlowRecord(ctx context.Context, instanceID int, 
 	}
 }
 
-// 私有方法：创建时间线记录
 func (s *instanceService) createTimelineRecord(ctx context.Context, instanceID int, action string, operatorID int, operatorName string, comment string) {
 	timeline := &model.WorkorderInstanceTimeline{
 		InstanceID:   instanceID,
@@ -864,19 +814,16 @@ func (s *instanceService) createTimelineRecord(ctx context.Context, instanceID i
 	}
 }
 
-// validateFormData 验证表单数据
 func (s *instanceService) validateFormData(ctx context.Context, formDesignID int, formData model.JSONMap) error {
 	if formDesignID <= 0 {
 		return fmt.Errorf("表单设计ID无效")
 	}
 
-	// 获取表单设计
 	formDesign, err := s.formDesignDao.GetFormDesign(ctx, formDesignID)
 	if err != nil {
 		return fmt.Errorf("获取表单设计失败: %w", err)
 	}
 
-	// 验证表单设计状态
 	if formDesign.Status != model.FormDesignStatusPublished {
 		return fmt.Errorf("只能使用已发布的表单设计")
 	}
@@ -892,7 +839,6 @@ func (s *instanceService) validateFormData(ctx context.Context, formDesignID int
 		return fmt.Errorf("表单Schema解析失败: %w", err)
 	}
 
-	// 验证每个字段
 	for _, field := range schema.Fields {
 		if err := s.validateFormField(field, formData); err != nil {
 			return fmt.Errorf("字段 %s 验证失败: %w", field.Label, err)
@@ -902,11 +848,9 @@ func (s *instanceService) validateFormData(ctx context.Context, formDesignID int
 	return nil
 }
 
-// validateFormField 验证表单字段
 func (s *instanceService) validateFormField(field model.FormField, formData model.JSONMap) error {
 	value, exists := formData[field.ID]
 
-	// 检查必填字段
 	if !exists {
 		if err := s.validateFieldRequired(field, nil); err != nil {
 			return err
@@ -922,7 +866,6 @@ func (s *instanceService) validateFormField(field model.FormField, formData mode
 		return nil
 	}
 
-	// 根据字段类型进行验证
 	switch field.Type {
 	case model.FormFieldTypeText, model.FormFieldTypePassword, model.FormFieldTypeTextarea:
 		return s.validateStringField(field, value)
@@ -942,7 +885,6 @@ func (s *instanceService) validateFormField(field model.FormField, formData mode
 	}
 }
 
-// isEmptyValue 检查值是否为空
 func (s *instanceService) isEmptyValue(value interface{}) bool {
 	if value == nil {
 		return true
@@ -960,7 +902,6 @@ func (s *instanceService) isEmptyValue(value interface{}) bool {
 	}
 }
 
-// validateStringField 验证字符串
 func (s *instanceService) validateStringField(field model.FormField, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
@@ -975,13 +916,11 @@ func (s *instanceService) validateStringField(field model.FormField, value inter
 	return nil
 }
 
-// validateNumberField 验证数字
 func (s *instanceService) validateNumberField(field model.FormField, value interface{}) error {
 	switch v := value.(type) {
 	case float64, int, int64:
 		return nil
 	case string:
-		// 尝试转换字符串到数字
 		if _, err := strconv.ParseFloat(v, 64); err != nil {
 			return fmt.Errorf("无法解析为数字: %s", v)
 		}
@@ -991,14 +930,12 @@ func (s *instanceService) validateNumberField(field model.FormField, value inter
 	}
 }
 
-// validateSelectField 验证选择
 func (s *instanceService) validateSelectField(field model.FormField, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return fmt.Errorf("期望字符串类型，实际类型: %T", value)
 	}
 
-	// 检查值是否在选项列表中
 	if len(field.Options) > 0 {
 		for _, option := range field.Options {
 			if option == str {
@@ -1011,19 +948,16 @@ func (s *instanceService) validateSelectField(field model.FormField, value inter
 	return nil
 }
 
-// validateCheckboxField 验证复选框
 func (s *instanceService) validateCheckboxField(field model.FormField, value interface{}) error {
 	// 复选框可以是数组或单个值
 	switch v := value.(type) {
 	case []interface{}:
-		// 验证数组中的每个值
 		for _, item := range v {
 			str, ok := item.(string)
 			if !ok {
 				return fmt.Errorf("期望字符串数组，实际包含类型: %T", item)
 			}
 
-			// 检查值是否在选项列表中
 			if len(field.Options) > 0 {
 				found := false
 				for _, option := range field.Options {
@@ -1046,7 +980,6 @@ func (s *instanceService) validateCheckboxField(field model.FormField, value int
 	}
 }
 
-// validateDateField 验证日期
 func (s *instanceService) validateDateField(field model.FormField, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
@@ -1063,7 +996,6 @@ func (s *instanceService) validateDateField(field model.FormField, value interfa
 	return nil
 }
 
-// validateSwitchField 验证开关
 func (s *instanceService) validateSwitchField(field model.FormField, value interface{}) error {
 	switch v := value.(type) {
 	case bool:
@@ -1080,7 +1012,6 @@ func (s *instanceService) validateSwitchField(field model.FormField, value inter
 	}
 }
 
-// GetCurrentStep 获取工单当前步骤
 func (s *instanceService) GetCurrentStep(ctx context.Context, instanceID int) (*model.ProcessStep, error) {
 	instance, err := s.dao.GetInstanceByID(ctx, instanceID)
 	if err != nil {
@@ -1098,7 +1029,6 @@ func (s *instanceService) GetCurrentStep(ctx context.Context, instanceID int) (*
 
 	s.logger.Debug("获取到流程定义", zap.String("processName", process.Name))
 
-	// 检查流程定义是否为空
 	if process.Definition == nil {
 		s.logger.Error("流程定义为空", zap.Int("processID", instance.ProcessID))
 		return nil, fmt.Errorf("流程定义为空")
@@ -1160,7 +1090,6 @@ func (s *instanceService) GetCurrentStep(ctx context.Context, instanceID int) (*
 	return currentStep, nil
 }
 
-// GetAvailableActions 获取可用动作
 func (s *instanceService) GetAvailableActions(ctx context.Context, instanceID int, operatorID int) ([]string, error) {
 	instance, err := s.dao.GetInstanceByID(ctx, instanceID)
 	if err != nil {
@@ -1197,7 +1126,6 @@ func (s *instanceService) GetAvailableActions(ctx context.Context, instanceID in
 	return actions, nil
 }
 
-// findStepByStatus 根据状态查找流程步骤
 func (s *instanceService) findStepByStatus(steps []model.ProcessStep, status int8) *model.ProcessStep {
 	if len(steps) == 0 {
 		s.logger.Warn("流程步骤为空")
@@ -1221,7 +1149,6 @@ func (s *instanceService) findStepByStatus(steps []model.ProcessStep, status int
 		}
 		s.logger.Debug("未找到审批或任务步骤，使用第一个步骤", zap.Int8("status", status))
 	case model.InstanceStatusCompleted, model.InstanceStatusRejected, model.InstanceStatusCancelled:
-		// 完成状态对应结束步骤
 		for i := range steps {
 			if steps[i].Type == model.ProcessStepTypeEnd {
 				return &steps[i]
@@ -1235,7 +1162,6 @@ func (s *instanceService) findStepByStatus(steps []model.ProcessStep, status int
 	return &steps[0]
 }
 
-// canUserOperate 检查用户操作权限
 func (s *instanceService) canUserOperate(step *model.ProcessStep, operatorID int, assigneeID *int) bool {
 	if step == nil {
 		s.logger.Warn("步骤为空，拒绝操作")
@@ -1247,7 +1173,6 @@ func (s *instanceService) canUserOperate(step *model.ProcessStep, operatorID int
 		return true
 	}
 
-	// 检查受理人类型
 	switch step.AssigneeType {
 	case model.AssigneeTypeUser:
 		// 用户类型：检查操作人是否在受理人列表中
@@ -1270,7 +1195,6 @@ func (s *instanceService) canUserOperate(step *model.ProcessStep, operatorID int
 	}
 }
 
-// getActionsForStep 获取步骤可用动作
 func (s *instanceService) getActionsForStep(step *model.ProcessStep, currentStatus int8) []string {
 	var actions []string
 
@@ -1300,7 +1224,6 @@ func (s *instanceService) getActionsForStep(step *model.ProcessStep, currentStat
 	return uniqueActions
 }
 
-// getNextStep 获取下一个流程步骤
 func (s *instanceService) getNextStep(currentStep *model.ProcessStep, definition model.ProcessDefinition) *model.ProcessStep {
 	if currentStep == nil {
 		s.logger.Warn("当前步骤为空，无法获取下一个步骤")
@@ -1321,7 +1244,6 @@ func (s *instanceService) getNextStep(currentStep *model.ProcessStep, definition
 		return nil
 	}
 
-	// 查找下一个步骤的详细信息
 	for i := range definition.Steps {
 		if definition.Steps[i].ID == nextStepID {
 			s.logger.Debug("找到下一个步骤",
@@ -1338,7 +1260,6 @@ func (s *instanceService) getNextStep(currentStep *model.ProcessStep, definition
 	return nil
 }
 
-// getStatusForStep 根据步骤类型获取工单状态
 func (s *instanceService) getStatusForStep(step *model.ProcessStep) int8 {
 	if step == nil {
 		s.logger.Warn("步骤为空，返回默认状态")
@@ -1369,12 +1290,10 @@ func (s *instanceService) CancelInstance(ctx context.Context, id int, operatorID
 		return err
 	}
 
-	// 验证当前状态是否允许取消
 	if instance.Status == model.InstanceStatusCompleted || instance.Status == model.InstanceStatusCancelled {
 		return fmt.Errorf("已完成或已取消的工单不能再次取消")
 	}
 
-	// 检查操作权限
 	availableActions, err := s.GetAvailableActions(ctx, id, operatorID)
 	if err != nil {
 		return fmt.Errorf("获取可用动作失败: %w", err)
@@ -1395,16 +1314,13 @@ func (s *instanceService) CancelInstance(ctx context.Context, id int, operatorID
 	fromStatus := instance.Status
 	toStatus := model.InstanceStatusCancelled
 
-	// 更新工单状态为已取消
 	if err := s.dao.UpdateInstanceStatus(ctx, id, toStatus); err != nil {
 		s.logger.Error("更新工单状态失败", zap.Error(err), zap.Int("instanceID", id))
 		return err
 	}
 
-	// 创建流转记录
 	s.createFlowRecord(ctx, id, model.FlowActionCancel, operatorID, operatorName, fromStatus, toStatus, comment, 2)
 
-	// 创建时间线记录
 	s.createTimelineRecord(ctx, id, model.TimelineActionCancel, operatorID, operatorName, fmt.Sprintf("工单已取消: %s", comment))
 
 	// 添加取消原因的系统评论
@@ -1446,12 +1362,10 @@ func (s *instanceService) CompleteInstance(ctx context.Context, id int, operator
 		return err
 	}
 
-	// 验证当前状态是否允许完成
 	if instance.Status != model.InstanceStatusProcessing {
 		return fmt.Errorf("只有处理中状态的工单可以完成")
 	}
 
-	// 检查操作权限
 	availableActions, err := s.GetAvailableActions(ctx, id, operatorID)
 	if err != nil {
 		return fmt.Errorf("获取可用动作失败: %w", err)
@@ -1482,10 +1396,8 @@ func (s *instanceService) CompleteInstance(ctx context.Context, id int, operator
 		return err
 	}
 
-	// 创建流转记录
 	s.createFlowRecord(ctx, id, model.FlowActionComplete, operatorID, operatorName, fromStatus, toStatus, comment, 2)
 
-	// 创建时间线记录
 	s.createTimelineRecord(ctx, id, model.TimelineActionComplete, operatorID, operatorName, fmt.Sprintf("工单已完成: %s", comment))
 
 	// 添加完成说明的系统评论
@@ -1527,12 +1439,10 @@ func (s *instanceService) ReturnInstance(ctx context.Context, id int, operatorID
 		return err
 	}
 
-	// 验证当前状态是否允许退回
 	if instance.Status != model.InstanceStatusPending && instance.Status != model.InstanceStatusProcessing {
 		return fmt.Errorf("只有待处理或处理中状态的工单可以退回")
 	}
 
-	// 检查操作权限
 	availableActions, err := s.GetAvailableActions(ctx, id, operatorID)
 	if err != nil {
 		return fmt.Errorf("获取可用动作失败: %w", err)
@@ -1550,7 +1460,6 @@ func (s *instanceService) ReturnInstance(ctx context.Context, id int, operatorID
 		return fmt.Errorf("当前用户无权限退回此工单")
 	}
 
-	// 验证退回理由
 	if comment == "" {
 		return fmt.Errorf("退回工单必须提供理由")
 	}
@@ -1567,10 +1476,8 @@ func (s *instanceService) ReturnInstance(ctx context.Context, id int, operatorID
 		return err
 	}
 
-	// 创建流转记录
 	s.createFlowRecord(ctx, id, model.FlowActionReturn, operatorID, operatorName, fromStatus, toStatus, comment, 2)
 
-	// 创建时间线记录
 	s.createTimelineRecord(ctx, id, model.TimelineActionReturn, operatorID, operatorName, fmt.Sprintf("工单已退回: %s", comment))
 
 	// 添加退回原因的系统评论
@@ -1603,7 +1510,6 @@ func (s *instanceService) ReturnInstance(ctx context.Context, id int, operatorID
 	return nil
 }
 
-// validateFieldRequired 验证必填
 func (s *instanceService) validateFieldRequired(field model.FormField, value interface{}) error {
 	if field.Required == model.FieldRequiredYes && s.isEmptyValue(value) {
 		return fmt.Errorf("字段 %s 为必填项", field.Label)
@@ -1611,7 +1517,6 @@ func (s *instanceService) validateFieldRequired(field model.FormField, value int
 	return nil
 }
 
-// canUserOperateStep 检查步骤权限
 func (s *instanceService) canUserOperateStep(step *model.ProcessStep, operatorID int) bool {
 	// 如果没有配置受理人列表，允许任何用户操作（兼容性处理）
 	if len(step.AssigneeIDs) == 0 {
@@ -1627,12 +1532,10 @@ func (s *instanceService) canUserOperateStep(step *model.ProcessStep, operatorID
 	return false
 }
 
-// getDefaultPageSize 获取默认分页
 func (s *instanceService) getDefaultPageSize() int {
 	return 20 // 默认分页大小
 }
 
-// getMaxPageSize 获取最大分页
 func (s *instanceService) getMaxPageSize() int {
 	return 100 // 最大分页大小
 }

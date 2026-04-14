@@ -54,7 +54,6 @@ func (h *FormDesignHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// CreateFormDesign 创建表单设计
 func (h *FormDesignHandler) CreateFormDesign(ctx *gin.Context) {
 	var req model.CreateWorkorderFormDesignReq
 
@@ -64,11 +63,10 @@ func (h *FormDesignHandler) CreateFormDesign(ctx *gin.Context) {
 	req.OperatorName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.CreateFormDesign(ctx, &req)
+		return nil, h.service.CreateFormDesign(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateFormDesign 更新表单设计
 func (h *FormDesignHandler) UpdateFormDesign(ctx *gin.Context) {
 	var req model.UpdateWorkorderFormDesignReq
 
@@ -79,11 +77,10 @@ func (h *FormDesignHandler) UpdateFormDesign(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateFormDesign(ctx, &req)
+		return nil, h.service.UpdateFormDesign(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteFormDesign 删除表单设计
 func (h *FormDesignHandler) DeleteFormDesign(ctx *gin.Context) {
 	var req model.DeleteWorkorderFormDesignReq
 
@@ -94,20 +91,18 @@ func (h *FormDesignHandler) DeleteFormDesign(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteFormDesign(ctx, req.ID)
+		return nil, h.service.DeleteFormDesign(ctx.Request.Context(), req.ID)
 	})
 }
 
-// ListFormDesign 获取表单设计列表
 func (h *FormDesignHandler) ListFormDesign(ctx *gin.Context) {
 	var req model.ListWorkorderFormDesignReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.ListFormDesign(ctx, &req)
+		return h.service.ListFormDesign(ctx.Request.Context(), &req)
 	})
 }
 
-// DetailFormDesign 获取表单设计详情
 func (h *FormDesignHandler) DetailFormDesign(ctx *gin.Context) {
 	var req model.DetailWorkorderFormDesignReq
 
@@ -118,6 +113,6 @@ func (h *FormDesignHandler) DetailFormDesign(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetFormDesign(ctx, req.ID)
+		return h.service.GetFormDesign(ctx.Request.Context(), req.ID)
 	})
 }

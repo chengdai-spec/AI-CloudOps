@@ -32,7 +32,6 @@ import (
 	"github.com/GoSimplicity/AI-CloudOps/internal/model"
 )
 
-// GetMemoryUsagePercentage 获取内存使用率百分比
 func GetMemoryUsagePercentage(s *model.System) float64 {
 	if s.MemoryTotal == 0 {
 		return 0
@@ -40,7 +39,6 @@ func GetMemoryUsagePercentage(s *model.System) float64 {
 	return float64(s.MemoryUsed) / float64(s.MemoryTotal) * 100
 }
 
-// GetDiskUsagePercentage 获取磁盘使用率百分比
 func GetDiskUsagePercentage(s *model.System) float64 {
 	if s.DiskTotal == 0 {
 		return 0
@@ -48,7 +46,6 @@ func GetDiskUsagePercentage(s *model.System) float64 {
 	return float64(s.DiskUsed) / float64(s.DiskTotal) * 100
 }
 
-// GetUptimeFormatted 获取格式化的运行时间
 func GetUptimeFormatted(s *model.System) string {
 	duration := time.Duration(s.Uptime) * time.Second
 	days := int(duration.Hours()) / 24
@@ -81,7 +78,6 @@ func FormatBytes(bytes uint64, unit string) string {
 	return fmt.Sprintf("%.2f GB", gb)
 }
 
-// ToResponse 转换为响应格式
 func ToResponse(s *model.System) *model.SystemInfoResponse {
 	status := "健康"
 	if s.CPUUsage > 80 || GetMemoryUsagePercentage(s) > 85 || GetDiskUsagePercentage(s) > 90 {

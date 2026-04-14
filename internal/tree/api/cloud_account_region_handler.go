@@ -57,16 +57,14 @@ func (h *CloudAccountRegionHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetCloudAccountRegionList 获取云账号区域列表
 func (h *CloudAccountRegionHandler) GetCloudAccountRegionList(ctx *gin.Context) {
 	var req model.GetCloudAccountRegionListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetCloudAccountRegionList(ctx, &req)
+		return h.service.GetCloudAccountRegionList(ctx.Request.Context(), &req)
 	})
 }
 
-// GetCloudAccountRegionDetail 获取云账号区域详情
 func (h *CloudAccountRegionHandler) GetCloudAccountRegionDetail(ctx *gin.Context) {
 	var req model.GetCloudAccountDetailReq
 
@@ -79,11 +77,10 @@ func (h *CloudAccountRegionHandler) GetCloudAccountRegionDetail(ctx *gin.Context
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetCloudAccountRegionDetail(ctx, req.ID)
+		return h.service.GetCloudAccountRegionDetail(ctx.Request.Context(), req.ID)
 	})
 }
 
-// CreateCloudAccountRegion 创建云账号区域关联
 func (h *CloudAccountRegionHandler) CreateCloudAccountRegion(ctx *gin.Context) {
 	var req model.CreateCloudAccountRegionReq
 
@@ -93,11 +90,10 @@ func (h *CloudAccountRegionHandler) CreateCloudAccountRegion(ctx *gin.Context) {
 	req.CreateUserName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.CreateCloudAccountRegion(ctx, &req)
+		return nil, h.service.CreateCloudAccountRegion(ctx.Request.Context(), &req)
 	})
 }
 
-// BatchCreateCloudAccountRegion 批量创建云账号区域关联
 func (h *CloudAccountRegionHandler) BatchCreateCloudAccountRegion(ctx *gin.Context) {
 	var req model.BatchCreateCloudAccountRegionReq
 
@@ -107,11 +103,10 @@ func (h *CloudAccountRegionHandler) BatchCreateCloudAccountRegion(ctx *gin.Conte
 	req.CreateUserName = user.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.BatchCreateCloudAccountRegion(ctx, &req)
+		return nil, h.service.BatchCreateCloudAccountRegion(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateCloudAccountRegion 更新云账号区域关联
 func (h *CloudAccountRegionHandler) UpdateCloudAccountRegion(ctx *gin.Context) {
 	var req model.UpdateCloudAccountRegionReq
 
@@ -124,11 +119,10 @@ func (h *CloudAccountRegionHandler) UpdateCloudAccountRegion(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateCloudAccountRegion(ctx, &req)
+		return nil, h.service.UpdateCloudAccountRegion(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteCloudAccountRegion 删除云账号区域关联
 func (h *CloudAccountRegionHandler) DeleteCloudAccountRegion(ctx *gin.Context) {
 	var req model.DeleteCloudAccountRegionReq
 
@@ -141,11 +135,10 @@ func (h *CloudAccountRegionHandler) DeleteCloudAccountRegion(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.DeleteCloudAccountRegion(ctx, &req)
+		return nil, h.service.DeleteCloudAccountRegion(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateCloudAccountRegionStatus 更新云账号区域状态
 func (h *CloudAccountRegionHandler) UpdateCloudAccountRegionStatus(ctx *gin.Context) {
 	var req model.UpdateCloudAccountRegionStatusReq
 
@@ -158,7 +151,7 @@ func (h *CloudAccountRegionHandler) UpdateCloudAccountRegionStatus(ctx *gin.Cont
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.service.UpdateCloudAccountRegionStatus(ctx, &req)
+		return nil, h.service.UpdateCloudAccountRegionStatus(ctx.Request.Context(), &req)
 	})
 }
 
@@ -167,6 +160,6 @@ func (h *CloudAccountRegionHandler) GetAvailableRegions(ctx *gin.Context) {
 	var req model.GetAvailableRegionsReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.service.GetAvailableRegions(ctx, &req)
+		return h.service.GetAvailableRegions(ctx.Request.Context(), &req)
 	})
 }

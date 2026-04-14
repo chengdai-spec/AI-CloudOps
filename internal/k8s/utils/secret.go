@@ -56,7 +56,6 @@ func BuildSecretFromRequest(req *model.CreateSecretReq) (*corev1.Secret, error) 
 		secret.Type = corev1.SecretTypeOpaque
 	}
 
-	// 设置不可变标志
 	if req.Immutable {
 		secret.Immutable = &req.Immutable
 	}
@@ -72,10 +71,8 @@ func UpdateSecretFromRequest(existing *corev1.Secret, req *model.UpdateSecretReq
 		return nil, fmt.Errorf("更新请求不能为空")
 	}
 
-	// 创建一个副本用于更新
 	updated := existing.DeepCopy()
 
-	// 更新数据
 	if req.Data != nil {
 		updated.Data = req.Data
 	}
@@ -83,12 +80,10 @@ func UpdateSecretFromRequest(existing *corev1.Secret, req *model.UpdateSecretReq
 		updated.StringData = req.StringData
 	}
 
-	// 更新标签
 	if req.Labels != nil {
 		updated.Labels = req.Labels
 	}
 
-	// 更新注解
 	if req.Annotations != nil {
 		updated.Annotations = req.Annotations
 	}
@@ -108,7 +103,6 @@ func CleanSecretForYAML(secret *corev1.Secret) *corev1.Secret {
 	cleaned.ObjectMeta.Generation = 0
 	cleaned.ObjectMeta.ManagedFields = nil
 
-	// 清理状态相关的注解
 	if cleaned.Annotations != nil {
 		delete(cleaned.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
 	}

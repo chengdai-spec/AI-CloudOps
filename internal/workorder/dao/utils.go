@@ -37,7 +37,6 @@ func sanitizeSearchInput(input string) string {
 	return strings.TrimSpace(input)
 }
 
-// ValidatePagination 验证分页参数
 func ValidatePagination(page, size int) (int, int) {
 	if page <= 0 {
 		page = 1
@@ -51,7 +50,6 @@ func ValidatePagination(page, size int) (int, int) {
 	return page, size
 }
 
-// IsDuplicateKeyError 检查是否为重复键错误
 func IsDuplicateKeyError(err error) bool {
 	if err == nil {
 		return false

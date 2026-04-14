@@ -65,7 +65,7 @@ func (h *K8sNamespaceHandler) CreateNamespace(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.namespaceService.CreateNamespace(ctx, &req)
+		return nil, h.namespaceService.CreateNamespace(ctx.Request.Context(), &req)
 	})
 }
 
@@ -88,7 +88,7 @@ func (h *K8sNamespaceHandler) DeleteNamespace(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.namespaceService.DeleteNamespace(ctx, &req)
+		return nil, h.namespaceService.DeleteNamespace(ctx.Request.Context(), &req)
 	})
 }
 
@@ -111,7 +111,7 @@ func (h *K8sNamespaceHandler) GetNamespaceDetails(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.namespaceService.GetNamespaceDetails(ctx, &req)
+		return h.namespaceService.GetNamespaceDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -134,7 +134,7 @@ func (h *K8sNamespaceHandler) UpdateNamespace(ctx *gin.Context) {
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.namespaceService.UpdateNamespace(ctx, &req)
+		return nil, h.namespaceService.UpdateNamespace(ctx.Request.Context(), &req)
 	})
 }
 
@@ -150,6 +150,6 @@ func (h *K8sNamespaceHandler) ListNamespaces(ctx *gin.Context) {
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.namespaceService.ListNamespaces(ctx, &req)
+		return h.namespaceService.ListNamespaces(ctx.Request.Context(), &req)
 	})
 }

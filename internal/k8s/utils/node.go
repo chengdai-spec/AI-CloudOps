@@ -94,7 +94,6 @@ func BuildK8sNode(ctx context.Context, clusterID int, node corev1.Node, kubeClie
 	return k8sNode, nil
 }
 
-// getNodeStatus 获取节点状态
 func getNodeStatus(node corev1.Node) model.NodeStatus {
 	// 首先检查节点是否被禁止调度
 	if node.Spec.Unschedulable {
@@ -112,7 +111,6 @@ func getNodeStatus(node corev1.Node) model.NodeStatus {
 	return model.NodeStatusUnknown
 }
 
-// getNodeRoles 获取节点角色
 func getNodeRoles(node corev1.Node) []string {
 	var roles []string
 	for label := range node.Labels {
@@ -149,7 +147,6 @@ func getNodeExternalIP(node corev1.Node) string {
 	return ""
 }
 
-// getNodeHostname 获取节点主机名
 func getNodeHostname(node corev1.Node) string {
 	for _, address := range node.Status.Addresses {
 		if address.Type == corev1.NodeHostName {
@@ -199,7 +196,6 @@ func BuildNodeListOptions(req *model.GetNodeListReq) metav1.ListOptions {
 	return options
 }
 
-// FilterNodesByNames 根据节点名称过滤
 func FilterNodesByNames(nodes []corev1.Node, nodeNames []string) []corev1.Node {
 	if len(nodeNames) == 0 {
 		return nodes
@@ -220,7 +216,6 @@ func FilterNodesByNames(nodes []corev1.Node, nodeNames []string) []corev1.Node {
 	return filtered
 }
 
-// FilterNodesByStatus 根据节点状态过滤
 func FilterNodesByStatus(nodes []corev1.Node, statuses []model.NodeStatus) []corev1.Node {
 	if len(statuses) == 0 {
 		return nodes
@@ -242,7 +237,6 @@ func FilterNodesByStatus(nodes []corev1.Node, statuses []model.NodeStatus) []cor
 	return filtered
 }
 
-// FilterNodesByRoles 根据节点角色过滤
 func FilterNodesByRoles(nodes []corev1.Node, roles []string) []corev1.Node {
 	if len(roles) == 0 {
 		return nodes
@@ -286,7 +280,6 @@ func GetNodeStatusMessage(node corev1.Node) string {
 	return "状态未知"
 }
 
-// IsNodeReady 判断节点是否就绪
 func IsNodeReady(node corev1.Node) bool {
 	for _, condition := range node.Status.Conditions {
 		if condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue {

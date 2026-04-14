@@ -23,16 +23,13 @@
  *
  */
 
-package di
+package config
 
 import (
 	"fmt"
 	"time"
-
-	"github.com/spf13/viper"
 )
 
-// Config 应用配置结构体
 type Config struct {
 	Server       ServerConfig       `mapstructure:"server"`
 	Log          LogConfig          `mapstructure:"log"`
@@ -47,12 +44,29 @@ type Config struct {
 	Webhook      WebhookConfig      `mapstructure:"webhook"`
 }
 
-// ServerConfig 服务器配置
+func (c *Config) Validate() error {
+	if c == nil {
+		return fmt.Errorf("配置不能为空")
+	}
+	if c.Server.Port == "" {
+		return fmt.Errorf("server.port 不能为空")
+	}
+	if c.Log.Dir == "" {
+		return fmt.Errorf("log.dir 不能为空")
+	}
+	if c.MySQL.Addr == "" {
+		return fmt.Errorf("mysql.addr 不能为空")
+	}
+	if c.Redis.Addr == "" {
+		return fmt.Errorf("redis.addr 不能为空")
+	}
+	return nil
+}
+
 type ServerConfig struct {
 	Port string `mapstructure:"port" env:"SERVER_PORT" default:"8889"`
 }
 
-// LogConfig 日志配置
 type LogConfig struct {
 	Dir   string `mapstructure:"dir" env:"LOG_DIR" default:"./logs"`
 	Level string `mapstructure:"level" env:"LOG_LEVEL" default:"debug"`
@@ -77,7 +91,6 @@ type MySQLConfig struct {
 	Addr string `mapstructure:"addr" env:"MYSQL_ADDR" default:"root:root@tcp(localhost:3306)/cloudops?charset=utf8mb4&parseTime=True&loc=Local"`
 }
 
-// TreeConfig 树形结构配置
 type TreeConfig struct {
 	CheckStatusCron       string `mapstructure:"check_status_cron" env:"TREE_CHECK_STATUS_CRON" default:"@every 300s"`
 	PasswordEncryptionKey string `mapstructure:"password_encryption_key" env:"TREE_PASSWORD_ENCRYPTION_KEY" default:"ebe3vxIP7sblVvUHXb7ZaiMPuz4oXo0l"`
@@ -103,23 +116,25 @@ type MockConfig struct {
 	Enabled bool `mapstructure:"enabled" env:"MOCK_ENABLED" default:"true"`
 }
 
-// NotificationConfig 通知配置
 type NotificationConfig struct {
 	Email  *EmailConfig  `mapstructure:"email"`
 	Feishu *FeishuConfig `mapstructure:"feishu"`
 }
 
-// GetEmail 获取邮件通知配置
 func (c *NotificationConfig) GetEmail() *EmailConfig {
+	if c == nil {
+		return nil
+	}
 	return c.Email
 }
 
-// GetFeishu 获取飞书通知配置
 func (c *NotificationConfig) GetFeishu() *FeishuConfig {
+	if c == nil {
+		return nil
+	}
 	return c.Feishu
 }
 
-// EmailConfig 邮箱配置
 type EmailConfig struct {
 	Enabled       bool   `mapstructure:"enabled" env:"NOTIFICATION_EMAIL_ENABLED" default:"false"`
 	SMTPHost      string `mapstructure:"smtp_host" env:"NOTIFICATION_EMAIL_SMTP_HOST" default:"smtp.gmail.com"`
@@ -133,105 +148,110 @@ type EmailConfig struct {
 	UseTLS        bool   `mapstructure:"use_tls" env:"NOTIFICATION_EMAIL_USE_TLS" default:"true"`
 }
 
-// IsEnabled 检查邮件通知是否启用
 func (c *EmailConfig) IsEnabled() bool {
-	return viper.GetBool("notification.email.enabled")
+	if c == nil {
+		return false
+	}
+	return c.Enabled
 }
 
-// GetMaxRetries 获取邮件发送最大重试次数
 func (c *EmailConfig) GetMaxRetries() int {
-	retries := viper.GetInt("notification.email.max_retries")
-	if retries <= 0 {
+	if c == nil {
 		return 3
 	}
-	return retries
+	if c.MaxRetries <= 0 {
+		return 3
+	}
+	return c.MaxRetries
 }
 
-// GetRetryInterval 获取邮件发送重试间隔
 func (c *EmailConfig) GetRetryInterval() time.Duration {
-	interval := viper.GetString("notification.email.retry_interval")
-	if interval == "" {
+	if c == nil || c.RetryInterval == "" {
 		return 5 * time.Minute
 	}
-	if d, err := time.ParseDuration(interval); err == nil {
-		return d
+	d, err := time.ParseDuration(c.RetryInterval)
+	if err != nil {
+		return 5 * time.Minute
 	}
-	return 5 * time.Minute
+	return d
 }
 
-// GetTimeout 获取邮件发送超时时间
 func (c *EmailConfig) GetTimeout() time.Duration {
-	timeout := viper.GetString("notification.email.timeout")
-	if timeout == "" {
+	if c == nil || c.Timeout == "" {
 		return 30 * time.Second
 	}
-	if d, err := time.ParseDuration(timeout); err == nil {
-		return d
+	d, err := time.ParseDuration(c.Timeout)
+	if err != nil {
+		return 30 * time.Second
 	}
-	return 30 * time.Second
+	return d
 }
 
-// GetChannelName 获取邮件渠道名称
 func (c *EmailConfig) GetChannelName() string {
 	return "email"
 }
 
-// Validate 验证邮件配置有效性
 func (c *EmailConfig) Validate() error {
-	if !c.IsEnabled() {
+	if c == nil || !c.Enabled {
 		return nil
 	}
-	if viper.GetString("notification.email.smtp_host") == "" {
-		return fmt.Errorf("SMTP host is required")
+	if c.SMTPHost == "" {
+		return fmt.Errorf("邮件 SMTPHost 不能为空")
 	}
-	port := viper.GetInt("notification.email.smtp_port")
-	if port <= 0 || port > 65535 {
-		return fmt.Errorf("invalid SMTP port: %d", port)
+	if c.SMTPPort <= 0 || c.SMTPPort > 65535 {
+		return fmt.Errorf("邮件 SMTPPort 无效: %d", c.SMTPPort)
 	}
-	if viper.GetString("notification.email.username") == "" {
-		return fmt.Errorf("username is required")
+	if c.Username == "" {
+		return fmt.Errorf("邮件 Username 不能为空")
 	}
-	if viper.GetString("notification.email.password") == "" {
-		return fmt.Errorf("password is required")
+	if c.Password == "" {
+		return fmt.Errorf("邮件 Password 不能为空")
 	}
 	return nil
 }
 
-// GetSMTPHost 获取SMTP服务器地址
 func (c *EmailConfig) GetSMTPHost() string {
-	return viper.GetString("notification.email.smtp_host")
+	if c == nil {
+		return ""
+	}
+	return c.SMTPHost
 }
 
-// GetSMTPPort 获取SMTP服务器端口
 func (c *EmailConfig) GetSMTPPort() int {
-	return viper.GetInt("notification.email.smtp_port")
+	if c == nil {
+		return 0
+	}
+	return c.SMTPPort
 }
 
-// GetUsername 获取邮箱账号用户名
 func (c *EmailConfig) GetUsername() string {
-	return viper.GetString("notification.email.username")
+	if c == nil {
+		return ""
+	}
+	return c.Username
 }
 
-// GetPassword 获取邮箱账号密码
 func (c *EmailConfig) GetPassword() string {
-	return viper.GetString("notification.email.password")
+	if c == nil {
+		return ""
+	}
+	return c.Password
 }
 
-// GetFromName 获取邮件发件人显示名称
 func (c *EmailConfig) GetFromName() string {
-	fromName := viper.GetString("notification.email.from_name")
-	if fromName == "" {
+	if c == nil || c.FromName == "" {
 		return "AI-CloudOps"
 	}
-	return fromName
+	return c.FromName
 }
 
-// GetUseTLS 检查是否使用TLS加密连接
 func (c *EmailConfig) GetUseTLS() bool {
-	return viper.GetBool("notification.email.use_tls")
+	if c == nil {
+		return false
+	}
+	return c.UseTLS
 }
 
-// FeishuConfig 飞书配置
 type FeishuConfig struct {
 	Enabled              bool   `mapstructure:"enabled" env:"NOTIFICATION_FEISHU_ENABLED" default:"false"`
 	AppID                string `mapstructure:"app_id" env:"NOTIFICATION_FEISHU_APP_ID" default:""`
@@ -244,95 +264,104 @@ type FeishuConfig struct {
 	Timeout              string `mapstructure:"timeout" env:"NOTIFICATION_FEISHU_TIMEOUT" default:"10s"`
 }
 
-// IsEnabled 检查飞书通知是否启用
 func (c *FeishuConfig) IsEnabled() bool {
-	return viper.GetBool("notification.feishu.enabled")
+	if c == nil {
+		return false
+	}
+	return c.Enabled
 }
 
-// GetMaxRetries 获取飞书发送最大重试次数
 func (c *FeishuConfig) GetMaxRetries() int {
-	retries := viper.GetInt("notification.feishu.max_retries")
-	if retries <= 0 {
+	if c == nil {
 		return 3
 	}
-	return retries
+	if c.MaxRetries <= 0 {
+		return 3
+	}
+	return c.MaxRetries
 }
 
-// GetRetryInterval 获取飞书发送重试间隔
 func (c *FeishuConfig) GetRetryInterval() time.Duration {
-	interval := viper.GetString("notification.feishu.retry_interval")
-	if interval == "" {
+	if c == nil || c.RetryInterval == "" {
 		return 5 * time.Minute
 	}
-	if d, err := time.ParseDuration(interval); err == nil {
-		return d
+	d, err := time.ParseDuration(c.RetryInterval)
+	if err != nil {
+		return 5 * time.Minute
 	}
-	return 5 * time.Minute
+	return d
 }
 
-// GetTimeout 获取飞书请求超时时间
 func (c *FeishuConfig) GetTimeout() time.Duration {
-	timeout := viper.GetString("notification.feishu.timeout")
-	if timeout == "" {
+	if c == nil || c.Timeout == "" {
 		return 10 * time.Second
 	}
-	if d, err := time.ParseDuration(timeout); err == nil {
-		return d
+	d, err := time.ParseDuration(c.Timeout)
+	if err != nil {
+		return 10 * time.Second
 	}
-	return 10 * time.Second
+	return d
 }
 
-// GetChannelName 获取飞书渠道名称
 func (c *FeishuConfig) GetChannelName() string {
 	return "feishu"
 }
 
-// Validate 验证飞书配置有效性
 func (c *FeishuConfig) Validate() error {
-	if !c.IsEnabled() {
+	if c == nil || !c.Enabled {
 		return nil
 	}
-	if viper.GetString("notification.feishu.app_id") == "" {
-		return fmt.Errorf("app_id is required")
+	if c.AppID == "" {
+		return fmt.Errorf("飞书 AppID 不能为空")
 	}
-	if viper.GetString("notification.feishu.app_secret") == "" {
-		return fmt.Errorf("app_secret is required")
+	if c.AppSecret == "" {
+		return fmt.Errorf("飞书 AppSecret 不能为空")
 	}
-	if viper.GetString("notification.feishu.webhook_url") == "" {
-		return fmt.Errorf("webhook_url is required")
+	if c.WebhookURL == "" {
+		return fmt.Errorf("飞书 WebhookURL 不能为空")
 	}
-	if viper.GetString("notification.feishu.private_message_api") == "" {
-		return fmt.Errorf("private_message_api is required")
+	if c.PrivateMessageAPI == "" {
+		return fmt.Errorf("飞书 PrivateMessageAPI 不能为空")
 	}
-	if viper.GetString("notification.feishu.tenant_access_token_api") == "" {
-		return fmt.Errorf("tenant_access_token_api is required")
+	if c.TenantAccessTokenAPI == "" {
+		return fmt.Errorf("飞书 TenantAccessTokenAPI 不能为空")
 	}
 	return nil
 }
 
-// GetAppID 获取飞书应用ID
 func (c *FeishuConfig) GetAppID() string {
-	return viper.GetString("notification.feishu.app_id")
+	if c == nil {
+		return ""
+	}
+	return c.AppID
 }
 
-// GetAppSecret 获取飞书应用密钥
 func (c *FeishuConfig) GetAppSecret() string {
-	return viper.GetString("notification.feishu.app_secret")
+	if c == nil {
+		return ""
+	}
+	return c.AppSecret
 }
 
-// GetWebhookURL 获取飞书群机器人 Webhook URL
 func (c *FeishuConfig) GetWebhookURL() string {
-	return viper.GetString("notification.feishu.webhook_url")
+	if c == nil {
+		return ""
+	}
+	return c.WebhookURL
 }
 
-// GetPrivateMessageAPI 获取飞书私聊消息 API 地址
 func (c *FeishuConfig) GetPrivateMessageAPI() string {
-	return viper.GetString("notification.feishu.private_message_api")
+	if c == nil {
+		return ""
+	}
+	return c.PrivateMessageAPI
 }
 
-// GetTenantAccessTokenAPI 获取飞书租户访问令牌 API 地址
 func (c *FeishuConfig) GetTenantAccessTokenAPI() string {
-	return viper.GetString("notification.feishu.tenant_access_token_api")
+	if c == nil {
+		return ""
+	}
+	return c.TenantAccessTokenAPI
 }
 
 // WebhookConfig Webhook配置（用于webhook子系统）
@@ -347,7 +376,6 @@ type WebhookConfig struct {
 	ImFeishu                      ImFeishuConfig `mapstructure:"im_feishu"`
 }
 
-// ImFeishuConfig 飞书即时消息配置
 type ImFeishuConfig struct {
 	GroupMessageAPI       string `mapstructure:"group_message_api" env:"WEBHOOK_IM_FEISHU_GROUP_MESSAGE_API" default:"https://open.feishu.cn/open-apis/im/v1/messages"`
 	RequestTimeoutSeconds int    `mapstructure:"request_timeout_seconds" env:"WEBHOOK_IM_FEISHU_REQUEST_TIMEOUT_SECONDS" default:"10"`
@@ -379,7 +407,3 @@ type ExternalConfig struct {
 	Aliyun AliyunConfig `mapstructure:"aliyun"`
 	Tavily TavilyConfig `mapstructure:"tavily"`
 }
-
-// GlobalConfig 全局配置实例
-var GlobalConfig = &Config{}
-var GlobalExternalConfig = &ExternalConfig{}

@@ -57,13 +57,11 @@ func NewInstanceFlowService(dao dao.WorkorderInstanceFlowDAO, logger *zap.Logger
 	}
 }
 
-// ListInstanceFlows 获取工单流程记录列表
 func (s *instanceFlowService) ListInstanceFlows(ctx context.Context, req *model.ListWorkorderInstanceFlowReq) (*model.ListResp[*model.WorkorderInstanceFlow], error) {
 	if req == nil {
 		return nil, dao.ErrInstanceInvalidID
 	}
 
-	// 设置默认分页参数
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -76,7 +74,6 @@ func (s *instanceFlowService) ListInstanceFlows(ctx context.Context, req *model.
 		return nil, fmt.Errorf("获取工单流程记录列表失败: %w", err)
 	}
 
-	// 转换为指针切片
 	flowPtrs := make([]*model.WorkorderInstanceFlow, len(flows))
 	for i := range flows {
 		flowPtrs[i] = &flows[i]
@@ -88,7 +85,6 @@ func (s *instanceFlowService) ListInstanceFlows(ctx context.Context, req *model.
 	}, nil
 }
 
-// DetailInstanceFlow 获取工单流转记录
 func (s *instanceFlowService) DetailInstanceFlow(ctx context.Context, id int) (*model.WorkorderInstanceFlow, error) {
 	if id <= 0 {
 		return nil, dao.ErrInstanceInvalidID

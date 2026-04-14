@@ -128,7 +128,6 @@ func ValidateLabelKey(key string) error {
 	return nil
 }
 
-// validateLabelNamePart 验证标签名称部分
 func validateLabelNamePart(name string) error {
 
 	if len(name) > 63 {
@@ -169,7 +168,6 @@ func ValidateLabelValue(value string) error {
 		return nil
 	}
 
-	// 标签值格式验证
 	labelValueRegex := regexp.MustCompile(`^[a-zA-Z0-9]([-a-zA-Z0-9_.]*[a-zA-Z0-9])?$`)
 	if !labelValueRegex.MatchString(value) {
 		return fmt.Errorf("label value must consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character")
@@ -268,7 +266,6 @@ func ValidateContainerName(name string) error {
 		return fmt.Errorf("container name length cannot exceed 253 characters")
 	}
 
-	// 容器名称格式验证
 	containerNameRegex := regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
 	if !containerNameRegex.MatchString(name) {
 		return fmt.Errorf("container name must consist of lowercase alphanumeric characters or '-', and must start and end with an alphanumeric character")
@@ -282,7 +279,6 @@ func ValidateImageName(image string) error {
 		return fmt.Errorf("image name cannot be empty")
 	}
 
-	// 简单的镜像名称格式验证
 	// 格式：[registry/]name[:tag]
 	if len(image) > 1024 {
 		return fmt.Errorf("image name is too long")

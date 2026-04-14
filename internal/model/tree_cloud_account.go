@@ -27,7 +27,6 @@ package model
 
 import "time"
 
-// CloudAccountStatus 云账户状态
 type CloudAccountStatus int8
 
 const (
@@ -58,7 +57,6 @@ func (c *CloudAccount) TableName() string {
 	return "cl_tree_cloud_account"
 }
 
-// CloudAccountRegionStatus 云账号区域状态
 type CloudAccountRegionStatus int8
 
 const (
@@ -85,7 +83,6 @@ func (c *CloudAccountRegion) TableName() string {
 	return "cl_tree_cloud_account_region"
 }
 
-// GetCloudAccountListReq 获取云账户列表请求
 type GetCloudAccountListReq struct {
 	ListReq
 	Provider CloudProvider      `json:"provider" form:"provider" binding:"omitempty,oneof=1 2 3 4 5 6"`                // 云厂商筛选
@@ -94,12 +91,10 @@ type GetCloudAccountListReq struct {
 	Order    string             `json:"order" form:"order" binding:"omitempty,oneof=asc desc"`                         // 排序方向
 }
 
-// GetCloudAccountDetailReq 获取云账户详情请求
 type GetCloudAccountDetailReq struct {
 	ID int `json:"id" form:"id" binding:"required,gt=0"`
 }
 
-// CreateCloudAccountReq 创建云账户请求
 type CreateCloudAccountReq struct {
 	Name         string                         `json:"name" binding:"required,min=2,max=100"`         // 账户名称
 	Provider     CloudProvider                  `json:"provider" binding:"required,oneof=1 2 3 4 5 6"` // 云厂商类型
@@ -112,7 +107,6 @@ type CreateCloudAccountReq struct {
 	Regions      []CreateCloudAccountRegionItem `json:"regions" binding:"required,min=1,dive"`         // 区域配置（至少一个）
 }
 
-// UpdateCloudAccountReq 更新云账户请求
 type UpdateCloudAccountReq struct {
 	ID           int                            `json:"id" binding:"required,gt=0"`                    // 账户ID
 	Name         string                         `json:"name" binding:"omitempty,min=2,max=100"`        // 账户名称
@@ -125,46 +119,38 @@ type UpdateCloudAccountReq struct {
 	Regions      []CreateCloudAccountRegionItem `json:"regions" binding:"omitempty,min=1,dive"`        // 区域配置（可选，如果提供则至少一个）
 }
 
-// DeleteCloudAccountReq 删除云账户请求
 type DeleteCloudAccountReq struct {
 	ID int `json:"id" binding:"required,gt=0"`
 }
 
-// UpdateCloudAccountStatusReq 更新云账户状态请求
 type UpdateCloudAccountStatusReq struct {
 	ID     int                `json:"id" binding:"required,gt=0"`
 	Status CloudAccountStatus `json:"status" binding:"required,oneof=1 2"`
 }
 
-// VerifyCloudAccountReq 验证云账户凭证请求
 type VerifyCloudAccountReq struct {
 	ID int `json:"id" binding:"required,gt=0"` // 账户ID
 }
 
-// BatchDeleteCloudAccountReq 批量删除云账户请求
 type BatchDeleteCloudAccountReq struct {
 	IDs []int `json:"ids" binding:"required,min=1,max=100,dive,gt=0"` // 账户ID列表
 }
 
-// BatchUpdateCloudAccountStatusReq 批量更新云账户状态请求
 type BatchUpdateCloudAccountStatusReq struct {
 	IDs    []int              `json:"ids" binding:"required,min=1,max=100,dive,gt=0"` // 账户ID列表
 	Status CloudAccountStatus `json:"status" binding:"required,oneof=1 2"`            // 目标状态
 }
 
-// ImportCloudAccountReq 导入云账户请求
 type ImportCloudAccountReq struct {
 	Accounts []CreateCloudAccountReq `json:"accounts" binding:"required,min=1,max=50,dive"` // 账户列表
 }
 
-// ExportCloudAccountReq 导出云账户请求
 type ExportCloudAccountReq struct {
 	IDs      []int         `json:"ids" binding:"omitempty,max=100,dive,gt=0"`      // 指定账户ID，为空则导出全部
 	Provider CloudProvider `json:"provider" binding:"omitempty,oneof=1 2 3 4 5 6"` // 按云厂商过滤
 	Format   string        `json:"format" binding:"omitempty,oneof=json csv"`      // 导出格式：json或csv
 }
 
-// ImportCloudAccountResp 导入云账户响应
 type ImportCloudAccountResp struct {
 	SuccessCount int      `json:"success_count"` // 成功数量
 	FailedCount  int      `json:"failed_count"`  // 失败数量
@@ -172,7 +158,6 @@ type ImportCloudAccountResp struct {
 	Message      string   `json:"message"`       // 提示信息
 }
 
-// ExportRegion 导出区域信息
 type ExportRegion struct {
 	Region      string `json:"region"`      // 区域代码
 	RegionName  string `json:"region_name"` // 区域名称
@@ -195,7 +180,6 @@ type ExportAccount struct {
 	CreatedAt    string         `json:"created_at"`    // 创建时间
 }
 
-// GetCloudAccountRegionListReq 获取云账号区域列表请求
 type GetCloudAccountRegionListReq struct {
 	ListReq
 	CloudAccountID int                      `json:"cloud_account_id" form:"cloud_account_id" binding:"omitempty,gt=0"`
@@ -203,7 +187,6 @@ type GetCloudAccountRegionListReq struct {
 	Status         CloudAccountRegionStatus `json:"status" form:"status" binding:"omitempty,oneof=1 2"`
 }
 
-// CreateCloudAccountRegionReq 创建云账号区域关联请求
 type CreateCloudAccountRegionReq struct {
 	CloudAccountID int    `json:"cloud_account_id" binding:"required,gt=0"`
 	Region         string `json:"region" binding:"required"`
@@ -214,7 +197,6 @@ type CreateCloudAccountRegionReq struct {
 	CreateUserName string `json:"create_user_name"`
 }
 
-// UpdateCloudAccountRegionReq 更新云账号区域关联请求
 type UpdateCloudAccountRegionReq struct {
 	ID          int    `json:"id" binding:"required,gt=0"`
 	RegionName  string `json:"region_name"`
@@ -222,12 +204,10 @@ type UpdateCloudAccountRegionReq struct {
 	Description string `json:"description"`
 }
 
-// DeleteCloudAccountRegionReq 删除云账号区域关联请求
 type DeleteCloudAccountRegionReq struct {
 	ID int `json:"id" binding:"required,gt=0"`
 }
 
-// UpdateCloudAccountRegionStatusReq 更新云账号区域状态请求
 type UpdateCloudAccountRegionStatusReq struct {
 	ID     int                      `json:"id" binding:"required,gt=0"`
 	Status CloudAccountRegionStatus `json:"status" binding:"required,oneof=1 2"`
@@ -241,7 +221,6 @@ type BatchCreateCloudAccountRegionReq struct {
 	CreateUserName string                         `json:"create_user_name"`
 }
 
-// CreateCloudAccountRegionItem 创建云账号区域项
 type CreateCloudAccountRegionItem struct {
 	Region      string `json:"region" binding:"required"` // 区域,如cn-hangzhou
 	RegionName  string `json:"region_name"`               // 区域名称,如华东1(杭州)
@@ -249,21 +228,18 @@ type CreateCloudAccountRegionItem struct {
 	Description string `json:"description"`               // 区域描述
 }
 
-// GetAvailableRegionsReq 获取可用区域列表请求
 type GetAvailableRegionsReq struct {
 	Provider  CloudProvider `json:"provider" form:"provider" binding:"required,oneof=1 2 3 4 5 6"`
 	AccessKey string        `json:"access_key" form:"access_key"` // 可选，提供时会通过API动态获取
 	SecretKey string        `json:"secret_key" form:"secret_key"` // 可选，提供时会通过API动态获取
 }
 
-// AvailableRegion 可用区域信息
 type AvailableRegion struct {
 	Region     string `json:"region"`      // 区域代码，如cn-hangzhou
 	RegionName string `json:"region_name"` // 区域名称，如华东1(杭州)
 	Available  bool   `json:"available"`   // 是否可用
 }
 
-// GetAvailableRegionsResp 获取可用区域列表响应
 type GetAvailableRegionsResp struct {
 	Regions []AvailableRegion `json:"regions"`
 }

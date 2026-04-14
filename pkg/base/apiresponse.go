@@ -59,17 +59,14 @@ func ApiData(c *gin.Context, code int, data interface{}, message string) {
 	})
 }
 
-// Success 操作成功的返回
 func Success(c *gin.Context) {
 	ApiData(c, StatusSuccess, map[string]interface{}{}, "操作成功")
 }
 
-// SuccessWithMessage 带消息的操作成功返回
 func SuccessWithMessage(c *gin.Context, message string) {
 	ApiData(c, StatusSuccess, map[string]interface{}{}, message)
 }
 
-// SuccessWithData 带数据的操作成功返回
 func SuccessWithData(c *gin.Context, data interface{}) {
 	ApiData(c, StatusSuccess, data, "请求成功")
 }
@@ -79,12 +76,10 @@ func SuccessWithDetails(c *gin.Context, data interface{}, message string) {
 	ApiData(c, StatusSuccess, data, message)
 }
 
-// Error 操作失败的返回
 func Error(c *gin.Context) {
 	ApiData(c, StatusError, map[string]interface{}{}, "操作失败")
 }
 
-// ErrorWithMessage 带消息的操作失败返回
 func ErrorWithMessage(c *gin.Context, message string) {
 	ApiData(c, StatusError, map[string]interface{}{}, message)
 }
@@ -130,7 +125,6 @@ func InternalServerError(c *gin.Context, code int, data interface{}, message str
 	})
 }
 
-// BadRequestError 参数错误的失败返回
 func BadRequestError(c *gin.Context, message string) {
 	BadRequest(c, StatusError, map[string]interface{}{}, message)
 }
@@ -145,7 +139,6 @@ func UnauthorizedErrorWithDetails(c *gin.Context, data interface{}, message stri
 	Unauthorized(c, StatusError, data, message)
 }
 
-// ForbiddenError 无权限的失败返回
 func ForbiddenError(c *gin.Context, message string) {
 	Forbidden(c, map[string]interface{}{}, message)
 }

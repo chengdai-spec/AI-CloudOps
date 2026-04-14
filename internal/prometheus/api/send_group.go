@@ -54,16 +54,14 @@ func (h *SendGroupHandler) RegisterRouters(server *gin.Engine) {
 	}
 }
 
-// GetMonitorSendGroupList 获取发送组列表
 func (h *SendGroupHandler) GetMonitorSendGroupList(ctx *gin.Context) {
 	var req model.GetMonitorSendGroupListReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.alertSendService.GetMonitorSendGroupList(ctx, &req)
+		return h.alertSendService.GetMonitorSendGroupList(ctx.Request.Context(), &req)
 	})
 }
 
-// CreateMonitorSendGroup 创建新的发送组
 func (h *SendGroupHandler) CreateMonitorSendGroup(ctx *gin.Context) {
 	var req model.CreateMonitorSendGroupReq
 
@@ -72,11 +70,10 @@ func (h *SendGroupHandler) CreateMonitorSendGroup(ctx *gin.Context) {
 	req.CreateUserName = uc.Username
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.alertSendService.CreateMonitorSendGroup(ctx, &req)
+		return nil, h.alertSendService.CreateMonitorSendGroup(ctx.Request.Context(), &req)
 	})
 }
 
-// UpdateMonitorSendGroup 更新现有的发送组
 func (h *SendGroupHandler) UpdateMonitorSendGroup(ctx *gin.Context) {
 	var req model.UpdateMonitorSendGroupReq
 
@@ -89,11 +86,10 @@ func (h *SendGroupHandler) UpdateMonitorSendGroup(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.alertSendService.UpdateMonitorSendGroup(ctx, &req)
+		return nil, h.alertSendService.UpdateMonitorSendGroup(ctx.Request.Context(), &req)
 	})
 }
 
-// DeleteMonitorSendGroup 删除指定的发送组
 func (h *SendGroupHandler) DeleteMonitorSendGroup(ctx *gin.Context) {
 	var req model.DeleteMonitorSendGroupReq
 
@@ -106,11 +102,10 @@ func (h *SendGroupHandler) DeleteMonitorSendGroup(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.alertSendService.DeleteMonitorSendGroup(ctx, &req)
+		return nil, h.alertSendService.DeleteMonitorSendGroup(ctx.Request.Context(), &req)
 	})
 }
 
-// GetMonitorSendGroup 获取指定的发送组详情
 func (h *SendGroupHandler) GetMonitorSendGroup(ctx *gin.Context) {
 	var req model.GetMonitorSendGroupReq
 
@@ -123,6 +118,6 @@ func (h *SendGroupHandler) GetMonitorSendGroup(ctx *gin.Context) {
 	req.ID = id
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.alertSendService.GetMonitorSendGroup(ctx, &req)
+		return h.alertSendService.GetMonitorSendGroup(ctx.Request.Context(), &req)
 	})
 }

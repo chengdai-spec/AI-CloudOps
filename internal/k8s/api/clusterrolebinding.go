@@ -67,7 +67,7 @@ func (h *K8sClusterRoleBindingHandler) GetClusterRoleBindingList(ctx *gin.Contex
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.clusterRoleBindingService.GetClusterRoleBindingList(ctx, &req)
+		return h.clusterRoleBindingService.GetClusterRoleBindingList(ctx.Request.Context(), &req)
 	})
 }
 
@@ -90,7 +90,7 @@ func (h *K8sClusterRoleBindingHandler) GetClusterRoleBindingDetails(ctx *gin.Con
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.clusterRoleBindingService.GetClusterRoleBindingDetails(ctx, &req)
+		return h.clusterRoleBindingService.GetClusterRoleBindingDetails(ctx.Request.Context(), &req)
 	})
 }
 
@@ -98,7 +98,7 @@ func (h *K8sClusterRoleBindingHandler) CreateClusterRoleBinding(ctx *gin.Context
 	var req model.CreateClusterRoleBindingReq
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleBindingService.CreateClusterRoleBinding(ctx, &req)
+		return nil, h.clusterRoleBindingService.CreateClusterRoleBinding(ctx.Request.Context(), &req)
 	})
 }
 
@@ -114,7 +114,7 @@ func (h *K8sClusterRoleBindingHandler) CreateClusterRoleBindingByYaml(ctx *gin.C
 	req.ClusterID = clusterID
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleBindingService.CreateClusterRoleBindingByYaml(ctx, &req)
+		return nil, h.clusterRoleBindingService.CreateClusterRoleBindingByYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -137,7 +137,7 @@ func (h *K8sClusterRoleBindingHandler) UpdateClusterRoleBinding(ctx *gin.Context
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleBindingService.UpdateClusterRoleBinding(ctx, &req)
+		return nil, h.clusterRoleBindingService.UpdateClusterRoleBinding(ctx.Request.Context(), &req)
 	})
 }
 
@@ -160,7 +160,7 @@ func (h *K8sClusterRoleBindingHandler) DeleteClusterRoleBinding(ctx *gin.Context
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleBindingService.DeleteClusterRoleBinding(ctx, &req)
+		return nil, h.clusterRoleBindingService.DeleteClusterRoleBinding(ctx.Request.Context(), &req)
 	})
 }
 
@@ -183,7 +183,7 @@ func (h *K8sClusterRoleBindingHandler) GetClusterRoleBindingYaml(ctx *gin.Contex
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return h.clusterRoleBindingService.GetClusterRoleBindingYaml(ctx, &req)
+		return h.clusterRoleBindingService.GetClusterRoleBindingYaml(ctx.Request.Context(), &req)
 	})
 }
 
@@ -206,6 +206,6 @@ func (h *K8sClusterRoleBindingHandler) UpdateClusterRoleBindingYaml(ctx *gin.Con
 	req.Name = name
 
 	base.HandleRequest(ctx, &req, func() (interface{}, error) {
-		return nil, h.clusterRoleBindingService.UpdateClusterRoleBindingYaml(ctx, &req)
+		return nil, h.clusterRoleBindingService.UpdateClusterRoleBindingYaml(ctx.Request.Context(), &req)
 	})
 }

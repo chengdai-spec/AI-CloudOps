@@ -27,7 +27,6 @@ package utils
 
 import "github.com/GoSimplicity/AI-CloudOps/internal/model"
 
-// GetInstanceStatusName 获取状态名称
 func GetInstanceStatusName(status int8) string {
 	switch status {
 	case model.InstanceStatusDraft:
@@ -47,7 +46,6 @@ func GetInstanceStatusName(status int8) string {
 	}
 }
 
-// GetEventTypeName 获取事件类型友好名称
 func GetEventTypeName(eventType string) string {
 	switch eventType {
 	case model.EventTypeInstanceCreated:
@@ -73,7 +71,6 @@ func GetEventTypeName(eventType string) string {
 	}
 }
 
-// GetNotificationChannelName 获取通知渠道友好名称
 func GetNotificationChannelName(channel string) string {
 	switch channel {
 	case model.NotificationChannelEmail:
@@ -89,7 +86,6 @@ func GetNotificationChannelName(channel string) string {
 	}
 }
 
-// GetRecipientTypeName 获取接收者类型友好名称
 func GetRecipientTypeName(recipientType string) string {
 	switch recipientType {
 	case model.RecipientTypeCreator:
@@ -109,7 +105,6 @@ func GetRecipientTypeName(recipientType string) string {
 	}
 }
 
-// GetAllEventTypes 获取所有事件类型
 func GetAllEventTypes() []string {
 	return []string{
 		model.EventTypeInstanceCreated,
@@ -124,7 +119,6 @@ func GetAllEventTypes() []string {
 	}
 }
 
-// GetAllNotificationChannels 获取所有通知渠道
 func GetAllNotificationChannels() []string {
 	return []string{
 		model.NotificationChannelEmail,
@@ -134,7 +128,6 @@ func GetAllNotificationChannels() []string {
 	}
 }
 
-// GetAllRecipientTypes 获取所有接收者类型
 func GetAllRecipientTypes() []string {
 	return []string{
 		model.RecipientTypeCreator,

@@ -50,10 +50,9 @@ func (h *SystemHandler) RegisterRouters(server *gin.Engine) {
 	systemGroup.POST("/refresh", h.RefreshSystemInfo)
 }
 
-// GetSystemInfo 获取系统基本信息
 func (h *SystemHandler) GetSystemInfo(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		system, err := h.svc.GetCurrentSystemInfo(ctx)
+		system, err := h.svc.GetCurrentSystemInfo(ctx.Request.Context())
 		if err != nil {
 			return nil, err
 		}
@@ -61,10 +60,9 @@ func (h *SystemHandler) GetSystemInfo(ctx *gin.Context) {
 	})
 }
 
-// GetSystemMetrics 获取系统性能指标
 func (h *SystemHandler) GetSystemMetrics(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		system, err := h.svc.GetSystemMetrics(ctx)
+		system, err := h.svc.GetSystemMetrics(ctx.Request.Context())
 		if err != nil {
 			return nil, err
 		}
@@ -72,10 +70,9 @@ func (h *SystemHandler) GetSystemMetrics(ctx *gin.Context) {
 	})
 }
 
-// RefreshSystemInfo 刷新系统信息
 func (h *SystemHandler) RefreshSystemInfo(ctx *gin.Context) {
 	base.HandleRequest(ctx, nil, func() (interface{}, error) {
-		system, err := h.svc.RefreshSystemInfo(ctx)
+		system, err := h.svc.RefreshSystemInfo(ctx.Request.Context())
 		if err != nil {
 			return nil, err
 		}

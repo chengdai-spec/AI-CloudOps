@@ -61,7 +61,6 @@ func NewTreeLocalService(logger *zap.Logger, dao dao.TreeLocalDAO) TreeLocalServ
 	}
 }
 
-// GetTreeLocalList 获取本地主机列表
 func (s *treeLocalService) GetTreeLocalList(ctx context.Context, req *model.GetTreeLocalResourceListReq) (model.ListResp[*model.TreeLocalResource], error) {
 	// 兜底分页参数，避免offset为负或size为0
 	treeUtils.ValidateAndSetPaginationDefaults(&req.Page, &req.Size)
@@ -77,7 +76,6 @@ func (s *treeLocalService) GetTreeLocalList(ctx context.Context, req *model.GetT
 	}, nil
 }
 
-// GetTreeLocalDetail 获取本地主机详情
 func (s *treeLocalService) GetTreeLocalDetail(ctx context.Context, req *model.GetTreeLocalResourceDetailReq) (*model.TreeLocalResource, error) {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return nil, fmt.Errorf("无效的主机ID: %w", err)
@@ -130,7 +128,6 @@ func (s *treeLocalService) CreateTreeLocal(ctx context.Context, req *model.Creat
 		return fmt.Errorf("IP地址 %s 已存在", req.IpAddr)
 	}
 
-	// 创建本地主机对象
 	local := &model.TreeLocalResource{
 		Name:           req.Name,
 		Status:         model.STARTING,
@@ -149,7 +146,6 @@ func (s *treeLocalService) CreateTreeLocal(ctx context.Context, req *model.Creat
 		ImageName:      req.ImageName,
 	}
 
-	// 设置默认值
 	treeUtils.SetSSHDefaults(&local.Port, &local.Username)
 
 	// 加密
@@ -175,7 +171,6 @@ func (s *treeLocalService) UpdateTreeLocal(ctx context.Context, req *model.Updat
 		return fmt.Errorf("无效的主机ID: %w", err)
 	}
 
-	// 检查是否存在
 	host, err := s.dao.GetByID(ctx, req.ID)
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -225,7 +220,6 @@ func (s *treeLocalService) UpdateTreeLocal(ctx context.Context, req *model.Updat
 		local.Key = req.Key
 	}
 
-	// 合并更新字段
 	if err := mergo.Merge(host, &local, mergo.WithOverride); err != nil {
 		return fmt.Errorf("合并字段失败: %w", err)
 	}
@@ -238,7 +232,6 @@ func (s *treeLocalService) UpdateTreeLocal(ctx context.Context, req *model.Updat
 	return nil
 }
 
-// DeleteTreeLocal 删除本地主机
 func (s *treeLocalService) DeleteTreeLocal(ctx context.Context, req *model.DeleteTreeLocalResourceReq) error {
 	if err := treeUtils.ValidateID(req.ID); err != nil {
 		return fmt.Errorf("无效的主机ID: %w", err)

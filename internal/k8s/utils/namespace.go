@@ -54,7 +54,6 @@ func IsNamespaceActive(namespace *corev1.Namespace) bool {
 	return namespace != nil && namespace.Status.Phase == corev1.NamespaceActive
 }
 
-// IsNamespaceTerminating 检查命名空间是否正在终止
 func IsNamespaceTerminating(namespace *corev1.Namespace) bool {
 	return namespace != nil && namespace.Status.Phase == corev1.NamespaceTerminating
 }
@@ -101,7 +100,6 @@ func BuildNamespaceListOptions(req *model.K8sNamespaceListReq) metav1.ListOption
 	return options
 }
 
-// FilterNamespacesByStatus 根据状态过滤命名空间
 func FilterNamespacesByStatus(namespaces []corev1.Namespace, status string) []corev1.Namespace {
 	if status == "" {
 		return namespaces
@@ -217,7 +215,6 @@ func BuildNamespaceListPagination(namespaces []corev1.Namespace, page, size int)
 		return []corev1.Namespace{}, 0
 	}
 
-	// 设置默认分页参数
 	if page <= 0 {
 		page = 1
 	}

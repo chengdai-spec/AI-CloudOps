@@ -34,7 +34,6 @@ type PodFileStreamPipe struct {
 func NewPodFileStreamPipe(ctx context.Context, config *rest.Config, client kubernetes.Interface,
 	namespace, pod, container, filePath string) (*PodFileStreamPipe, error) {
 
-	// 创建可取消的上下文
 	downloadCtx, cancel := context.WithCancel(ctx)
 
 	pfs := &PodFileStreamPipe{
@@ -62,7 +61,6 @@ func NewPodFileStreamPipe(ctx context.Context, config *rest.Config, client kuber
 
 // startFileDownload 启动文件下载流
 func (pfs *PodFileStreamPipe) startFileDownload() error {
-	// 创建管道
 	pfs.readerStream, pfs.writerStream = io.Pipe()
 
 	cmd := fmt.Sprintf("tar cf - '%s' 2>/dev/null || echo 'Error: file not found'", pfs.filePath)
@@ -80,7 +78,6 @@ func (pfs *PodFileStreamPipe) startFileDownload() error {
 			TTY:       false,
 		}, scheme.ParameterCodec)
 
-	// 创建执行器
 	exec, err := remotecommand.NewSPDYExecutor(pfs.config, "POST", req.URL())
 	if err != nil {
 		return fmt.Errorf("创建执行器失败: %w", err)
@@ -122,7 +119,6 @@ func (pfs *PodFileStreamPipe) Read(p []byte) (int, error) {
 	return pfs.readerStream.Read(p)
 }
 
-// Close 关闭管道和资源
 func (pfs *PodFileStreamPipe) Close() error {
 	// 取消上下文
 	if pfs.cancelFunc != nil {
@@ -149,7 +145,6 @@ func (pfs *PodFileStreamPipe) Close() error {
 		writeError = pfs.writerStream.Close()
 	}
 
-	// 返回第一个遇到的错误
 	if readError != nil {
 		return readError
 	}

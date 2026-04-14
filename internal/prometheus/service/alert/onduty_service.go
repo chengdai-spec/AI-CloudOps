@@ -111,12 +111,10 @@ func (s *onDutyService) GetMonitorOnDutyGroupList(ctx context.Context, req *mode
 }
 
 func (s *onDutyService) CreateMonitorOnDutyGroup(ctx context.Context, req *model.CreateMonitorOnDutyGroupReq) error {
-	// 参数验证
 	if err := s.validateCreateGroupRequest(req); err != nil {
 		return err
 	}
 
-	// 检查值班组名称是否已存在
 	if exists, err := s.dao.CheckMonitorOnDutyGroupExists(ctx, &model.MonitorOnDutyGroup{Name: req.Name}); err != nil {
 		s.logger.Error("检查值班组是否存在失败", zap.Error(err))
 		return err
@@ -134,10 +132,8 @@ func (s *onDutyService) CreateMonitorOnDutyGroup(ctx context.Context, req *model
 		return ErrMembersNotFound
 	}
 
-	// 创建值班组对象
 	group := s.buildGroupFromRequest(req, users)
 
-	// 保存值班组到数据库
 	if err := s.dao.CreateMonitorOnDutyGroup(ctx, group); err != nil {
 		s.logger.Error("创建值班组失败", zap.Error(err))
 		return err
@@ -147,16 +143,13 @@ func (s *onDutyService) CreateMonitorOnDutyGroup(ctx context.Context, req *model
 }
 
 func (s *onDutyService) CreateMonitorOnDutyGroupChange(ctx context.Context, req *model.CreateMonitorOnDutyGroupChangeReq) error {
-	// 验证值班组是否存在
 	if _, err := s.dao.GetMonitorOnDutyGroupByID(ctx, req.OnDutyGroupID); err != nil {
 		s.logger.Error("值班组不存在", zap.Int("groupID", req.OnDutyGroupID), zap.Error(err))
 		return ErrGroupNotFound
 	}
 
-	// 创建值班变更记录
 	change := s.buildChangeFromRequest(req)
 
-	// 保存值班变更记录到数据库
 	if err := s.dao.CreateMonitorOnDutyGroupChange(ctx, change); err != nil {
 		s.logger.Error("创建值班变更失败", zap.Error(err))
 		return err
@@ -166,12 +159,10 @@ func (s *onDutyService) CreateMonitorOnDutyGroupChange(ctx context.Context, req 
 }
 
 func (s *onDutyService) UpdateMonitorOnDutyGroup(ctx context.Context, req *model.UpdateMonitorOnDutyGroupReq) error {
-	// 参数验证
 	if err := s.validateUpdateGroupRequest(req); err != nil {
 		return err
 	}
 
-	// 获取要更新的值班组
 	group, err := s.dao.GetMonitorOnDutyGroupByID(ctx, req.ID)
 	if err != nil {
 		s.logger.Error("获取值班组失败", zap.Int("id", req.ID), zap.Error(err))
@@ -198,7 +189,6 @@ func (s *onDutyService) UpdateMonitorOnDutyGroup(ctx context.Context, req *model
 		return ErrMembersNotFound
 	}
 
-	// 更新值班组信息
 	s.updateGroupFromRequest(group, req, users)
 
 	// 保存更新后的值班组到数据库
@@ -221,7 +211,6 @@ func (s *onDutyService) DeleteMonitorOnDutyGroup(ctx context.Context, req *model
 		return ErrGroupHasSendGroup
 	}
 
-	// 删除值班组
 	if err := s.dao.DeleteMonitorOnDutyGroup(ctx, req.ID); err != nil {
 		s.logger.Error("删除值班组失败", zap.Int("id", req.ID), zap.Error(err))
 		return err
@@ -238,7 +227,6 @@ func (s *onDutyService) GetMonitorOnDutyGroup(ctx context.Context, req *model.Ge
 		return nil, ErrGroupNotFound
 	}
 
-	// 获取今日值班人员信息
 	group.TodayDutyUser = s.getTodayDutyUser(ctx, group)
 	return group, nil
 }
@@ -246,13 +234,11 @@ func (s *onDutyService) GetMonitorOnDutyGroup(ctx context.Context, req *model.Ge
 // 值班计划和历史
 
 func (s *onDutyService) GetMonitorOnDutyGroupFuturePlan(ctx context.Context, req *model.GetMonitorOnDutyGroupFuturePlanReq) (model.ListResp[*model.MonitorOnDutyOne], error) {
-	// 解析并验证时间范围
 	startTime, endTime, err := s.parseAndValidateTimeRange(req.StartTime, req.EndTime)
 	if err != nil {
 		return model.ListResp[*model.MonitorOnDutyOne]{}, err
 	}
 
-	// 获取值班组信息
 	group, err := s.dao.GetMonitorOnDutyGroupByID(ctx, req.ID)
 	if err != nil {
 		s.logger.Error("获取值班组失败", zap.Int("id", req.ID), zap.Error(err))
@@ -274,14 +260,12 @@ func (s *onDutyService) GetMonitorOnDutyGroupFuturePlan(ctx context.Context, req
 }
 
 func (s *onDutyService) GetMonitorOnDutyHistory(ctx context.Context, req *model.GetMonitorOnDutyHistoryReq) (model.ListResp[*model.MonitorOnDutyHistory], error) {
-	// 获取值班历史记录
 	histories, total, err := s.dao.GetMonitorOnDutyHistoryList(ctx, req)
 	if err != nil {
 		s.logger.Error("获取值班历史失败", zap.Error(err))
 		return model.ListResp[*model.MonitorOnDutyHistory]{}, err
 	}
 
-	// 返回值班历史记录和总数
 	return model.ListResp[*model.MonitorOnDutyHistory]{
 		Items: histories,
 		Total: total,
@@ -510,7 +494,6 @@ func (s *onDutyService) getTodayDutyUser(ctx context.Context, group *model.Monit
 		}
 	}
 
-	// 检查今日是否有换班记录
 	if changes, _, err := s.dao.GetMonitorOnDutyChangesByGroupAndTimeRange(ctx, group.ID, today, today); err == nil && len(changes) > 0 {
 		latestChange := changes[len(changes)-1]
 		if user := s.findUserByID(ctx, group.Users, latestChange.OnDutyUserID); user != nil {

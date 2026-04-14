@@ -42,7 +42,6 @@ const (
 	EventTypeInstanceReturned  = "instance_returned"  // 工单退回
 )
 
-// 通知状态常量
 const (
 	NotificationStatusPending int8 = 1 // 待发送
 	NotificationStatusSending int8 = 2 // 发送中
@@ -68,7 +67,6 @@ const (
 	RecipientTypeCustom   = "custom"   // 自定义用户
 )
 
-// 通知状态常量
 const (
 	NotificationStatusEnabled  int8 = 1 // 启用
 	NotificationStatusDisabled int8 = 2 // 禁用
@@ -81,7 +79,6 @@ const (
 	NotificationPriorityLow    int8 = 3 // 低优先级
 )
 
-// 发送状态
 const (
 	NotificationSendStatusPending   int8 = 1 // 待发送
 	NotificationSendStatusSending   int8 = 2 // 发送中
@@ -90,7 +87,6 @@ const (
 	NotificationSendStatusCancelled int8 = 5 // 已取消
 )
 
-// 队列状态
 const (
 	NotificationQueueStatusPending    int8 = 1 // 待处理
 	NotificationQueueStatusProcessing int8 = 2 // 处理中
@@ -106,7 +102,6 @@ const (
 	TriggerTypeConditional = "conditional" // 条件触发
 )
 
-// 任务类型
 const (
 	TaskTypeSendNotification        = "notification:send"
 	TaskTypeBatchSendNotification   = "notification:batch_send"
@@ -120,13 +115,11 @@ const (
 	FlowActionComment = "comment" // 评论
 )
 
-// 默认配置
 const (
 	IsDefaultYes int8 = 1 // 是
 	IsDefaultNo  int8 = 2 // 否
 )
 
-// 工单通知配置
 type WorkorderNotification struct {
 	Model
 	Name             string     `json:"name" gorm:"column:name;type:varchar(200);not null;index;comment:通知配置名称"`
@@ -163,7 +156,6 @@ type WorkorderNotificationChannel struct {
 	Channels StringList `json:"channels"`
 }
 
-// CreateWorkorderNotificationReq 创建通知配置
 type CreateWorkorderNotificationReq struct {
 	Name             string     `json:"name" binding:"required"`
 	Description      string     `json:"description"`
@@ -191,7 +183,6 @@ type CreateWorkorderNotificationReq struct {
 	UserID           int        `json:"-"` // 由中间件注入
 }
 
-// UpdateWorkorderNotificationReq 更新通知配置
 type UpdateWorkorderNotificationReq struct {
 	ID               int        `json:"id" binding:"required"`
 	Name             string     `json:"name"`
@@ -219,12 +210,10 @@ type UpdateWorkorderNotificationReq struct {
 	Settings         JSONMap    `json:"settings"`
 }
 
-// DeleteWorkorderNotificationReq 删除通知配置
 type DeleteWorkorderNotificationReq struct {
 	ID int `json:"id" binding:"required"`
 }
 
-// ListWorkorderNotificationReq 通知配置列表
 type ListWorkorderNotificationReq struct {
 	Page       int    `json:"page" form:"page"`
 	PageSize   int    `json:"page_size" form:"page_size"`
@@ -236,12 +225,10 @@ type ListWorkorderNotificationReq struct {
 	IsDefault  *int8  `json:"is_default" form:"is_default" binding:"omitempty,oneof=1 2"`
 }
 
-// DetailWorkorderNotificationReq 通知配置详情
 type DetailWorkorderNotificationReq struct {
 	ID int `json:"id" binding:"required"`
 }
 
-// 工单通知发送记录
 type WorkorderNotificationLog struct {
 	Model
 	NotificationID int        `json:"notification_id" gorm:"not null;index;comment:通知配置ID"`
@@ -271,7 +258,6 @@ func (WorkorderNotificationLog) TableName() string {
 	return "cl_workorder_notification_log"
 }
 
-// ListWorkorderNotificationLogReq 工单通知发送记录列表
 type ListWorkorderNotificationLogReq struct {
 	Page           int    `json:"page" form:"page"`
 	PageSize       int    `json:"page_size" form:"page_size"`
@@ -316,7 +302,6 @@ type TestSendWorkorderNotificationReq struct {
 	Recipient      string `json:"recipient"` // 可选，如果不提供则使用默认测试地址
 }
 
-// ListWorkorderNotificationQueueReq 工单通知队列列表
 type ListWorkorderNotificationQueueReq struct {
 	Page           int    `json:"page" form:"page"`
 	PageSize       int    `json:"page_size" form:"page_size"`
@@ -330,7 +315,6 @@ type ListWorkorderNotificationQueueReq struct {
 	Priority       *int8  `json:"priority" form:"priority"`
 }
 
-// ManualSendNotificationReq 手动发送通知请求
 type ManualSendNotificationReq struct {
 	Channels  []string `json:"channels" binding:"required"`  // 通知渠道列表
 	Recipient string   `json:"recipient" binding:"required"` // 接收人地址

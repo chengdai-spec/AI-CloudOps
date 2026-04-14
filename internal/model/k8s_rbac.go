@@ -56,7 +56,6 @@ type PermissionSource struct {
 	BindingName string `json:"binding_name"`
 }
 
-// PermissionCheckResult 权限检查结果
 type PermissionCheckResult struct {
 	Allowed bool   `json:"allowed"`
 	Source  string `json:"source,omitempty"`

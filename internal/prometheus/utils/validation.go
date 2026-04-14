@@ -27,7 +27,6 @@ package utils
 
 import "fmt"
 
-// ValidateScrapeTiming 校验采集间隔与超时时间
 func ValidateScrapeTiming(interval, timeout int) error {
 	if interval <= 0 || timeout <= 0 {
 		return fmt.Errorf("采集间隔和采集超时时间不能小于等于0")

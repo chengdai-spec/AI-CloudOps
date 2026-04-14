@@ -70,7 +70,6 @@ func (d *alertManagerSendDAO) GetMonitorSendGroupByPoolID(ctx context.Context, p
 	var sendGroups []*model.MonitorSendGroup
 	var count int64
 
-	// 先获取总数
 	if err := d.db.WithContext(ctx).
 		Model(&model.MonitorSendGroup{}).
 		Where("pool_id = ?", poolID).
@@ -99,7 +98,6 @@ func (d *alertManagerSendDAO) GetMonitorSendGroupByOnDutyGroupID(ctx context.Con
 	var sendGroups []*model.MonitorSendGroup
 	var count int64
 
-	// 先获取总数
 	if err := d.db.WithContext(ctx).
 		Model(&model.MonitorSendGroup{}).
 		Where("on_duty_group_id = ?", onDutyGroupID).
@@ -142,7 +140,6 @@ func (d *alertManagerSendDAO) GetMonitorSendGroupList(ctx context.Context, req *
 		query = query.Where("on_duty_group_id = ?", *req.OnDutyGroupID)
 	}
 
-	// 先获取总数
 	if err := query.Count(&count).Error; err != nil {
 		d.l.Error("获取 MonitorSendGroup 总数失败", zap.Error(err))
 		return nil, 0, err
@@ -199,14 +196,12 @@ func (d *alertManagerSendDAO) CreateMonitorSendGroup(ctx context.Context, monito
 		return tx.Error
 	}
 
-	// 创建发送组基本信息
 	if err := tx.Create(monitorSendGroup).Error; err != nil {
 		tx.Rollback()
 		d.l.Error("创建 MonitorSendGroup 失败", zap.Error(err))
 		return err
 	}
 
-	// 处理静态接收用户关联
 	if len(monitorSendGroup.StaticReceiveUsers) > 0 {
 		if err := tx.Model(monitorSendGroup).Association("StaticReceiveUsers").Replace(monitorSendGroup.StaticReceiveUsers); err != nil {
 			tx.Rollback()
@@ -215,7 +210,6 @@ func (d *alertManagerSendDAO) CreateMonitorSendGroup(ctx context.Context, monito
 		}
 	}
 
-	// 处理第一级升级用户关联
 	if len(monitorSendGroup.FirstUpgradeUsers) > 0 {
 		if err := tx.Model(monitorSendGroup).Association("FirstUpgradeUsers").Replace(monitorSendGroup.FirstUpgradeUsers); err != nil {
 			tx.Rollback()
@@ -224,7 +218,6 @@ func (d *alertManagerSendDAO) CreateMonitorSendGroup(ctx context.Context, monito
 		}
 	}
 
-	// 处理第二级升级用户关联
 	if len(monitorSendGroup.SecondUpgradeUsers) > 0 {
 		if err := tx.Model(monitorSendGroup).Association("SecondUpgradeUsers").Replace(monitorSendGroup.SecondUpgradeUsers); err != nil {
 			tx.Rollback()
@@ -257,7 +250,6 @@ func (d *alertManagerSendDAO) DeleteMonitorSendGroup(ctx context.Context, id int
 		return tx.Error
 	}
 
-	// 查找要删除的发送组
 	sendGroup := &model.MonitorSendGroup{}
 	if err := tx.First(sendGroup, id).Error; err != nil {
 		tx.Rollback()
@@ -289,7 +281,6 @@ func (d *alertManagerSendDAO) DeleteMonitorSendGroup(ctx context.Context, id int
 		return err
 	}
 
-	// 删除发送组
 	if err := tx.Delete(&model.MonitorSendGroup{}, id).Error; err != nil {
 		tx.Rollback()
 		d.l.Error("删除 MonitorSendGroup 失败", zap.Error(err), zap.Int("id", id))
@@ -336,7 +327,6 @@ func (d *alertManagerSendDAO) CheckMonitorSendGroupNameExists(ctx context.Contex
 		Model(&model.MonitorSendGroup{}).
 		Where("name = ?", sendGroup.Name)
 
-	// 如果是更新操作，排除自身
 	if sendGroup.ID > 0 {
 		query = query.Where("id != ?", sendGroup.ID)
 	}
@@ -362,28 +352,24 @@ func (d *alertManagerSendDAO) UpdateMonitorSendGroup(ctx context.Context, monito
 		return tx.Error
 	}
 
-	// 更新发送组基本信息
 	if err := tx.Model(monitorSendGroup).Updates(monitorSendGroup).Error; err != nil {
 		tx.Rollback()
 		d.l.Error("更新 MonitorSendGroup 失败", zap.Error(err))
 		return err
 	}
 
-	// 处理静态接收用户关联
 	if err := tx.Model(monitorSendGroup).Association("StaticReceiveUsers").Replace(monitorSendGroup.StaticReceiveUsers); err != nil {
 		tx.Rollback()
 		d.l.Error("更新静态接收用户关联失败", zap.Error(err))
 		return err
 	}
 
-	// 处理第一级升级用户关联
 	if err := tx.Model(monitorSendGroup).Association("FirstUpgradeUsers").Replace(monitorSendGroup.FirstUpgradeUsers); err != nil {
 		tx.Rollback()
 		d.l.Error("更新第一级升级用户关联失败", zap.Error(err))
 		return err
 	}
 
-	// 处理第二级升级用户关联
 	if err := tx.Model(monitorSendGroup).Association("SecondUpgradeUsers").Replace(monitorSendGroup.SecondUpgradeUsers); err != nil {
 		tx.Rollback()
 		d.l.Error("更新第二级升级用户关联失败", zap.Error(err))
@@ -400,12 +386,10 @@ func (d *alertManagerSendDAO) UpdateMonitorSendGroup(ctx context.Context, monito
 	return nil
 }
 
-// GetMonitorSendGroups 获取所有发送组
 func (d *alertManagerSendDAO) GetMonitorSendGroups(ctx context.Context) ([]*model.MonitorSendGroup, int64, error) {
 	var sendGroups []*model.MonitorSendGroup
 	var count int64
 
-	// 先获取总数
 	if err := d.db.WithContext(ctx).
 		Model(&model.MonitorSendGroup{}).
 		Count(&count).Error; err != nil {
