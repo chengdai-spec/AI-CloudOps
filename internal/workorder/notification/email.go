@@ -108,43 +108,64 @@ func (e *EmailChannel) Send(ctx context.Context, request *SendRequest) (*SendRes
 	}
 
 	// 发送
-	if err := d.DialAndSend(m); err != nil {
-		// 解析错误信息，提供更详细的错误说明
-		errorMsg := e.parseEmailError(err, smtpHost)
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- d.DialAndSend(m)
+	}()
 
-		e.logger.Error("发送邮件失败",
+	select {
+	case <-ctx.Done():
+		err := fmt.Errorf("发送邮件超时或被取消: %w", ctx.Err())
+		e.logger.Error("发送邮件被上下文中断",
 			zap.String("recipient", request.RecipientAddr),
 			zap.String("subject", subject),
-			zap.String("smtp_host", smtpHost),
-			zap.Int("smtp_port", smtpPort),
-			zap.Bool("use_tls", useTLS),
-			zap.String("error_detail", errorMsg),
 			zap.Error(err))
-
 		return &SendResponse{
 			Success:      false,
 			MessageID:    request.MessageID,
 			Status:       "failed",
-			ErrorMessage: errorMsg,
+			ErrorMessage: err.Error(),
 			SendTime:     startTime,
-		}, fmt.Errorf("%s: %v", errorMsg, err)
+		}, err
+	case err := <-errCh:
+		if err != nil {
+			// 解析错误信息，提供更详细的错误说明
+			errorMsg := e.parseEmailError(err, smtpHost)
+
+			e.logger.Error("发送邮件失败",
+				zap.String("recipient", request.RecipientAddr),
+				zap.String("subject", subject),
+				zap.String("smtp_host", smtpHost),
+				zap.Int("smtp_port", smtpPort),
+				zap.Bool("use_tls", useTLS),
+				zap.String("error_detail", errorMsg),
+				zap.Error(err))
+
+			return &SendResponse{
+				Success:      false,
+				MessageID:    request.MessageID,
+				Status:       "failed",
+				ErrorMessage: errorMsg,
+				SendTime:     startTime,
+			}, fmt.Errorf("%s: %v", errorMsg, err)
+		}
+
+		e.logger.Info("邮件发送成功",
+			zap.String("recipient", request.RecipientAddr),
+			zap.String("subject", subject),
+			zap.Duration("duration", time.Since(startTime)))
+
+		return &SendResponse{
+			Success:   true,
+			MessageID: request.MessageID,
+			Status:    "sent",
+			SendTime:  startTime,
+			ResponseData: map[string]interface{}{
+				"smtp_host": e.config.GetSMTPHost(),
+				"duration":  time.Since(startTime).String(),
+			},
+		}, nil
 	}
-
-	e.logger.Info("邮件发送成功",
-		zap.String("recipient", request.RecipientAddr),
-		zap.String("subject", subject),
-		zap.Duration("duration", time.Since(startTime)))
-
-	return &SendResponse{
-		Success:   true,
-		MessageID: request.MessageID,
-		Status:    "sent",
-		SendTime:  startTime,
-		ResponseData: map[string]interface{}{
-			"smtp_host": e.config.GetSMTPHost(),
-			"duration":  time.Since(startTime).String(),
-		},
-	}, nil
 }
 
 // parseEmailError 解析邮件错误并返回友好提示信息

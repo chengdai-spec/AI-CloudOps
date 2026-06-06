@@ -68,6 +68,62 @@ func NewWorkorderProcessService(
 	}
 }
 
+func defaultProcessDefinition() model.ProcessDefinition {
+	return model.ProcessDefinition{
+		Steps: []model.ProcessStep{
+			{
+				ID:        model.ProcessStepTypeStart,
+				Type:      model.ProcessStepTypeStart,
+				Name:      "开始",
+				Actions:   []string{model.FlowActionSubmit},
+				SortOrder: 1,
+			},
+			{
+				ID:           model.ProcessStepTypeApproval,
+				Type:         model.ProcessStepTypeApproval,
+				Name:         "审批",
+				AssigneeType: model.AssigneeTypeGroup,
+				Actions:      []string{model.FlowActionApprove, model.FlowActionReject, model.FlowActionAssign},
+				SortOrder:    2,
+			},
+			{
+				ID:        model.ProcessStepTypeEnd,
+				Type:      model.ProcessStepTypeEnd,
+				Name:      "结束",
+				SortOrder: 3,
+			},
+		},
+		Connections: []model.ProcessConnection{
+			{From: model.ProcessStepTypeStart, To: model.ProcessStepTypeApproval},
+			{From: model.ProcessStepTypeApproval, To: model.ProcessStepTypeEnd},
+		},
+	}
+}
+
+func normalizeProcessDefinition(definition *model.ProcessDefinition) model.ProcessDefinition {
+	if definition == nil || (len(definition.Steps) == 0 && len(definition.Connections) == 0) {
+		return defaultProcessDefinition()
+	}
+
+	return *definition
+}
+
+func buildProcessDefinitionMap(definition model.ProcessDefinition) (model.ProcessDefinition, model.JSONMap, error) {
+	normalizedDefinition := normalizeProcessDefinition(&definition)
+
+	definitionJSON, err := json.Marshal(normalizedDefinition)
+	if err != nil {
+		return normalizedDefinition, nil, fmt.Errorf("序列化流程定义失败: %w", err)
+	}
+
+	var definitionMap model.JSONMap
+	if err := json.Unmarshal(definitionJSON, &definitionMap); err != nil {
+		return normalizedDefinition, nil, fmt.Errorf("转换流程定义失败: %w", err)
+	}
+
+	return normalizedDefinition, definitionMap, nil
+}
+
 func (s *workorderProcessService) CreateWorkorderProcess(ctx context.Context, req *model.CreateWorkorderProcessReq) error {
 	exists, err := s.dao.CheckProcessNameExists(ctx, req.Name)
 	if err != nil {
@@ -108,27 +164,18 @@ func (s *workorderProcessService) CreateWorkorderProcess(ctx context.Context, re
 		IsDefault:    req.IsDefault,
 	}
 
-	if len(req.Definition.Steps) > 0 || len(req.Definition.Connections) > 0 {
-		if err := s.dao.ValidateProcessDefinition(ctx, &req.Definition); err != nil {
-			s.logger.Error("流程定义验证失败", zap.Error(err))
-			return fmt.Errorf("流程定义验证失败: %w", err)
-		}
-
-		// 序列化流程定义
-		definitionJSON, err := json.Marshal(req.Definition)
-		if err != nil {
-			s.logger.Error("序列化流程定义失败", zap.Error(err))
-			return fmt.Errorf("序列化流程定义失败: %w", err)
-		}
-		// 转换为JSONMap
-		var definitionMap model.JSONMap
-		err = json.Unmarshal(definitionJSON, &definitionMap)
-		if err != nil {
-			s.logger.Error("转换流程定义为JSONMap失败", zap.Error(err))
-			return fmt.Errorf("转换流程定义失败: %w", err)
-		}
-		process.Definition = definitionMap
+	definition := normalizeProcessDefinition(req.Definition)
+	if err := s.dao.ValidateProcessDefinition(ctx, &definition); err != nil {
+		s.logger.Error("流程定义验证失败", zap.Error(err))
+		return fmt.Errorf("流程定义验证失败: %w", err)
 	}
+
+	_, definitionMap, err := buildProcessDefinitionMap(definition)
+	if err != nil {
+		s.logger.Error("转换流程定义为JSONMap失败", zap.Error(err))
+		return err
+	}
+	process.Definition = definitionMap
 
 	if err := s.dao.CreateProcess(ctx, process); err != nil {
 		s.logger.Error("创建流程失败",
@@ -192,23 +239,17 @@ func (s *workorderProcessService) UpdateWorkorderProcess(ctx context.Context, re
 		IsDefault:    req.IsDefault,
 	}
 
-	if len(req.Definition.Steps) > 0 || len(req.Definition.Connections) > 0 {
-		if err := s.dao.ValidateProcessDefinition(ctx, &req.Definition); err != nil {
+	if req.Definition != nil {
+		definition := normalizeProcessDefinition(req.Definition)
+		if err := s.dao.ValidateProcessDefinition(ctx, &definition); err != nil {
 			s.logger.Error("流程定义验证失败", zap.Error(err))
 			return fmt.Errorf("流程定义验证失败: %w", err)
 		}
 
-		definitionJSON, err := json.Marshal(req.Definition)
-		if err != nil {
-			s.logger.Error("序列化流程定义失败", zap.Error(err))
-			return fmt.Errorf("序列化流程定义失败: %w", err)
-		}
-		// 转换为JSONMap
-		var definitionMap model.JSONMap
-		err = json.Unmarshal(definitionJSON, &definitionMap)
+		_, definitionMap, err := buildProcessDefinitionMap(definition)
 		if err != nil {
 			s.logger.Error("转换流程定义为JSONMap失败", zap.Error(err))
-			return fmt.Errorf("转换流程定义失败: %w", err)
+			return err
 		}
 		process.Definition = definitionMap
 	}

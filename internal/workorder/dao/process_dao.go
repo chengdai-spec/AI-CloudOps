@@ -50,6 +50,9 @@ func (d *processDAO) CreateProcess(ctx context.Context, process *model.Workorder
 	if exists {
 		return ErrProcessNameExists
 	}
+	if process.Definition == nil {
+		return fmt.Errorf("流程定义不能为空")
+	}
 	if err := d.db.WithContext(ctx).Create(process).Error; err != nil {
 		d.logger.Error("创建流程失败", zap.Error(err), zap.String("name", process.Name))
 		return fmt.Errorf("创建流程失败: %w", err)
@@ -73,11 +76,13 @@ func (d *processDAO) UpdateProcess(ctx context.Context, process *model.Workorder
 		"name":           process.Name,
 		"description":    process.Description,
 		"form_design_id": process.FormDesignID,
-		"definition":     process.Definition,
 		"status":         process.Status,
 		"category_id":    process.CategoryID,
 		"tags":           process.Tags,
 		"is_default":     process.IsDefault,
+	}
+	if process.Definition != nil {
+		updateData["definition"] = process.Definition
 	}
 
 	result := d.db.WithContext(ctx).

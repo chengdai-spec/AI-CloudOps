@@ -100,28 +100,28 @@ type ProcessDefinition struct {
 }
 
 type CreateWorkorderProcessReq struct {
-	Name         string            `json:"name" binding:"required,min=1,max=200"`
-	Description  string            `json:"description" binding:"omitempty,max=1000"`
-	FormDesignID int               `json:"form_design_id" binding:"required,min=1"`
-	Definition   ProcessDefinition `json:"definition" binding:"required"`
-	Status       int8              `json:"status" binding:"required,oneof=1 2 3"`
-	CategoryID   *int              `json:"category_id" binding:"omitempty,min=1"`
-	OperatorID   int               `json:"operator_id" binding:"required,min=1"`
-	OperatorName string            `json:"operator_name" binding:"required,min=1,max=100"`
-	Tags         StringList        `json:"tags" binding:"omitempty"`
-	IsDefault    int8              `json:"is_default" binding:"required,oneof=1 2"`
+	Name         string             `json:"name" binding:"required,min=1,max=200"`
+	Description  string             `json:"description" binding:"omitempty,max=1000"`
+	FormDesignID int                `json:"form_design_id" binding:"required,min=1"`
+	Definition   *ProcessDefinition `json:"definition" binding:"omitempty"`
+	Status       int8               `json:"status" binding:"required,oneof=1 2 3"`
+	CategoryID   *int               `json:"category_id" binding:"omitempty,min=1"`
+	OperatorID   int                `json:"operator_id" binding:"required,min=1"`
+	OperatorName string             `json:"operator_name" binding:"required,min=1,max=100"`
+	Tags         StringList         `json:"tags" binding:"omitempty"`
+	IsDefault    int8               `json:"is_default" binding:"required,oneof=1 2"`
 }
 
 type UpdateWorkorderProcessReq struct {
-	ID           int               `json:"id" binding:"required,min=1"`
-	Name         string            `json:"name" binding:"omitempty,min=1,max=200"`
-	Description  string            `json:"description" binding:"omitempty,max=1000"`
-	FormDesignID int               `json:"form_design_id" binding:"omitempty,min=1"`
-	Definition   ProcessDefinition `json:"definition" binding:"omitempty"`
-	Status       int8              `json:"status" binding:"omitempty,oneof=1 2 3"`
-	CategoryID   *int              `json:"category_id" binding:"omitempty,min=1"`
-	Tags         StringList        `json:"tags" binding:"omitempty"`
-	IsDefault    int8              `json:"is_default" binding:"omitempty,oneof=1 2"`
+	ID           int                `json:"id" binding:"required,min=1"`
+	Name         string             `json:"name" binding:"omitempty,min=1,max=200"`
+	Description  string             `json:"description" binding:"omitempty,max=1000"`
+	FormDesignID int                `json:"form_design_id" binding:"omitempty,min=1"`
+	Definition   *ProcessDefinition `json:"definition" binding:"omitempty"`
+	Status       int8               `json:"status" binding:"omitempty,oneof=1 2 3"`
+	CategoryID   *int               `json:"category_id" binding:"omitempty,min=1"`
+	Tags         StringList         `json:"tags" binding:"omitempty"`
+	IsDefault    int8               `json:"is_default" binding:"omitempty,oneof=1 2"`
 }
 
 type DeleteWorkorderProcessReq struct {

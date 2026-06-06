@@ -45,9 +45,10 @@ type notAuthService struct {
 	treeDao treeDao.TreeNodeDAO
 }
 
-func NewNotAuthService(l *zap.Logger) NotAuthService {
+func NewNotAuthService(l *zap.Logger, treeNodeDAO treeDao.TreeNodeDAO) NotAuthService {
 	return &notAuthService{
-		l: l,
+		l:       l,
+		treeDao: treeNodeDAO,
 	}
 }
 

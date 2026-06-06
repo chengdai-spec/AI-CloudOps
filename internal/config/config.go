@@ -27,6 +27,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -207,6 +208,9 @@ func (c *EmailConfig) Validate() error {
 	if c.Password == "" {
 		return fmt.Errorf("邮件 Password 不能为空")
 	}
+	if strings.Contains(c.Username, "xxx@") || c.Password == "xxx" {
+		return fmt.Errorf("邮件通知配置仍为占位符，请替换为真实授权信息")
+	}
 	return nil
 }
 
@@ -325,6 +329,9 @@ func (c *FeishuConfig) Validate() error {
 	}
 	if c.TenantAccessTokenAPI == "" {
 		return fmt.Errorf("飞书 TenantAccessTokenAPI 不能为空")
+	}
+	if c.AppID == "xxx" || c.AppSecret == "xxx" {
+		return fmt.Errorf("飞书通知配置仍为占位符，请替换为真实凭据")
 	}
 	return nil
 }

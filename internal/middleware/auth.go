@@ -35,13 +35,15 @@ import (
 )
 
 var skipAuthPaths = map[string]bool{
-	"/api/user/login":         true,
-	"/api/user/logout":        true,
-	"/api/user/refresh_token": true,
-	"/api/user/signup":        true,
-	"/api/user/profile":       true,
-	"/api/user/codes":         true,
-	"/favicon.ico":            true,
+	"/api/user/login":                  true,
+	"/api/user/logout":                 true,
+	"/api/user/refresh_token":          true,
+	"/api/user/signup":                 true,
+	"/api/user/profile":                true,
+	"/api/user/codes":                  true,
+	"/api/not_auth/getBindIps":         true,
+	"/api/not_auth/getTreeNodeBindIps": true,
+	"/favicon.ico":                     true,
 }
 
 // 静态资源和WebSocket路径前缀

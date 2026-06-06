@@ -257,7 +257,7 @@ func (d *workorderInstanceDAO) GenerateSerialNumber(ctx context.Context) (string
 		var maxSerialNumber string
 		err := tx.Model(&model.WorkorderInstance{}).
 			Where("serial_number LIKE ?", prefix+"%").
-			Select("MAX(serial_number)").
+			Select("COALESCE(MAX(serial_number), '')").
 			Set("gorm:query_option", "FOR UPDATE").
 			Scan(&maxSerialNumber).Error
 
